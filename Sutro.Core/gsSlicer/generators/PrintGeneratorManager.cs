@@ -102,7 +102,7 @@ namespace gs
             logger?.WriteLine("Slicing...");
 
             // Do slicing
-            MeshPlanarSlicer slicer = new MeshPlanarSlicer()
+            var slicer = new MeshSlicerHorizontalPlanes()
             {
                 LayerHeightMM = Settings.LayerHeightMM
             };
