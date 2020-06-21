@@ -274,7 +274,7 @@ namespace gs
         // push an extrude move onto queue
         protected virtual void queue_extrude(Vector3d toPos, double feedRate, double e, string comment, bool bIsRetract)
         {
-            Util.gDevAssert(InExtrude || bIsRetract);
+            //Util.gDevAssert(InExtrude || bIsRetract);
             if (EnableBoundsChecking && PositionBounds.Contains(toPos.xy) == false)
                 throw new Exception("BaseDepositionAssembler.queue_extrude: tried to move outside of bounds!");
 

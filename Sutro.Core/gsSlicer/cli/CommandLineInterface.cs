@@ -1,10 +1,14 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using g3;
+using Sutro.Core;
+using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace gs
 {
@@ -18,7 +22,6 @@ namespace gs
         public CommandLineInterface(ILogger logger, IEnumerable<IPrintGeneratorManager> printGenerators)
         {
             this.logger = logger;
-
             printGeneratorDict = new Dictionary<string, IPrintGeneratorManager>();
             foreach (var printGenerator in printGenerators)
                 printGeneratorDict.Add(printGenerator.Id, printGenerator);
@@ -90,13 +93,12 @@ namespace gs
             MeshTransforms.Translate(mesh, new Vector3d(0, 0, mesh.CachedBounds.Extents.z - mesh.CachedBounds.Center.z));
         }
 
-        protected void GenerateGCode(DMesh3 mesh, out GCodeFile gcode, out IEnumerable<string> generationReport)
+        protected GenerationResult GenerateGCode(DMesh3 mesh)
         {
             ConsoleWriteSeparator();
             logger.WriteLine($"GENERATION");
             logger.WriteLine();
-
-            gcode = printGeneratorManager.GCodeFromMesh(mesh, out generationReport);
+            return printGeneratorManager.GCodeFromMesh(mesh);
         }
 
         protected virtual void LoadMesh(CommandLineOptions o, out DMesh3 mesh)
@@ -138,6 +140,9 @@ namespace gs
 
         protected virtual void OutputGenerationReport(IEnumerable<string> generationReport)
         {
+            if (generationReport == null)
+                return;
+
             ConsoleWriteSeparator();
 
             foreach (var s in generationReport)
@@ -146,7 +151,39 @@ namespace gs
             }
 
             logger.WriteLine();
-            logger.WriteLine("Print generation complete.");
+        }
+
+        protected virtual void OutputLog(GenerationResult result, int verbosity)
+        {
+            var errors = result.LogEntries.Where(l => l.Level == LoggingLevel.Error).ToList();
+            var warnings = result.LogEntries.Where(l => l.Level == LoggingLevel.Warning).ToList();
+            var info = result.LogEntries.Where(l => l.Level == LoggingLevel.Info).ToList();
+
+            ConsoleWriteSeparator();
+            logger.WriteLine("GENERATION LOG");
+            logger.WriteLine(string.Empty);
+            logger.WriteLine($"Print generated with {errors.Count} errors and {warnings.Count} warnings.");
+            logger.WriteLine("");
+            foreach (var logEntry in result.LogEntries)
+            {
+                OutputLogEntry(logEntry, verbosity);
+            }
+        }
+
+        protected virtual void OutputLogEntry(LogEntry logEntry, int verbosity)
+        {
+            if (logEntry.Level == LoggingLevel.Error)
+            {
+                logger.WriteLine($"error: {logEntry.Message}", ConsoleColor.Red);
+            }
+            else if (logEntry.Level == LoggingLevel.Warning && verbosity >= 1)
+            {
+                logger.WriteLine($"warning: {logEntry.Message}", ConsoleColor.Yellow);
+            }
+            else if (logEntry.Level == LoggingLevel.Warning && verbosity >= 2)
+            {
+                logger.WriteLine($"warning: {logEntry.Message}", ConsoleColor.Gray);
+            }
         }
 
         protected virtual void OutputVersionInfo()
@@ -175,12 +212,32 @@ namespace gs
 
             LoadMesh(o, out var mesh);
 
-            GenerateGCode(mesh, out var gcode, out var generationReport);
+            var result = GenerateGCode(mesh);
 
-            WriteGCodeToFile(o.GCodeFilePath, gcode);
+            switch (result.Status)
+            {
+                default:
+                case GenerationResultStatus.Failure:
+                    logger.WriteLine("Print generation failed.", ConsoleColor.Red);
+                    break;
+                case GenerationResultStatus.Canceled:
+                    logger.WriteLine("Print generation canceled.", ConsoleColor.Red);
+                    break;
+                case GenerationResultStatus.Success:
+                    if (result.Status == GenerationResultStatus.Success)
+                    {
+                        logger.WriteLine("Print generation succeeded.", ConsoleColor.Green);
+                        WriteGCodeToFile(o.GCodeFilePath, result.GCode);
+                    }
+                    break;
+            }
 
-            OutputGenerationReport(generationReport);
+            OutputLog(result, o.Verbosity);
+
+            if (result.Status == GenerationResultStatus.Success)
+                OutputGenerationReport(result.Report);
         }
+
 
         protected virtual void HandleInvalidGeneratorId(string id)
         {

@@ -1,12 +1,9 @@
-using CommandLine;
-using CommandLine.Text;
-using g3;
 using gs;
+using Sutro.Core.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
-namespace gsSlicer.CLI
+namespace Sutro.Core.CLI
 {
     internal static class Program
     {

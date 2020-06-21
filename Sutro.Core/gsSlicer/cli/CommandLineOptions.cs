@@ -25,5 +25,8 @@ namespace gs
 
         [Option('o', "settings_override", Required = false, HelpText = "Override individual settings")]
         public IEnumerable<string> SettingsOverride { get; set; }
+
+        [Option('v', "verbosity", Required = false, Default = 1, HelpText = "Detail of logging information to report (0 = none, 1 = errors, 2 = warnings, 3 = info)")]
+        public int Verbosity { get; set; }
     }
 }

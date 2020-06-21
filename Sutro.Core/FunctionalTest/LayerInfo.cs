@@ -1,4 +1,5 @@
 ﻿using gs;
+using Sutro.Core.Logging;
 using System.Collections.Generic;
 
 namespace Sutro.Core.FunctionalTest
