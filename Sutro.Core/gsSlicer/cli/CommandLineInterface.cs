@@ -15,15 +15,13 @@ namespace gs
     public class CommandLineInterface
     {
         protected readonly ILogger logger;
-        private readonly bool debugging;
         protected readonly Dictionary<string, IPrintGeneratorManager> printGeneratorDict;
 
         protected IPrintGeneratorManager printGeneratorManager;
 
-        public CommandLineInterface(ILogger logger, IEnumerable<IPrintGeneratorManager> printGenerators, bool debugging)
+        public CommandLineInterface(ILogger logger, IEnumerable<IPrintGeneratorManager> printGenerators)
         {
             this.logger = logger;
-            this.debugging = debugging;
             printGeneratorDict = new Dictionary<string, IPrintGeneratorManager>();
             foreach (var printGenerator in printGenerators)
                 printGeneratorDict.Add(printGenerator.Id, printGenerator);
@@ -100,7 +98,7 @@ namespace gs
             ConsoleWriteSeparator();
             logger.WriteLine($"GENERATION");
             logger.WriteLine();
-            return printGeneratorManager.GCodeFromMesh(mesh, debugging);
+            return printGeneratorManager.GCodeFromMesh(mesh);
         }
 
         protected virtual void LoadMesh(CommandLineOptions o, out DMesh3 mesh)

@@ -17,8 +17,7 @@ namespace Sutro.Core.CLI
                 printGenerators: new List<IPrintGeneratorManager> {
                     new PrintGeneratorManager<SingleMaterialFFFPrintGenerator, SingleMaterialFFFSettings>(
                         new GenericRepRapSettings(), "fff", "Basic FFF prints", logger)
-                },
-                Env.Debugging);
+                });
 
             cli.Execute(args);
         }

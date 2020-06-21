@@ -24,12 +24,11 @@ namespace Sutro.Core.FunctionalTest
                 TestDataPaths.GetResultFilePath(directory));
         }
 
-        public GenerationResult GenerateFile(bool debugging)
+        public GenerationResult GenerateFile()
         {
             return resultGenerator.GenerateResultFile(
                 TestDataPaths.GetMeshFilePath(directory),
-                TestDataPaths.GetResultFilePath(directory),
-                debugging);
+                TestDataPaths.GetResultFilePath(directory));
         }
     }
 }

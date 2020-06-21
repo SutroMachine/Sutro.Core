@@ -19,7 +19,7 @@ namespace gs
         bool AcceptsParts { get; }
         ISettingsBuilder SettingsBuilder { get; }
 
-        GenerationResult GCodeFromMesh(DMesh3 mesh, bool debugging);
+        GenerationResult GCodeFromMesh(DMesh3 mesh);
 
         void SaveGCodeToFile(TextWriter output, GCodeFile file);
     }

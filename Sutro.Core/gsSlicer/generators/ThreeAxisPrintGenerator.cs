@@ -1,9 +1,11 @@
 using g3;
 using gs.FillTypes;
 using Sutro.Core;
+using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace gs
@@ -58,7 +60,7 @@ namespace gs
             TPrintSettings settings,
             AssemblerFactoryF overrideAssemblerF);
 
-        GenerationResult Generate(bool debugging);
+        GenerationResult Generate();
     }
 
     /// <summary>
@@ -201,7 +203,7 @@ namespace gs
                 PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.Machine.NozzleDiamMM; };
         }
 
-        public virtual GenerationResult Generate(bool debugging = false)
+        public virtual GenerationResult Generate()
         {
             var result = new GenerationResult();
             try
@@ -211,10 +213,12 @@ namespace gs
                 result.GCode = extract_result();
                 result.Report = CreateReport();
             }
-            catch (Exception e) when (!debugging)
+            catch (Exception e)
             {
                 result.AddLog(Sutro.Core.Logging.LoggingLevel.Error, e.GetType().ToString() + ": " + e.Message);
                 result.Status = GenerationResultStatus.Failure;
+                if (Config.Debug)
+                    throw;
             }
             return result;
         }

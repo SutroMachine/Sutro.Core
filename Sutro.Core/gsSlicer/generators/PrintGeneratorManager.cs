@@ -44,23 +44,23 @@ namespace gs
             this.logger = logger ?? new NullLogger();
         }
 
-        public GenerationResult GCodeFromMesh(DMesh3 mesh, bool debugging = false)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh)
         {
-            return GCodeFromMesh(mesh, debugging, null);
+            return GCodeFromMesh(mesh, null);
         }
 
-        public GenerationResult GCodeFromMesh(DMesh3 mesh, bool debugging = false, TPrintSettings settings = null)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh, TPrintSettings settings = null)
         {
-            return GCodeFromMeshes(new DMesh3[] { mesh }, debugging, settings);
+            return GCodeFromMeshes(new DMesh3[] { mesh }, settings);
         }
 
-        public GenerationResult GCodeFromMeshes(IEnumerable<DMesh3> meshes, bool debugging = false, TPrintSettings settings = null)
+        public GenerationResult GCodeFromMeshes(IEnumerable<DMesh3> meshes, TPrintSettings settings = null)
         {
             var printMeshAssembly = PrintMeshAssemblyFromMeshes(meshes);
-            return GCodeFromPrintMeshAssembly(printMeshAssembly, debugging, settings);
+            return GCodeFromPrintMeshAssembly(printMeshAssembly, settings);
         }
 
-        public GenerationResult GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, bool debugging = false, TPrintSettings settings = null)
+        public GenerationResult GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, TPrintSettings settings = null)
         {
             PlanarSliceStack slices = null;
 
@@ -77,7 +77,7 @@ namespace gs
             AssemblerFactoryF overrideAssemblerF = globalSettings.AssemblerType();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
 
-            return printGenerator.Generate(debugging);
+            return printGenerator.Generate();
         }
 
         private PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)

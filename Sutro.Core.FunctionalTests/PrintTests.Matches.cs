@@ -1,12 +1,18 @@
 ﻿using gs.info;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
+using Sutro.Core.FunctionalTests;
 
 namespace gsCore.FunctionalTests
 {
     [TestClass]
-    public class FFF_PrintTests_Matches
+    public class FFF_PrintTests_Matches : TestBase
     {
+
+        public FFF_PrintTests_Matches() : base()
+        {
+        }
+
         [TestMethod]
         public void Frustum_RepRap()
         {
@@ -17,7 +23,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
@@ -34,7 +40,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
@@ -50,7 +56,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
@@ -66,7 +72,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
@@ -82,7 +88,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
@@ -101,7 +107,7 @@ namespace gsCore.FunctionalTests
             });
 
             // Act
-            print.GenerateFile(true);
+            print.GenerateFile();
 
             // Assert
             print.CompareResults();
