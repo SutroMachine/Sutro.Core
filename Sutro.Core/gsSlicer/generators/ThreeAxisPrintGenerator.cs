@@ -424,7 +424,7 @@ namespace gs
             }
         }
 
-        private void CompileNewLayerHeader(PrintLayerData layerdata)
+        protected virtual void CompileNewLayerHeader(PrintLayerData layerdata)
         {
             Compiler.AppendComment(" ");
             Compiler.AppendComment("========================");
