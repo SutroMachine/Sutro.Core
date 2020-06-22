@@ -153,7 +153,7 @@ namespace gs
             return DiscardEmptySlices(planarSlices.Values.ToList(), cropMeshesExist);
         }
 
-        protected void ResolveSlices(ConcurrentDictionary<int, PlanarSlice> planarSlices, bool cropMeshesExist)
+        protected virtual void ResolveSlices(ConcurrentDictionary<int, PlanarSlice> planarSlices, bool cropMeshesExist)
         {
             // resolve planar intersections, etc
             Sutro.Core.Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
