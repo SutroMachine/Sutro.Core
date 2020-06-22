@@ -1,5 +1,4 @@
 ﻿using g3;
-using gs.FillTypes;
 using Sutro.Core;
 using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
@@ -91,15 +90,17 @@ namespace gs
             return null;
         }
 
+        public Func<TPrintSettings, MeshPlanarSlicerBase> GetSlicerF { get; set; } = 
+            (settings) => new MeshSlicerHorizontalPlanes()
+        {
+            LayerHeightMM = settings.LayerHeightMM
+        };
+
         private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
         {
             logger?.WriteLine("Slicing...");
 
-            // Do slicing
-            var slicer = new MeshSlicerHorizontalPlanes()
-            {
-                LayerHeightMM = Settings.LayerHeightMM
-            };
+            var slicer = GetSlicerF(Settings);
 
             slicer.Add(meshes);
             slices = slicer.Compute();

@@ -321,8 +321,7 @@ namespace gs
                 // make path-accumulator for this layer
                 pathAccum.Initialize(Compiler.NozzlePosition);
 
-                // Move to current layer Z
-                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.ZTravelSpeed);
+                MoveToLayerPlane(pathAccum, layerdata);
 
                 ScheduleSkirtBrim(layer_i, groupScheduler);
                 if (Cancelled()) return;
@@ -365,6 +364,11 @@ namespace gs
             }
 
             FinishGeneration();
+        }
+
+        protected virtual void MoveToLayerPlane(ToolpathSetBuilder pathAccum, PrintLayerData layer)
+        {
+            pathAccum.AppendMoveToZ(layer.Slice.LayerZSpan.b, Settings.ZTravelSpeed);
         }
 
         private void EnforceMinimumLayerTime(SingleMaterialFFFSettings layerSettings, ToolpathSetBuilder pathAccum)
