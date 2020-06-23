@@ -1,6 +1,7 @@
 ﻿using g3;
 using Sutro.Core;
 using Sutro.Core.Logging;
+using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using System;
 using System.Collections.Generic;
@@ -64,8 +65,14 @@ namespace gs
             PlanarSliceStack slices = null;
 
             if (AcceptsParts)
-            {
-                SliceMesh(printMeshAssembly, out slices);
+            {                
+                var success = SliceMesh(printMeshAssembly, out slices);
+                if (!success)
+                {
+                    var generationResult = new GenerationResult();
+                    generationResult.AddLog(LoggingLevel.Error, "Mesh slicing failed");
+                }
+                    
             }
 
             var globalSettings = settings ?? settingsBuilder.Settings;
@@ -96,14 +103,26 @@ namespace gs
             LayerHeightMM = settings.LayerHeightMM
         };
 
-        private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
+        private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
         {
             logger?.WriteLine("Slicing...");
 
-            var slicer = GetSlicerF(Settings);
+            try
+            {
+                var slicer = GetSlicerF(Settings);
 
-            slicer.Add(meshes);
-            slices = slicer.Compute();
+                slicer.Add(meshes);
+                slices = slicer.Compute();
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger?.WriteLine(e.Message);
+                if (Config.Debug)
+                    throw;
+                slices = null;
+                return false;
+            }
         }
 
         public GCodeFile LoadGCode(TextReader input)
