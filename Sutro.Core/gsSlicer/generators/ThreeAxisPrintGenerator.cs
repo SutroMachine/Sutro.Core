@@ -310,7 +310,7 @@ namespace gs
                 // rest of code does not directly access path builder, instead it
                 // sends paths to scheduler.
                 IFillPathScheduler2d layerScheduler = SchedulerFactoryF(layerdata);
-                var groupScheduler = GroupSchedulerFactoryF(layerdata, layerScheduler, layerScheduler.CurrentPosition);
+                var groupScheduler = GroupSchedulerFactoryF(layerdata, layerScheduler, Compiler.NozzlePosition.xy);
                 layerdata.Scheduler = groupScheduler;
 
                 BeginLayerF(layerdata);
