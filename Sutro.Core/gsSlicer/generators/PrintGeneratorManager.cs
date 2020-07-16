@@ -10,10 +10,14 @@ using System.Reflection;
 
 namespace gs
 {
+
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
             where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
             where TPrintSettings : SettingsPrototype, IPlanarAdditiveSettings, new()
     {
+
+        public delegate ISettingsBuilder<TPrintSettings> SettingsBuilderF(TPrintSettings settings, ILogger logger);
+
         private readonly ILogger logger;
         private ISettingsBuilder<TPrintSettings> settingsBuilder;
 
@@ -33,15 +37,19 @@ namespace gs
         public string Name { get; }
         public string Description { get; }
 
-        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true)
+        private static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
+
+        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true, 
+            SettingsBuilderF settingsBuilderF = null)
         {
             AcceptsParts = acceptsParts;
 
             Id = id;
             Description = description;
 
-            settingsBuilder = new SettingsBuilder<TPrintSettings>(settings, logger);
             this.logger = logger ?? new NullLogger();
+
+            settingsBuilder = (settingsBuilderF ?? DefaultSettingsBuilderF).Invoke(settings, logger);
         }
 
         public GenerationResult GCodeFromMesh(DMesh3 mesh)
@@ -102,6 +110,8 @@ namespace gs
         {
             LayerHeightMM = settings.LayerHeightMM
         };
+
+
 
         private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
         {

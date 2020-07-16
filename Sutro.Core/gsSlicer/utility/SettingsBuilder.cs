@@ -22,17 +22,23 @@ namespace gs
     {
         private readonly ILogger logger;
 
-        private readonly static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
-        {
-            MissingMemberHandling = MissingMemberHandling.Error,
-        };
+        protected readonly JsonSerializerSettings jsonSerializerSettings;
 
         public TSettings Settings { get; }
 
-        public SettingsBuilder(TSettings settings, ILogger logger)
+        protected static JsonSerializerSettings CreateDefaultSerializerSettings()
+        {
+            return new JsonSerializerSettings()
+            {
+                MissingMemberHandling = MissingMemberHandling.Error,
+            };
+        }
+
+        public SettingsBuilder(TSettings settings, ILogger logger, JsonSerializerSettings jsonSerializerSettings = null)
         {
             Settings = settings;
             this.logger = logger;
+            this.jsonSerializerSettings = jsonSerializerSettings ?? CreateDefaultSerializerSettings();
         }
 
         public void ApplyJSONFile(string settingFile)
