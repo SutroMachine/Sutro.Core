@@ -180,9 +180,9 @@ namespace gs
             {
                 logger.WriteLine($"warning: {logEntry.Message}", ConsoleColor.Yellow);
             }
-            else if (logEntry.Level == LoggingLevel.Warning && verbosity >= 2)
+            else if (logEntry.Level == LoggingLevel.Info && verbosity >= 2)
             {
-                logger.WriteLine($"warning: {logEntry.Message}", ConsoleColor.Gray);
+                logger.WriteLine($"info: {logEntry.Message}", ConsoleColor.Gray);
             }
         }
 
