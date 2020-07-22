@@ -1,5 +1,4 @@
 ﻿using g3;
-using System;
 using System.Collections.Generic;
 
 namespace gs
@@ -12,56 +11,18 @@ namespace gs
     /// (note that acceleration is not considered, so the times are a best-case scenario)
     ///
     /// EnforceMinLayerTime() is a utility that automatically re-times layers
-    /// so they take at least Settings.MinLayerTime.
+    /// so they take at least a specified minimum time.
     /// </summary>
-
-    public class PrintTimeStatistics
-    {
-        public double ExtrudeTimeS = 0;
-        public double TravelTimeS = 0;
-
-        public double TotalTimeS
-        {
-            get
-            {
-                return ExtrudeTimeS + TravelTimeS;
-            }
-        }
-
-        public void Add(PrintTimeStatistics other)
-        {
-            ExtrudeTimeS += other.ExtrudeTimeS;
-            TravelTimeS += other.TravelTimeS;
-        }
-
-        public List<string> ToStringList()
-        {
-            List<string> result = new List<string>()
-            {
-                "TOTAL PRINT TIME ESTIMATE:",
-                string.Format("        Total: {0:c}",
-                        new TimeSpan(0,0,(int)TotalTimeS)),
-                string.Format("    Extrusion: {0:c}    ({1,4:##.0}%)",
-                        new TimeSpan(0,0,(int)ExtrudeTimeS), ExtrudeTimeS/TotalTimeS*100),
-                string.Format("       Travel: {0:c}    ({1,4:##.0}%)",
-                        new TimeSpan(0,0,(int)TravelTimeS), TravelTimeS/TotalTimeS*100),
-            };
-            return result;
-        }
-    }
-
     public class CalculatePrintTime
     {
-        public ToolpathSet Paths;
-        public SingleMaterialFFFSettings Settings;
+        public ToolpathSet Paths { get; }
 
         // output statistics
         public PrintTimeStatistics TimeStatistics { get; private set; }
 
-        public CalculatePrintTime(ToolpathSet paths, SingleMaterialFFFSettings settings)
+        public CalculatePrintTime(ToolpathSet paths)
         {
             Paths = paths;
-            Settings = settings;
         }
 
         /// <summary>
@@ -118,7 +79,7 @@ namespace gs
         /// <summary>
         /// Scale the extrusion speeds by the given scale factor
         /// </summary>
-        public void ScaleExtrudeTimes(double scaleFactor)
+        public void ScaleExtrudeTimes(double scaleFactor, double minimumExtrusionSpeed)
         {
             // filter paths
             foreach (IToolpath ipath in Paths)
@@ -135,8 +96,8 @@ namespace gs
                                 PrintVertex v = path[i];
                                 double rate = path[i].FeedRate;
                                 double scaledRate = v.FeedRate * scaleFactor;
-                                if (scaledRate < Settings.MinExtrudeSpeed)
-                                    scaledRate = Settings.MinExtrudeSpeed;
+                                if (scaledRate < minimumExtrusionSpeed)
+                                    scaledRate = minimumExtrusionSpeed;
                                 v.FeedRate = scaledRate;
                                 path.UpdateVertex(i, v);
                             }
@@ -147,19 +108,17 @@ namespace gs
         }
 
         /// <summary>
-        /// Enforce Settings.MinLayerTime on this path set
+        /// Enforce a minimum layer time on this path set
         /// Returns true if modification was required
         /// </summary>
-        public bool EnforceMinLayerTime()
+        public bool EnforceMinLayerTime(double minimumLayerTime, double minimumExtrusionSpeed)
         {
             Calculate();
-            // TODO: Check if this should compare total time or just extrusion time
-            if (TimeStatistics.ExtrudeTimeS < Settings.MinLayerTime)
+            if (TimeStatistics.TotalTimeS < minimumLayerTime)
             {
-                double scaleF = TimeStatistics.ExtrudeTimeS / Settings.MinLayerTime;
-                if (scaleF < 0.05)
-                    scaleF = 0.05;      // sanity check
-                ScaleExtrudeTimes(scaleF);
+                double targetExtrusionTime = minimumLayerTime - TimeStatistics.TravelTimeS;
+                double depositionSpeedScaleFactor = TimeStatistics.ExtrudeTimeS / targetExtrusionTime;
+                ScaleExtrudeTimes(depositionSpeedScaleFactor, minimumExtrusionSpeed);
                 return true;
             }
             return false;

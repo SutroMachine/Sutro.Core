@@ -480,8 +480,8 @@ namespace gs
                 // change speeds if layer is going to finish too quickly
                 if (Settings.MinLayerTime > 0)
                 {
-                    CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths, layerSettings);
-                    bool layerModified = layer_time_calc.EnforceMinLayerTime();
+                    CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths);
+                    bool layerModified = layer_time_calc.EnforceMinLayerTime(layerSettings.MinLayerTime, layerSettings.MinExtrudeSpeed);
                     if (layerModified)
                     {
                         layer_time_calc.Calculate();
