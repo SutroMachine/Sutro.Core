@@ -97,6 +97,9 @@ namespace gs
 
         private object CopyValue(object v)
         {
+            if (v is null)
+                return null;
+
             var type = v.GetType();
             if (type.IsValueType)
             {
