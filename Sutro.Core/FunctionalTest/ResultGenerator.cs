@@ -21,7 +21,7 @@ namespace Sutro.Core.FunctionalTest
 
         protected void SaveGCode(string path, GCodeFile gcode)
         {
-            logger.WriteLine($"Saving file to {path}");
+            logger.LogMessage($"Saving file to {path}");
             using var streamWriter = new StreamWriter(path);
             generator.SaveGCodeToFile(streamWriter, gcode);
         }

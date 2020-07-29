@@ -32,7 +32,7 @@ namespace Sutro.Core.FunctionalTest
 
             for (int layerIndex = 0; layerIndex < actual.Count; layerIndex++)
             {
-                logger.WriteLine($"Checking layer {layerIndex}");
+                logger.LogMessage($"Checking layer {layerIndex}");
                 actual[layerIndex].AssertEqualsExpected(expected[layerIndex]);
             }
         }

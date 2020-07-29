@@ -38,11 +38,11 @@ namespace gs
             parserResult.WithNotParsed((err) => ParsingUnsuccessful(err, parserResult));
         }
 
-        protected static bool OutputFilePathIsValid(CommandLineOptions o)
+        protected bool OutputFilePathIsValid(CommandLineOptions o)
         {
             if (o.GCodeFilePath is null || !Directory.Exists(Directory.GetParent(o.GCodeFilePath).ToString()))
             {
-                Console.WriteLine("Must provide valid gcode file path as second argument.");
+                logger.LogError("Must provide valid gcode file path as second argument.");
                 return false;
             }
             return true;
@@ -55,7 +55,7 @@ namespace gs
 
         protected virtual void ConsoleWriteSeparator()
         {
-            logger.WriteLine("".PadRight(79, '-'));
+            logger.LogMessage("".PadRight(79, '-'));
         }
 
         protected virtual bool ConstructSettings(CommandLineOptions o)
@@ -68,7 +68,8 @@ namespace gs
                 }
                 catch (Exception e)
                 {
-                    logger.WriteLine(e.Message);
+                    logger.LogError(e.Message);
+                    if (Sutro.Core.Models.Config.Debug) throw;
                     return false;
                 }
             }
@@ -81,7 +82,8 @@ namespace gs
                 }
                 catch (Exception e)
                 {
-                    logger.WriteLine(e.Message);
+                    logger.LogError(e.Message);
+                    if (Sutro.Core.Models.Config.Debug) throw;
                     return false;
                 }
             }
@@ -96,8 +98,8 @@ namespace gs
         protected GenerationResult GenerateGCode(DMesh3 mesh)
         {
             ConsoleWriteSeparator();
-            logger.WriteLine($"GENERATION");
-            logger.WriteLine();
+            logger.LogMessage($"GENERATION");
+            logger.LogMessage(string.Empty);
             return printGeneratorManager.GCodeFromMesh(mesh);
         }
 
@@ -107,16 +109,15 @@ namespace gs
             {
                 string fMeshFilePath = Path.GetFullPath(o.MeshFilePath);
                 ConsoleWriteSeparator();
-                logger.WriteLine($"PARTS");
-                logger.WriteLine();
+                logger.LogMessage($"PARTS");
+                logger.LogMessage(string.Empty);
 
-                logger.Write("Loading mesh " + fMeshFilePath + "...");
+                logger.LogMessage("Loading mesh " + fMeshFilePath + "...");
                 mesh = StandardMeshReader.ReadMesh(fMeshFilePath);
-                logger.WriteLine(" done.");
 
-                logger.Write("Repairing mesh... ");
+                logger.LogMessage("Repairing mesh... ");
                 bool repaired = new MeshAutoRepair(mesh).Apply();
-                logger.WriteLine(repaired ? "repaired." : "not repaired.");
+                logger.LogMessage("Mesh " + (repaired ? "repaired." : "not repaired."));
 
                 if (o.CenterXY) CenterMeshAboveOrigin(mesh);
                 if (o.DropZ) DropMeshToBuildPlate(mesh);
@@ -131,8 +132,8 @@ namespace gs
         {
             if (printGeneratorManager.AcceptsParts && (o.MeshFilePath is null || !File.Exists(o.MeshFilePath)))
             {
-                Console.WriteLine("Must provide valid mesh file path as third argument.");
-                Console.WriteLine(Path.GetFullPath(o.MeshFilePath));
+                logger.LogError("Must provide valid mesh file path as third argument.");
+                logger.LogError(Path.GetFullPath(o.MeshFilePath));
                 return false;
             }
             return true;
@@ -147,10 +148,10 @@ namespace gs
 
             foreach (var s in generationReport)
             {
-                logger.WriteLine(s);
+                logger.LogMessage(s);
             }
 
-            logger.WriteLine();
+            logger.LogMessage(string.Empty);
         }
 
         protected virtual void OutputLog(GenerationResult result, int verbosity)
@@ -160,10 +161,10 @@ namespace gs
             var info = result.LogEntries.Where(l => l.Level == LoggingLevel.Info).ToList();
 
             ConsoleWriteSeparator();
-            logger.WriteLine("GENERATION LOG");
-            logger.WriteLine(string.Empty);
-            logger.WriteLine($"Print generated with {errors.Count} errors and {warnings.Count} warnings.");
-            logger.WriteLine("");
+            logger.LogMessage("GENERATION LOG");
+            logger.LogMessage(string.Empty);
+            logger.LogMessage($"Print generated with {errors.Count} errors and {warnings.Count} warnings.");
+            logger.LogMessage(string.Empty);
             foreach (var logEntry in result.LogEntries)
             {
                 OutputLogEntry(logEntry, verbosity);
@@ -174,15 +175,15 @@ namespace gs
         {
             if (logEntry.Level == LoggingLevel.Error)
             {
-                logger.WriteLine($"error: {logEntry.Message}", ConsoleColor.Red);
+                logger.LogError(logEntry.Message);
             }
             else if (logEntry.Level == LoggingLevel.Warning && verbosity >= 1)
             {
-                logger.WriteLine($"warning: {logEntry.Message}", ConsoleColor.Yellow);
+                logger.LogWarning(logEntry.Message);
             }
             else if (logEntry.Level == LoggingLevel.Info && verbosity >= 2)
             {
-                logger.WriteLine($"info: {logEntry.Message}", ConsoleColor.Gray);
+                logger.LogInfo(logEntry.Message);
             }
         }
 
@@ -190,8 +191,8 @@ namespace gs
         {
             ConsoleWriteSeparator();
             var version = printGeneratorManager.PrintGeneratorAssemblyVersion;
-            logger.WriteLine($"Using {printGeneratorManager.PrintGeneratorName} from {printGeneratorManager.PrintGeneratorAssemblyName} v{version.Major}.{version.Minor}.{version.Revision}");
-            logger.WriteLine();
+            logger.LogMessage($"Using {printGeneratorManager.PrintGeneratorName} from {printGeneratorManager.PrintGeneratorAssemblyName} v{version.Major}.{version.Minor}.{version.Revision}");
+            logger.LogMessage(string.Empty);
         }
 
         protected void ParsingSuccessful(CommandLineOptions o)
@@ -218,15 +219,15 @@ namespace gs
             {
                 default:
                 case GenerationResultStatus.Failure:
-                    logger.WriteLine("Print generation failed.", ConsoleColor.Red);
+                    logger.LogError("Print generation failed.");
                     break;
                 case GenerationResultStatus.Canceled:
-                    logger.WriteLine("Print generation canceled.", ConsoleColor.Red);
+                    logger.LogError("Print generation canceled.");
                     break;
                 case GenerationResultStatus.Success:
                     if (result.Status == GenerationResultStatus.Success)
                     {
-                        logger.WriteLine("Print generation succeeded.", ConsoleColor.Green);
+                        logger.LogMessage("Print generation succeeded.");
                         WriteGCodeToFile(o.GCodeFilePath, result.GCode);
                     }
                     break;
@@ -241,40 +242,38 @@ namespace gs
 
         protected virtual void HandleInvalidGeneratorId(string id)
         {
-            logger.WriteLine($"Invalid generator id: {id}");
-            logger.WriteLine();
+            logger.LogMessage($"Invalid generator id: {id}");
+            logger.LogMessage(string.Empty);
 
-            logger.WriteLine("Available generators:");
+            logger.LogMessage("Available generators:");
             ListAvailableGenerators();
-            logger.WriteLine();
+            logger.LogMessage(string.Empty);
         }
 
         private void ListAvailableGenerators()
         {
             foreach (var g in printGeneratorDict.Values)
             {
-                logger.Write($"{g.Id} ", ConsoleColor.Green);
-                logger.Write($"{g.PrintGeneratorName} ", ConsoleColor.Yellow);
-                logger.Write($"{g.Description}", ConsoleColor.Gray);
-                logger.WriteLine();
+                logger.LogMessage($"{g.Id} {g.PrintGeneratorName} {g.Description}");
+                logger.LogMessage(string.Empty);
             }
         }
 
         protected virtual void ParsingUnsuccessful(IEnumerable<Error> errs, ParserResult<CommandLineOptions> parserResult)
         {
-            logger.WriteLine("ERRORS:");
+            logger.LogMessage("ERRORS:");
             foreach (var err in errs)
-                logger.WriteLine(err);
-            logger.WriteLine();
+                logger.LogMessage(err.ToString());
+            logger.LogMessage(string.Empty);
 
-            logger.WriteLine("HELP:");
+            logger.LogMessage("HELP:");
             var helpText = HelpText.AutoBuild(parserResult, h => h, e => e);
-            logger.WriteLine(helpText.ToString());
-            logger.WriteLine();
+            logger.LogMessage(helpText.ToString());
+            logger.LogMessage(string.Empty);
 
-            logger.WriteLine("GENERATORS:");
+            logger.LogMessage("GENERATORS:");
             ListAvailableGenerators();
-            logger.WriteLine();
+            logger.LogMessage(string.Empty);
         }
 
         protected virtual string VersionToString(Version v)
@@ -285,7 +284,7 @@ namespace gs
         protected virtual void WriteGCodeToFile(string filePath, GCodeFile gcode)
         {
             string gcodeFilePath = Path.GetFullPath(filePath);
-            logger.WriteLine($"Writing gcode to {gcodeFilePath}");
+            logger.LogMessage($"Writing gcode to {gcodeFilePath}");
             using (StreamWriter w = new StreamWriter(gcodeFilePath))
             {
                 printGeneratorManager.SaveGCodeToFile(w, gcode);

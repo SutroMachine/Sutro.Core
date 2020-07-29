@@ -45,11 +45,11 @@ namespace gs
         {
             if (!File.Exists(settingFile))
             {
-                logger.WriteLine("Must provide valid settings file path.");
+                throw new FileLoadException("Must provide valid settings file path.");
             }
             else
             {
-                logger.WriteLine($"Loading file {Path.GetFullPath(settingFile)}");
+                logger.LogMessage($"Loading file {Path.GetFullPath(settingFile)}");
                 string json = File.ReadAllText(settingFile);
                 JsonConvert.PopulateObject(json, Settings, jsonSerializerSettings);
             }

@@ -86,7 +86,7 @@ namespace gs
             var globalSettings = settings ?? settingsBuilder.Settings;
 
             // Run the print generator
-            logger.WriteLine("Running print generator...");
+            logger.LogMessage("Running print generator...");
             var printGenerator = new TPrintGenerator();
             AssemblerFactoryF overrideAssemblerF = globalSettings.AssemblerType();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
@@ -115,7 +115,7 @@ namespace gs
 
         private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
         {
-            logger?.WriteLine("Slicing...");
+            logger?.LogMessage("Slicing...");
 
             try
             {
@@ -127,7 +127,7 @@ namespace gs
             }
             catch (Exception e)
             {
-                logger?.WriteLine(e.Message);
+                logger?.LogError(e.Message);
                 if (Config.Debug)
                     throw;
                 slices = null;
