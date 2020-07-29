@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Sutro.Core</PackageId>
-    <Version>1.0.12</Version>
+    <Version>1.0.13</Version>
     <PackageDescription>Library for additive manufacturing.</PackageDescription>
     <RepositoryUrl>https://github.com/SutroMachine/Sutro.Core</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -32,7 +32,7 @@
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="ReportGenerator" Version="4.5.0" />
-    <PackageReference Include="Sutro.Clipper" Version="1.1.1" />
+    <PackageReference Include="Sutro.Clipper" Version="1.1.2" />
     <PackageReference Include="Sutro.Core.Models" Version="1.0.3" />
     <PackageReference Include="System.ComponentModel.Composition" Version="4.7.0" />
   </ItemGroup>
