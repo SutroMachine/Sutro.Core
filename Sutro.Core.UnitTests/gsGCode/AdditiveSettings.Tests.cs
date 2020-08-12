@@ -1,8 +1,8 @@
-﻿using gs.info;
+﻿using g3;
+using gs.info;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Newtonsoft.Json;
+using System.Security;
 
 namespace Sutro.Core.UnitTests
 {
@@ -23,5 +23,15 @@ namespace Sutro.Core.UnitTests
             Assert.IsInstanceOfType(clone, typeof(PrusaSettings));
         }
 
+        [TestMethod]
+        public void Serialize()
+        {
+            // Arrange
+            var settings = new PrusaSettings();
+
+            // Act
+            var json = JsonConvert.SerializeObject(settings);
+
+        }
     }
 }

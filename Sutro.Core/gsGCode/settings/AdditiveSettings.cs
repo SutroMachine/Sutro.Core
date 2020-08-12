@@ -251,15 +251,8 @@ namespace gs
         /*
          * Debug/Utility options
          */
-
-        [JsonIgnore]
+        [JsonConverter(typeof(Interval1iConverter))]
         public Interval1i LayerRangeFilter = new Interval1i(0, 999999999);   // only compute slices in this range
-
-        [JsonProperty]
-        private int LayerRangeFilterMin { get { return LayerRangeFilter.a; } set { LayerRangeFilter.a = value; } }
-
-        private int LayerRangeFilterMax { get { return LayerRangeFilter.b; } set { LayerRangeFilter.b = value; } }
-
 
         public bool RepairMesh = true;                  // run a mesh auto-repair after it's been loaded
 
