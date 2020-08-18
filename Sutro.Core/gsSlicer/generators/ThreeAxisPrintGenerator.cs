@@ -303,6 +303,9 @@ namespace gs
                 PrintLayerData layerdata = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
                 layerdata.PreviousLayer = prevLayerData;
 
+                if (LayerIsEmpty(layerdata))
+                    continue;
+
                 // create path accumulator
                 ToolpathSetBuilder pathAccum = PathBuilderFactoryF(layerdata);
                 layerdata.PathAccum = pathAccum;
@@ -364,6 +367,25 @@ namespace gs
             }
 
             FinishGeneration();
+        }
+
+        private bool LayerIsEmpty(PrintLayerData layerdata)
+        {
+            int i = layerdata.layer_i;
+
+            bool noShells = 
+                LayerShells == null ||
+                LayerShells.Length <= i ||
+                LayerShells[i] == null ||
+                LayerShells[i].Count == 0;
+
+            bool noSupport =
+                LayerSupportAreas == null ||
+                LayerSupportAreas.Length <= i ||
+                LayerSupportAreas[i] == null ||
+                LayerSupportAreas[i].Count == 0;
+
+            return noShells && noSupport;       
         }
 
         protected virtual void MoveToLayerPlane(ToolpathSetBuilder pathAccum, PrintLayerData layer)
