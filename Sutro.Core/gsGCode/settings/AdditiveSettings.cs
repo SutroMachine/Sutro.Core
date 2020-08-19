@@ -100,10 +100,11 @@ namespace gs
         public string MaterialType { get; set; } = "PLA";
         public string MaterialColor { get; set; } = "Blue";
 
-        public override string MaterialName
+        private string materialName = null;
+        public override string MaterialName 
         {
-            get => $"{MaterialSource} {MaterialType} - {MaterialColor}";
-            set { }
+            get => materialName ?? $"{MaterialSource} {MaterialType} - {MaterialColor}";
+            set { materialName = value; }
         }
 
         #endregion Material
