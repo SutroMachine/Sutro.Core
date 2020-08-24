@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.Settings;
 using System;
 
 namespace gsCore.FunctionalTests

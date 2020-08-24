@@ -1,4 +1,4 @@
-﻿namespace gs
+﻿namespace Sutro.Core.Settings.Machine
 {
     public enum MachineClass
     {

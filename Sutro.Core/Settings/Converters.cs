@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace gs
+namespace Sutro.Core.Settings
 {
     public class Interval1iConverter : JsonConverter<Interval1i>
     {

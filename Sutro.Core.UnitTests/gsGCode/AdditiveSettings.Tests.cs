@@ -1,7 +1,7 @@
 ﻿using g3;
-using gs.info;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Sutro.Core.Settings;
 using System.Security;
 
 namespace Sutro.Core.UnitTests

@@ -1,6 +1,7 @@
 ﻿using g3;
 using gs.FillTypes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Settings;
 using System;
 
 namespace gs.UnitTests.Fill

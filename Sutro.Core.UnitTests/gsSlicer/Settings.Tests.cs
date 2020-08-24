@@ -1,5 +1,5 @@
-using gs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Settings;
 using System.Collections.Generic;
 
 namespace gsCore.UnitTests

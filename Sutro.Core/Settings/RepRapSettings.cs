@@ -1,9 +1,26 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings.Machine;
+using System.Collections.Generic;
 
-namespace gs.info
+namespace Sutro.Core.Settings
 {
-    public class GenericPrinterSettings : GenericRepRapSettings
+    public static class RepRap
     {
+        public const string UUID = "e95dcaaa-4315-412f-bd80-5049fb74f384";
+
+        public enum Models
+        {
+            Unknown = 0
+        };
+
+        public const string UUID_Unknown = "bb097486-bb07-4a95-950f-1a1de992e782";
+    }
+
+    public class RepRapSettings : GenericRepRapSettings
+    {
+        public RepRap.Models ModelEnum;
+
         public override AssemblerFactoryF AssemblerType()
         {
             return RepRapAssembler.Factory;
@@ -11,35 +28,40 @@ namespace gs.info
 
         public override IProfile Clone()
         {
-            return CloneAs<GenericPrinterSettings>();
+            return CloneAs<RepRapSettings>();
         }
 
-        public string ManufacturerUUID;
-        public string DefaultMachineUUID;
-
-        public GenericPrinterSettings()
+        public RepRapSettings()
         {
+            ModelEnum = RepRap.Models.Unknown;
             configure_unknown();
         }
 
-        public GenericPrinterSettings(string mfgName, string mfgUUID, string defaultMachineUUID)
+        public RepRapSettings(RepRap.Models model)
         {
-            BaseMachine.ManufacturerName = mfgName;
-            ManufacturerUUID = mfgUUID;
-            DefaultMachineUUID = defaultMachineUUID;
+            ModelEnum = model;
 
-            configure_unknown();
+            if (model == RepRap.Models.Unknown)
+                configure_unknown();
+        }
+
+        public static IEnumerable<SingleMaterialFFFSettings> EnumerateDefaults()
+        {
+            yield return new RepRapSettings(RepRap.Models.Unknown);
         }
 
         private void configure_unknown()
         {
-            Machine.ManufacturerName = ManufacturerName;
-            Machine.ManufacturerUUID = ManufacturerUUID;
+            Machine.ManufacturerName = "RepRap";
+            Machine.ManufacturerUUID = RepRap.UUID;
             Machine.ModelIdentifier = "Generic";
-            Machine.ModelUUID = DefaultMachineUUID;
+            Machine.ModelUUID = RepRap.UUID_Unknown;
             Machine.Class = MachineClass.PlasticFFFPrinter;
             Machine.BedSizeXMM = 80;
             Machine.BedSizeYMM = 80;
+            Machine.BedOriginFactorX = 0.5;
+            Machine.BedOriginFactorY = 0.5;
+
             Machine.MaxHeightMM = 55;
             Machine.NozzleDiamMM = 0.4;
             Machine.FilamentDiamMM = 1.75;

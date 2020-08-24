@@ -1,6 +1,7 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
 
-namespace gs
+namespace Sutro.Core.Settings
 {
     public class GenericRepRapSettings : SingleMaterialFFFSettings
     {

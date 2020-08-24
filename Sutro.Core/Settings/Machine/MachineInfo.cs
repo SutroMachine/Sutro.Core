@@ -1,4 +1,6 @@
-﻿namespace gs
+﻿using Sutro.Core.Settings;
+
+namespace Sutro.Core.Settings.Machine
 {
     public abstract class MachineInfo : SettingsPrototype
     {

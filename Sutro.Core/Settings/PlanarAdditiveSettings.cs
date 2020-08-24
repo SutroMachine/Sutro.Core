@@ -1,7 +1,9 @@
-﻿using Sutro.Core.Models;
+﻿using gs;
+using Sutro.Core.Models;
 using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings.Machine;
 
-namespace gs
+namespace Sutro.Core.Settings
 {
     public abstract class PlanarAdditiveSettings : SettingsPrototype, IPlanarAdditiveSettings
     {
@@ -20,7 +22,7 @@ namespace gs
         public double MachineBedSizeYMM { get => BaseMachine.BedSizeYMM; set => BaseMachine.BedSizeYMM = value; }
         public double MachineBedSizeZMM { get => BaseMachine.MaxHeightMM; set => BaseMachine.MaxHeightMM = value; }
 
-        public MachineBedOriginLocationX OriginX 
+        public MachineBedOriginLocationX OriginX
         {
             get => MachineBedOriginLocationUtility.LocationXFromScalar(BaseMachine.BedOriginFactorX);
             set => BaseMachine.BedOriginFactorX = MachineBedOriginLocationUtility.LocationXFromEnum(value);

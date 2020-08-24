@@ -1,6 +1,8 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings.Machine;
 
-namespace gs
+namespace Sutro.Core.Settings
 {
     public interface IPlanarAdditiveSettings : IProfile
     {

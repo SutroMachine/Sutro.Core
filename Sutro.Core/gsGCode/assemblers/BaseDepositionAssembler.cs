@@ -1,4 +1,5 @@
 ﻿using g3;
+using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 

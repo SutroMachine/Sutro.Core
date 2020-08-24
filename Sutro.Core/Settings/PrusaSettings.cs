@@ -1,7 +1,9 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings.Machine;
 using System.Collections.Generic;
 
-namespace gs.info
+namespace Sutro.Core.Settings
 {
     public static class Prusa
     {
@@ -143,7 +145,7 @@ namespace gs.info
             GCodeBuilder builder, SingleMaterialFFFSettings settings)
         {
             var asm = new RepRapAssembler(builder, settings);
-            asm.HomeSequenceF = this.HomeSequence;
+            asm.HomeSequenceF = HomeSequence;
             asm.HeaderCustomizerF = HeaderCustomF;
             asm.TravelGCode = 1;
             return asm;

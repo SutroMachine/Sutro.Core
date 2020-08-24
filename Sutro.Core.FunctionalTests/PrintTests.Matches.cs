@@ -1,6 +1,6 @@
-﻿using gs.info;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
+using Sutro.Core.Settings;
 
 namespace gsCore.FunctionalTests
 {

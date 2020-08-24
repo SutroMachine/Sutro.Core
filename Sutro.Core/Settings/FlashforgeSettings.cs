@@ -1,7 +1,9 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings.Machine;
 using System.Collections.Generic;
 
-namespace gs.info
+namespace Sutro.Core.Settings
 {
     public static class Flashforge
     {

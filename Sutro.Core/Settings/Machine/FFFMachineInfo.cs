@@ -1,4 +1,4 @@
-﻿namespace gs
+﻿namespace Sutro.Core.Settings.Machine
 {
     public class FFFMachineInfo : MachineInfo
     {

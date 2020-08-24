@@ -1,6 +1,8 @@
 ﻿using g3;
 using Newtonsoft.Json;
 using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 
