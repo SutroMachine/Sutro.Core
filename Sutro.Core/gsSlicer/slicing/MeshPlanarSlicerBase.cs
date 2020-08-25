@@ -28,6 +28,11 @@ namespace gs
         public bool DiscardEmptyBaseSlices { get; set; } = false;
 
         /// <summary>
+        /// If true, then the first layer will have an index of 1 instead of 0.
+        /// </summary>
+        public bool LayerStartIndexIsOne { get; set; } = false;
+
+        /// <summary>
         /// provide this function to override default LayerHeighMM
         /// </summary>
         public Func<int, double> LayerHeightF { get; set; } = null;
@@ -330,10 +335,14 @@ namespace gs
                 while (slices[first].IsEmpty && first < slices.Count)
                     first++;
             }
-
+            int offset = LayerStartIndexIsOne ? 1 : 0;
             PlanarSliceStack stack = SliceStackFactoryF();
             for (int k = first; k <= last; ++k)
-                stack.Add(slices[k]);
+            {
+                var slice = slices[k];
+                slice.LayerIndex = k - first + offset;
+                stack.Add(slice);
+            }
 
             if (SupportMinZTips)
                 stack.AddMinZTipSupportPoints(MinZTipMaxDiam, MinZTipExtraLayers);

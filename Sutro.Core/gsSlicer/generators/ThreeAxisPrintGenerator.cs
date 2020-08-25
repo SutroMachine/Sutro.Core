@@ -178,7 +178,7 @@ namespace gs
 
             PrintLayerDataFactoryF = (layer_i, slice, settingsArg) =>
             {
-                return new PrintLayerData(layer_i, slice, settingsArg);
+                return new PrintLayerData(slice.LayerIndex, slice, settingsArg);
             };
 
             PathBuilderFactoryF = (layer_data) =>
