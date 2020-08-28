@@ -1,18 +1,19 @@
 ﻿using g3;
+using Sutro.Core.Settings;
 using System;
 
 namespace gs
 {
     public class GenericMillingAssembler : BaseMillingAssembler
     {
-        public static BaseMillingAssembler Factory(GCodeBuilder builder, SingleMaterialFFFSettings settings)
+        public static BaseMillingAssembler Factory(GCodeBuilder builder, PrintProfileFFF settings)
         {
             return new GenericMillingAssembler(builder, settings);
         }
 
-        public SingleMaterialFFFSettings Settings;
+        public PrintProfileFFF Settings;
 
-        public GenericMillingAssembler(GCodeBuilder useBuilder, SingleMaterialFFFSettings settings) : base(useBuilder, settings.Machine)
+        public GenericMillingAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.MachineProfile)
         {
             Settings = settings;
 

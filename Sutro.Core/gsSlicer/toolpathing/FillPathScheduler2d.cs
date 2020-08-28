@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +22,7 @@ namespace gs
     public class SequentialScheduler2d : IFillPathScheduler2d
     {
         public ToolpathSetBuilder Builder;
-        public SingleMaterialFFFSettings Settings;
+        public PrintProfileFFF Settings;
 
         public bool ExtrudeOnShortTravels = false;
         public double ShortTravelDistance = 0;
@@ -31,7 +32,7 @@ namespace gs
         // optional function we will call when curve sets are appended
         public Action<List<FillCurveSet2d>, SequentialScheduler2d> OnAppendCurveSetsF = null;
 
-        public SequentialScheduler2d(ToolpathSetBuilder builder, SingleMaterialFFFSettings settings, double layerZ)
+        public SequentialScheduler2d(ToolpathSetBuilder builder, PrintProfileFFF settings, double layerZ)
         {
             Builder = builder;
             Settings = settings;
@@ -97,14 +98,14 @@ namespace gs
         protected virtual ElementLocation FindLoopEntryPoint(FillLoop poly, Vector2d currentPos2)
         {
             int startIndex;
-            if (Settings.ZipperAlignedToPoint && poly.FillType.IsEntryLocationSpecified())
+            if (Settings.PartProfile.ZipperAlignedToPoint && poly.FillType.IsEntryLocationSpecified())
             {
                 // split edges to position zipper closer to the desired point?
                 // TODO: Enter midsegment
-                Vector2d zipperLocation = new Vector2d(Settings.ZipperLocationX, Settings.ZipperLocationY);
+                Vector2d zipperLocation = new Vector2d(Settings.PartProfile.ZipperLocationX, Settings.PartProfile.ZipperLocationY);
                 startIndex = CurveUtils2.FindNearestVertex(zipperLocation, poly.Vertices(true));
             }
-            else if (Settings.ShellRandomizeStart && poly.FillType.IsEntryLocationSpecified())
+            else if (Settings.PartProfile.ShellRandomizeStart && poly.FillType.IsEntryLocationSpecified())
             {
                 // split edges for a actual random location along the perimeter instead of a random vertex?
                 Random rnd = new Random();
@@ -128,18 +129,18 @@ namespace gs
                 travelDistance < ShortTravelDistance)
             {
                 // TODO: Add strategy for extrude move?
-                Builder.AppendExtrude(endPt, Settings.RapidTravelSpeed, new DefaultFillType());
+                Builder.AppendExtrude(endPt, Settings.PartProfile.RapidTravelSpeed, new DefaultFillType());
             }
-            else if (Settings.TravelLiftEnabled &&
-                travelDistance > Settings.TravelLiftDistanceThreshold)
+            else if (Settings.PartProfile.TravelLiftEnabled &&
+                travelDistance > Settings.PartProfile.TravelLiftDistanceThreshold)
             {
-                Builder.AppendMoveToZ(LayerZ + Settings.TravelLiftHeight, Settings.ZTravelSpeed, ToolpathTypes.Travel);
-                Builder.AppendTravel(endPt, Settings.RapidTravelSpeed);
-                Builder.AppendMoveToZ(LayerZ, Settings.ZTravelSpeed, ToolpathTypes.Travel);
+                Builder.AppendMoveToZ(LayerZ + Settings.PartProfile.TravelLiftHeight, Settings.PartProfile.ZTravelSpeed, ToolpathTypes.Travel);
+                Builder.AppendTravel(endPt, Settings.PartProfile.RapidTravelSpeed);
+                Builder.AppendMoveToZ(LayerZ, Settings.PartProfile.ZTravelSpeed, ToolpathTypes.Travel);
             }
             else
             {
-                Builder.AppendTravel(endPt, Settings.RapidTravelSpeed);
+                Builder.AppendTravel(endPt, Settings.PartProfile.RapidTravelSpeed);
             }
         }
 
@@ -220,7 +221,7 @@ namespace gs
         public virtual double SelectSpeed(FillBase pathCurve)
         {
             double speed = SpeedHint == SpeedHint.Careful ?
-                Settings.CarefulExtrudeSpeed : Settings.RapidExtrudeSpeed;
+                Settings.PartProfile.CarefulExtrudeSpeed : Settings.PartProfile.RapidExtrudeSpeed;
 
             return pathCurve.FillType.ModifySpeed(speed, SpeedHint);
         }

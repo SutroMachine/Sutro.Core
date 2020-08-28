@@ -2,6 +2,7 @@
 using gs.FillTypes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Info;
 using System;
 
 namespace gs.UnitTests.Fill

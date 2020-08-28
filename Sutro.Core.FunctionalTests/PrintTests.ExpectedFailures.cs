@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Info;
 using System;
 
 namespace gsCore.FunctionalTests
@@ -33,27 +34,27 @@ namespace gsCore.FunctionalTests
         [TestMethod]
         public void WrongShells()
         {
-            ExpectFailure<CumulativeExtrusionException>(new GenericRepRapSettings() { Shells = 3 });
+            ExpectFailure<CumulativeExtrusionException>(new GenericRepRapSettings() { PartProfile = { Shells = 3 } });
         }
 
         [TestMethod]
         public void WrongFloorLayers()
         {
-            ExpectFailure<MissingFeatureException>(new GenericRepRapSettings() { FloorLayers = 0 });
+            ExpectFailure<MissingFeatureException>(new GenericRepRapSettings() { PartProfile = { FloorLayers = 0 } });
         }
 
         [TestMethod]
         public void WrongRoofLayers()
         {
-            ExpectFailure<MissingFeatureException>(new GenericRepRapSettings() { FloorLayers = 3 });
+            ExpectFailure<MissingFeatureException>(new GenericRepRapSettings() { PartProfile = { FloorLayers = 3 } });
         }
 
         [TestMethod]
         public void WrongLocation()
         {
             var settings = new GenericRepRapSettings();
-            settings.Machine.BedOriginFactorX = 0.5;
-            settings.Machine.BedOriginFactorY = 0.5;
+            settings.MachineProfile.OriginX = Sutro.Core.Models.Profiles.MachineBedOriginLocationX.Center;
+            settings.MachineProfile.OriginY = Sutro.Core.Models.Profiles.MachineBedOriginLocationY.Center;
             ExpectFailure<BoundingBoxException>(settings);
         }
 

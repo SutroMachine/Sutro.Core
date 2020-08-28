@@ -1,4 +1,6 @@
-﻿namespace gs
+﻿using Sutro.Core.Settings;
+
+namespace gs
 {
     public class GenericSLSPrintGenerator : SLSPrintGenerator
     {
@@ -9,7 +11,7 @@
 
         public GenericSLSPrintGenerator(PrintMeshAssembly meshes,
                                       PlanarSliceStack slices,
-                                      SingleMaterialFFFSettings settings)
+                                      PrintProfileFFF settings)
         {
             file_accumulator = new GCodeFileAccumulator();
             //builder = new GCodeBuilder(file_accumulator);

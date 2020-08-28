@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Info;
 
 namespace gsCore.FunctionalTests
 {
@@ -13,7 +14,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Frustum.RepRap", new RepRapSettings
             {
-                GenerateSupport = false,
+                PartProfile = { GenerateSupport = false }
             });
 
             // Act
@@ -29,8 +30,11 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Cube.Prusa", new PrusaSettings
             {
-                GenerateSupport = false,
-                LayerHeightMM = 0.3,
+                PartProfile =
+                {
+                    GenerateSupport = false,
+                    LayerHeightMM = 0.3
+                }
             });
 
             // Act
@@ -46,7 +50,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Sphere.Flashforge", new FlashforgeSettings
             {
-                GenerateSupport = true,
+                PartProfile = { GenerateSupport = true },
             });
 
             // Act
@@ -62,7 +66,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Bunny.Printrbot", new PrintrbotSettings
             {
-                GenerateSupport = false,
+                PartProfile = { GenerateSupport = false },
             });
 
             // Act
@@ -78,7 +82,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Benchy.Monoprice", new MonopriceSettings
             {
-                GenerateSupport = false,
+                PartProfile = { GenerateSupport = false },
             });
 
             // Act
@@ -94,10 +98,12 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Robot.Makerbot", new MakerbotSettings
             {
+                PartProfile = {
                 GenerateSupport = false,
                 Shells = 1,
                 FloorLayers = 3,
                 RoofLayers = 3,
+            }
             });
 
             // Act

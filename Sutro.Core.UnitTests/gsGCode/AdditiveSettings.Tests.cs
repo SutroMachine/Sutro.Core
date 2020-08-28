@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Info;
 using System.Security;
 
 namespace Sutro.Core.UnitTests

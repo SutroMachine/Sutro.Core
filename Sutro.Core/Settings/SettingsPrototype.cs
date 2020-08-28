@@ -1,4 +1,5 @@
-﻿using System;
+﻿using gs;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -58,7 +59,6 @@ namespace Sutro.Core.Settings
                             {
                                 var a = Activator.CreateInstance(prop_this.PropertyType);
                                 prop_this.SetValue(this, a);
-
                             }
                             prop_this.SetValue(this, CopyValue(prop_other.GetValue(other)));
                         }
