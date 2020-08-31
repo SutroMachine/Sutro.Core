@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace gs
 {
-    public interface IPlanarAdditiveSettings : IProfile
+    public interface IPlanarAdditiveSettings
     {
         double LayerHeightMM { get; }
 
@@ -49,7 +49,7 @@ namespace gs
 
         public abstract AssemblerFactoryF AssemblerType();
 
-        public abstract IProfile Clone();
+        public abstract object Clone();
     }
 
     public class SingleMaterialFFFSettings : PlanarAdditiveSettings
@@ -67,7 +67,7 @@ namespace gs
             throw new NotImplementedException($"{GetType()}.AssemblerType() not provided");
         }
 
-        public override IProfile Clone()
+        public override object Clone()
         {
             return CloneAs<SingleMaterialFFFSettings>();
         }
@@ -290,7 +290,7 @@ namespace gs
             return RepRapAssembler.Factory;
         }
 
-        public override IProfile Clone()
+        public override object Clone()
         {
             return CloneAs<GenericRepRapSettings>();
         }

@@ -1,5 +1,5 @@
 ﻿using g3;
-using Sutro.Core.Models;
+using Sutro.Core.Models.Profiles;
 using System;
 
 namespace gs

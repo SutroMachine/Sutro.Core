@@ -31,7 +31,7 @@ namespace gs.info
             return MakerbotAssembler.Factory;
         }
 
-        public override IProfile Clone()
+        public override object Clone()
         {
             return CloneAs<MakerbotSettings>();
         }

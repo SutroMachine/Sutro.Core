@@ -26,7 +26,7 @@ namespace gs.info
             return RepRapAssembler.Factory;
         }
 
-        public override IProfile Clone()
+        public override object Clone()
         {
             return CloneAs<MonopriceSettings>();
         }

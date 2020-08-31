@@ -26,7 +26,7 @@ namespace gs.info
             return MakePrusaAssembler;
         }
 
-        public override IProfile Clone()
+        public override object Clone()
         {
             return CloneAs<PrusaSettings>();
         }
