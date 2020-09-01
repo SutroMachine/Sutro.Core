@@ -1,4 +1,5 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
 
 namespace Sutro.Core.Settings.Machine
 {
@@ -21,6 +22,8 @@ namespace Sutro.Core.Settings.Machine
         public abstract int SchemaVersion { get; }
 
         public string Name => $"{ManufacturerName} {ModelIdentifier}";
+
+        public abstract AssemblerFactoryF AssemblerFactory();
 
         public abstract IProfile Clone();
     }

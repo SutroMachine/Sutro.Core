@@ -1,14 +1,15 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
 
 namespace gs
 {
     public class PrusaAssembler
     {
         public static BaseDepositionAssembler Factory(
-            GCodeBuilder builder, PrintProfileFFF settings)
+            GCodeBuilder builder, IPrintProfile settings)
         {
-            var asm = new RepRapAssembler(builder, settings);
-            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings);
+            var asm = new RepRapAssembler(builder, settings as PrintProfileFFF);
+            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings as PrintProfileFFF);
             asm.HeaderCustomizerF = HeaderCustomF;
             asm.TravelGCode = 1;
             return asm;

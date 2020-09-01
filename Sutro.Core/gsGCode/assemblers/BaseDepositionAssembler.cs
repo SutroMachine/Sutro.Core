@@ -1,4 +1,5 @@
 ﻿using g3;
+using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using System;
@@ -14,7 +15,7 @@ namespace gs
     {
     }
 
-    public delegate BaseDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, PrintProfileFFF settings);
+    public delegate BaseDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, IPrintProfile settings);
 
     /// <summary>
     /// Assembler translates high-level commands from Compiler (eg MoveTo, ExtrudeTo, BeginRetract, etc)

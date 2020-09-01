@@ -1,6 +1,7 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -75,7 +76,7 @@ namespace gs
             // Run the print generator
             logger.WriteLine("Running print generator...");
             var printGenerator = new TPrintGenerator();
-            AssemblerFactoryF overrideAssemblerF = globalSettings.AssemblerFactory();
+            AssemblerFactoryF overrideAssemblerF = (globalSettings.MachineProfile as MachineProfileBase).AssemblerFactory();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
 
             if (printGenerator.Generate())

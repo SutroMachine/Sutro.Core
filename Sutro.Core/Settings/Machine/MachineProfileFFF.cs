@@ -1,4 +1,6 @@
-﻿using Sutro.Core.Models.Profiles;
+﻿using gs;
+using Sutro.Core.Models.Profiles;
+using System;
 
 namespace Sutro.Core.Settings.Machine
 {
@@ -53,6 +55,20 @@ namespace Sutro.Core.Settings.Machine
         public override IProfile Clone()
         {
             return CloneAs<MachineProfileFFF>();
+        }
+
+        public override AssemblerFactoryF AssemblerFactory()
+        {
+            return Firmware switch
+            {
+                FirmwareOptions.RepRap => RepRapAssembler.Factory,
+                FirmwareOptions.Prusa => PrusaAssembler.Factory,
+                FirmwareOptions.Printrbot => PrintrbotAssembler.Factory,
+                FirmwareOptions.Monoprice => RepRapAssembler.Factory,
+                FirmwareOptions.Makerbot => MakerbotAssembler.Factory,
+                FirmwareOptions.Flashforge => FlashforgeAssembler.Factory,
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 }

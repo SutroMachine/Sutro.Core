@@ -12,8 +12,6 @@ namespace Sutro.Core.Settings
         public abstract IMaterialProfile MaterialProfile { get; }
         public abstract IPartProfile PartProfile { get; }
         public abstract double LayerHeightMM { get; set; }
-
-        public abstract AssemblerFactoryF AssemblerFactory();
     }
 
     public abstract class PrintProfileBase<TMachine, TMaterial, TPart> : PrintProfileBase

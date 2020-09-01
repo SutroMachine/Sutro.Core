@@ -1,4 +1,5 @@
 ﻿using g3;
+using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using System;
 
@@ -6,9 +7,9 @@ namespace gs
 {
     public class RepRapAssembler : BaseDepositionAssembler
     {
-        public static BaseDepositionAssembler Factory(GCodeBuilder builder, PrintProfileFFF settings)
+        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfile settings)
         {
-            return new RepRapAssembler(builder, settings);
+            return new RepRapAssembler(builder, settings as PrintProfileFFF);
         }
 
         public PrintProfileFFF Settings;

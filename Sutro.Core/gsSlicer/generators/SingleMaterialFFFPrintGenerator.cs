@@ -28,7 +28,7 @@ namespace gs
         {
             file_accumulator = new GCodeFileAccumulator();
             builder = new GCodeBuilder(file_accumulator);
-            AssemblerFactoryF useAssembler = overrideAssemblerF ?? settings.AssemblerFactory();
+            AssemblerFactoryF useAssembler = overrideAssemblerF ?? settings.Machine.AssemblerFactory();
             compiler = new SingleMaterialFFFCompiler(builder, settings, useAssembler);
             Initialize(meshes, slices, settings, compiler);
         }

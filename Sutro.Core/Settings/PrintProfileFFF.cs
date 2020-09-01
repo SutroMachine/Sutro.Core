@@ -13,20 +13,6 @@ namespace Sutro.Core.Settings
     {
         public static int SchemaVersion => 1;
 
-        public override AssemblerFactoryF AssemblerFactory()
-        {
-            return Machine.Firmware switch
-            {
-                FirmwareOptions.RepRap => RepRapAssembler.Factory,
-                FirmwareOptions.Prusa => PrusaAssembler.Factory,
-                FirmwareOptions.Printrbot => PrintrbotAssembler.Factory,
-                FirmwareOptions.Monoprice => RepRapAssembler.Factory,
-                FirmwareOptions.Makerbot => MakerbotAssembler.Factory,
-                FirmwareOptions.Flashforge => FlashforgeAssembler.Factory,
-                _ => throw new NotImplementedException(),
-            };
-        }
-
         public PrintProfileFFF()
         {
             FillTypeFactory = new FillTypeFactory(this);

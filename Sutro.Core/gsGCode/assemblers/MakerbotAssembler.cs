@@ -1,13 +1,14 @@
 ﻿using g3;
+using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 
 namespace gs
 {
     public class MakerbotAssembler : BaseDepositionAssembler
     {
-        public static BaseDepositionAssembler Factory(GCodeBuilder builder, PrintProfileFFF settings)
+        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfile settings)
         {
-            return new MakerbotAssembler(builder, settings);
+            return new MakerbotAssembler(builder, settings as PrintProfileFFF);
         }
 
         public PrintProfileFFF Settings;

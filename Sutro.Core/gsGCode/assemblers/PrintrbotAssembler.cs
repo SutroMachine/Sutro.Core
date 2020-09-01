@@ -1,14 +1,15 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
 
 namespace gs
 {
     public static class PrintrbotAssembler
     {
         public static BaseDepositionAssembler Factory(
-            GCodeBuilder builder, PrintProfileFFF settings)
+            GCodeBuilder builder, IPrintProfile settings)
         {
-            var asm = new RepRapAssembler(builder, settings);
-            asm.HeaderCustomizerF = (state, builder) => HeaderCustomF(settings, state, builder);
+            var asm = new RepRapAssembler(builder, settings as PrintProfileFFF);
+            asm.HeaderCustomizerF = (state, builder) => HeaderCustomF(settings as PrintProfileFFF, state, builder);
             return asm;
         }
 
