@@ -13,7 +13,7 @@ namespace Sutro.Core.Settings.Info
 
         public MonopriceSettings() : base()
         {
-            MachineProfile.Firmware = FirmwareOptions.Monoprice;
+            Machine.Firmware = FirmwareOptions.Monoprice;
             ConfigureGeneric();
         }
 
@@ -39,81 +39,81 @@ namespace Sutro.Core.Settings.Info
 
         private void ConfigureSelectMiniV2()
         {
-            MachineProfile.ManufacturerName = "Monoprice";
-            MachineProfile.ModelIdentifier = "MP Select Mini V2";
-            MachineProfile.Class = MachineClass.PlasticFFFPrinter;
-            MachineProfile.BedSizeXMM = 120;
-            MachineProfile.BedSizeYMM = 120;
-            MachineProfile.MaxHeightMM = 120;
-            MachineProfile.NozzleDiamMM = 0.4;
-            MaterialProfile.FilamentDiamMM = 1.75;
+            Machine.ManufacturerName = "Monoprice";
+            Machine.ModelIdentifier = "MP Select Mini V2";
+            Machine.Class = MachineClass.PlasticFFFPrinter;
+            Machine.BedSizeXMM = 120;
+            Machine.BedSizeYMM = 120;
+            Machine.MaxHeightMM = 120;
+            Machine.NozzleDiamMM = 0.4;
+            Material.FilamentDiamMM = 1.75;
 
-            MachineProfile.MaxExtruderTempC = 250;
-            MachineProfile.HasHeatedBed = true;
-            MachineProfile.MaxBedTempC = 60;
+            Machine.MaxExtruderTempC = 250;
+            Machine.HasHeatedBed = true;
+            Machine.MaxBedTempC = 60;
 
-            MachineProfile.MaxExtrudeSpeedMMM = 55 * 60;
-            MachineProfile.MaxTravelSpeedMMM = 150 * 60;
-            MachineProfile.MaxZTravelSpeedMMM = 100 * 60;
-            MachineProfile.MaxRetractSpeedMMM = 100 * 60;
-            MachineProfile.MinLayerHeightMM = 0.1;
-            MachineProfile.MaxLayerHeightMM = 0.3;
+            Machine.MaxExtrudeSpeedMMM = 55 * 60;
+            Machine.MaxTravelSpeedMMM = 150 * 60;
+            Machine.MaxZTravelSpeedMMM = 100 * 60;
+            Machine.MaxRetractSpeedMMM = 100 * 60;
+            Machine.MinLayerHeightMM = 0.1;
+            Machine.MaxLayerHeightMM = 0.3;
 
-            PartProfile.LayerHeightMM = 0.2;
+            Part.LayerHeightMM = 0.2;
 
-            MaterialProfile.ExtruderTempC = 200;
-            MaterialProfile.HeatedBedTempC = 0;
+            Material.ExtruderTempC = 200;
+            Material.HeatedBedTempC = 0;
 
-            PartProfile.SolidFillNozzleDiamStepX = 1.0;
-            PartProfile.RetractDistanceMM = 4.5;
+            Part.SolidFillNozzleDiamStepX = 1.0;
+            Part.RetractDistanceMM = 4.5;
 
-            PartProfile.RetractSpeed = MachineProfile.MaxRetractSpeedMMM;
-            PartProfile.ZTravelSpeed = MachineProfile.MaxZTravelSpeedMMM;
-            PartProfile.RapidTravelSpeed = MachineProfile.MaxTravelSpeedMMM;
-            PartProfile.CarefulExtrudeSpeed = 20 * 60;
-            PartProfile.RapidExtrudeSpeed = MachineProfile.MaxExtrudeSpeedMMM;
-            PartProfile.OuterPerimeterSpeedX = 0.5;
+            Part.RetractSpeed = Machine.MaxRetractSpeedMMM;
+            Part.ZTravelSpeed = Machine.MaxZTravelSpeedMMM;
+            Part.RapidTravelSpeed = Machine.MaxTravelSpeedMMM;
+            Part.CarefulExtrudeSpeed = 20 * 60;
+            Part.RapidExtrudeSpeed = Machine.MaxExtrudeSpeedMMM;
+            Part.OuterPerimeterSpeedX = 0.5;
         }
 
         private void ConfigureGeneric()
         {
-            MachineProfile.ManufacturerName = "Monoprice";
-            MachineProfile.ModelIdentifier = "Generic";
-            MachineProfile.Class = MachineClass.PlasticFFFPrinter;
-            MachineProfile.BedSizeXMM = 100;
-            MachineProfile.BedSizeYMM = 100;
-            MachineProfile.MaxHeightMM = 100;
-            MachineProfile.NozzleDiamMM = 0.4;
-            MaterialProfile.FilamentDiamMM = 1.75;
+            Machine.ManufacturerName = "Monoprice";
+            Machine.ModelIdentifier = "Generic";
+            Machine.Class = MachineClass.PlasticFFFPrinter;
+            Machine.BedSizeXMM = 100;
+            Machine.BedSizeYMM = 100;
+            Machine.MaxHeightMM = 100;
+            Machine.NozzleDiamMM = 0.4;
+            Material.FilamentDiamMM = 1.75;
 
-            MachineProfile.MaxExtruderTempC = 230;
-            MachineProfile.HasHeatedBed = false;
-            MachineProfile.MaxBedTempC = 0;
+            Machine.MaxExtruderTempC = 230;
+            Machine.HasHeatedBed = false;
+            Machine.MaxBedTempC = 0;
 
-            MachineProfile.HasAutoBedLeveling = false;
-            MachineProfile.EnableAutoBedLeveling = false;
+            Machine.HasAutoBedLeveling = false;
+            Machine.EnableAutoBedLeveling = false;
 
-            MachineProfile.MaxExtrudeSpeedMMM = 60 * 60;
-            MachineProfile.MaxTravelSpeedMMM = 80 * 60;
-            MachineProfile.MaxZTravelSpeedMMM = 23 * 60;
-            MachineProfile.MaxRetractSpeedMMM = 20 * 60;
-            MachineProfile.MinLayerHeightMM = 0.1;
-            MachineProfile.MaxLayerHeightMM = 0.3;
+            Machine.MaxExtrudeSpeedMMM = 60 * 60;
+            Machine.MaxTravelSpeedMMM = 80 * 60;
+            Machine.MaxZTravelSpeedMMM = 23 * 60;
+            Machine.MaxRetractSpeedMMM = 20 * 60;
+            Machine.MinLayerHeightMM = 0.1;
+            Machine.MaxLayerHeightMM = 0.3;
 
-            PartProfile.LayerHeightMM = 0.2;
+            Part.LayerHeightMM = 0.2;
 
-            MaterialProfile.ExtruderTempC = 200;
-            MaterialProfile.HeatedBedTempC = 0;
+            Material.ExtruderTempC = 200;
+            Material.HeatedBedTempC = 0;
 
-            PartProfile.SolidFillNozzleDiamStepX = 1.0;
-            PartProfile.RetractDistanceMM = 1.0;
+            Part.SolidFillNozzleDiamStepX = 1.0;
+            Part.RetractDistanceMM = 1.0;
 
-            PartProfile.RetractSpeed = MachineProfile.MaxRetractSpeedMMM;
-            PartProfile.ZTravelSpeed = MachineProfile.MaxZTravelSpeedMMM;
-            PartProfile.RapidTravelSpeed = MachineProfile.MaxTravelSpeedMMM;
-            PartProfile.CarefulExtrudeSpeed = 20 * 60;
-            PartProfile.RapidExtrudeSpeed = MachineProfile.MaxExtrudeSpeedMMM;
-            PartProfile.OuterPerimeterSpeedX = 0.5;
+            Part.RetractSpeed = Machine.MaxRetractSpeedMMM;
+            Part.ZTravelSpeed = Machine.MaxZTravelSpeedMMM;
+            Part.RapidTravelSpeed = Machine.MaxTravelSpeedMMM;
+            Part.CarefulExtrudeSpeed = 20 * 60;
+            Part.RapidExtrudeSpeed = Machine.MaxExtrudeSpeedMMM;
+            Part.OuterPerimeterSpeedX = 0.5;
         }
     }
 }

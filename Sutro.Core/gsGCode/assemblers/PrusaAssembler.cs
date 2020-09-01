@@ -16,7 +16,7 @@ namespace gs
 
         private static void HomeSequence(GCodeBuilder builder, PrintProfileFFF profile)
         {
-            if (profile.MachineProfile.HasAutoBedLeveling && profile.MachineProfile.EnableAutoBedLeveling)
+            if (profile.Machine.HasAutoBedLeveling && profile.Machine.EnableAutoBedLeveling)
             {
                 builder.BeginGLine(28).AppendL("W").AppendComment("home all without bed level");
                 builder.BeginGLine(80, "auto-level bed");

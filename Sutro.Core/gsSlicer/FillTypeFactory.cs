@@ -14,7 +14,7 @@ namespace gs
 
         public IFillType Bridge()
         {
-            return new BridgeFillType(settings.PartProfile.BridgeVolumeScale, settings.PartProfile.CarefulExtrudeSpeed * settings.PartProfile.BridgeExtrudeSpeedX);
+            return new BridgeFillType(settings.Part.BridgeVolumeScale, settings.Part.CarefulExtrudeSpeed * settings.Part.BridgeExtrudeSpeedX);
         }
 
         public IFillType Default()
@@ -24,7 +24,7 @@ namespace gs
 
         public IFillType InnerPerimeter()
         {
-            return new InnerPerimeterFillType(1, settings.PartProfile.InnerPerimeterSpeedX);
+            return new InnerPerimeterFillType(1, settings.Part.InnerPerimeterSpeedX);
         }
 
         public IFillType InteriorShell()
@@ -39,7 +39,7 @@ namespace gs
 
         public IFillType OuterPerimeter()
         {
-            return new OuterPerimeterFillType(1, settings.PartProfile.OuterPerimeterSpeedX);
+            return new OuterPerimeterFillType(1, settings.Part.OuterPerimeterSpeedX);
         }
 
         public IFillType SkirtBrim(PrintProfileFFF settings)
@@ -49,7 +49,7 @@ namespace gs
 
         public IFillType Solid()
         {
-            return new SolidFillType(1, settings.PartProfile.SolidFillSpeedX);
+            return new SolidFillType(1, settings.Part.SolidFillSpeedX);
         }
 
         public IFillType Sparse()
@@ -59,7 +59,7 @@ namespace gs
 
         public IFillType Support()
         {
-            return new SupportFillType(settings.PartProfile.SupportVolumeScale, settings.PartProfile.OuterPerimeterSpeedX);
+            return new SupportFillType(settings.Part.SupportVolumeScale, settings.Part.OuterPerimeterSpeedX);
         }
     }
 }

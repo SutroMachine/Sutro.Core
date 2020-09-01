@@ -220,7 +220,7 @@ namespace gs
             LayerPostProcessor = null;
 
             if (PathFilterF == null)
-                PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.MachineProfile.NozzleDiamMM; };
+                PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.Machine.NozzleDiamMM; };
         }
 
         public virtual bool Generate()
@@ -264,10 +264,10 @@ namespace gs
 
         protected virtual double LayerFillAngleF(int layer_i)
         {
-            int count = Settings.PartProfile.InfillAngles.Count;
+            int count = Settings.Part.InfillAngles.Count;
             if (count > 0)
             {
-                return Settings.PartProfile.InfillAngles[layer_i % count];
+                return Settings.Part.InfillAngles[layer_i % count];
             }
             else
             {
@@ -287,7 +287,7 @@ namespace gs
         {
             // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
             //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
-            OverhangAllowanceMM = Settings.PartProfile.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
+            OverhangAllowanceMM = Settings.Part.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
 
             int NProgressStepsPerLayer = 10;
             TotalProgress = NProgressStepsPerLayer * (Slices.Count - 1);
@@ -336,8 +336,8 @@ namespace gs
             // Now generate paths for each layer.
             // This could be parallelized to some extent, but we have to pass per-layer paths
             // to Scheduler in layer-order. Probably better to parallelize within-layer computes.
-            CurStartLayer = Math.Max(0, Settings.PartProfile.LayerRangeFilter.a);
-            CurEndLayer = Math.Min(nLayers - 1, Settings.PartProfile.LayerRangeFilter.b);
+            CurStartLayer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
+            CurEndLayer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b);
             for (int layer_i = CurStartLayer; layer_i <= CurEndLayer; ++layer_i)
             {
                 if (Cancelled()) return;
@@ -367,7 +367,7 @@ namespace gs
                 // make path-accumulator for this layer
                 pathAccum.Initialize(Compiler.NozzlePosition);
                 // layer-up (ie z-change)
-                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.PartProfile.ZTravelSpeed);
+                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
 
                 // do skirt first
                 {
@@ -479,10 +479,10 @@ namespace gs
                     LayerPostProcessor.Process(layerdata, pathAccum.Paths);
 
                 // change speeds if layer is going to finish too quickly
-                if (Settings.PartProfile.MinLayerTime > 0)
+                if (Settings.Part.MinLayerTime > 0)
                 {
                     CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths);
-                    bool layerModified = layer_time_calc.EnforceMinLayerTime(layerSettings.PartProfile.MinLayerTime, layerSettings.PartProfile.MinExtrudeSpeed);
+                    bool layerModified = layer_time_calc.EnforceMinLayerTime(layerSettings.Part.MinLayerTime, layerSettings.Part.MinExtrudeSpeed);
                     if (layerModified)
                     {
                         layer_time_calc.Calculate();
@@ -522,7 +522,7 @@ namespace gs
             var layerSettings = (PrintProfileFFF)Settings.Clone();
             PlanarSlice slice = Slices[layer_i];
             // override standard layer height with slice ZSpan
-            layerSettings.PartProfile.LayerHeightMM = slice.LayerZSpan.Length;
+            layerSettings.Part.LayerHeightMM = slice.LayerZSpan.Length;
             return layerSettings;
         }
 
@@ -538,7 +538,7 @@ namespace gs
                 // schedule shell paths that we pre-computed
                 List<FillCurveSet2d> shells_gen_paths = shells_gen.GetFillCurves();
                 FillCurveSet2d outer_shell = (shells_gen_paths.Count > 0) ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
-                bool do_outer_last = Settings.PartProfile.OuterShellLast && (shells_gen_paths.Count > 1);
+                bool do_outer_last = Settings.Part.OuterShellLast && (shells_gen_paths.Count > 1);
                 groupScheduler.BeginGroup();
                 if (do_outer_last == false)
                 {
@@ -592,9 +592,9 @@ namespace gs
         protected virtual void fill_infill_regions(List<GeneralPolygon2d> infill_regions,
             IFillPathScheduler2d scheduler, PrintLayerData layer_data)
         {
-            if (Settings.PartProfile.SparseLinearInfillStepX < 0.1 || Settings.PartProfile.SparseLinearInfillStepX > 100)
+            if (Settings.Part.SparseLinearInfillStepX < 0.1 || Settings.Part.SparseLinearInfillStepX > 100)
                 return;
-            double sparse_gap_width = Settings.PartProfile.SparseLinearInfillStepX * Settings.MachineProfile.NozzleDiamMM;
+            double sparse_gap_width = Settings.Part.SparseLinearInfillStepX * Settings.Machine.NozzleDiamMM;
 
             foreach (GeneralPolygon2d infill_poly in infill_regions)
             {
@@ -603,9 +603,9 @@ namespace gs
 
                 List<GeneralPolygon2d> polys = new List<GeneralPolygon2d>() { infill_poly };
 
-                if (Settings.PartProfile.SparseFillBorderOverlapX > 0)
+                if (Settings.Part.SparseFillBorderOverlapX > 0)
                 {
-                    double offset = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SparseFillBorderOverlapX;
+                    double offset = Settings.Machine.NozzleDiamMM * Settings.Part.SparseFillBorderOverlapX;
                     polys = ClipperUtil.MiterOffset(polys, offset);
                 }
 
@@ -624,10 +624,10 @@ namespace gs
             ICurvesFillPolygon infill_gen = new SparseLinesFillPolygon(infill_poly, new SparseFillType())
             {
                 InsetFromInputPolygon = false,
-                PathSpacing = Settings.PartProfile.SparseLinearInfillStepX * Settings.SolidFillPathSpacingMM(),
-                ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                PathSpacing = Settings.Part.SparseLinearInfillStepX * Settings.SolidFillPathSpacingMM(),
+                ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
-                MinPathLengthMM = Settings.PartProfile.MinInfillLengthMM
+                MinPathLengthMM = Settings.Part.MinInfillLengthMM
             };
             infill_gen.Compute();
 
@@ -656,13 +656,13 @@ namespace gs
             // so that they are more loosely bonded
             // [TODO] we should only do this if we are directly below model. Otherwise this
             // branch is hit on any thin tube supports, that we could be printing empty
-            int nShells = (Settings.PartProfile.EnableSupportShell) ? 1 : 0;
-            double support_spacing = Settings.PartProfile.SupportSpacingStepX * Settings.MachineProfile.NozzleDiamMM;
-            double shell_spacing = Settings.MachineProfile.NozzleDiamMM;
+            int nShells = (Settings.Part.EnableSupportShell) ? 1 : 0;
+            double support_spacing = Settings.Part.SupportSpacingStepX * Settings.Machine.NozzleDiamMM;
+            double shell_spacing = Settings.Machine.NozzleDiamMM;
             if (bounds.MaxDim < support_spacing)
             {
                 nShells = 3;
-                shell_spacing = Settings.MachineProfile.NozzleDiamMM * 1.25f;
+                shell_spacing = Settings.Machine.NozzleDiamMM * 1.25f;
             }
 
             List<GeneralPolygon2d> infill_polys = new List<GeneralPolygon2d>() { support_poly };
@@ -671,7 +671,7 @@ namespace gs
             {
                 ShellsFillPolygon shells_gen = new ShellsFillPolygon(support_poly, Settings.FillTypeFactory.Support());
                 shells_gen.PathSpacing = shell_spacing;
-                shells_gen.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
+                shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
                 shells_gen.Layers = nShells;
                 shells_gen.FilterSelfOverlaps = false;
                 shells_gen.PreserveInputInsetTopology = true;
@@ -693,9 +693,9 @@ namespace gs
 
                 // expand inner polygon so that infill overlaps shell
                 List<GeneralPolygon2d> inner_shells = shells_gen.GetInnerPolygons();
-                if (Settings.PartProfile.SparseFillBorderOverlapX > 0)
+                if (Settings.Part.SparseFillBorderOverlapX > 0)
                 {
-                    double offset = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SparseFillBorderOverlapX;
+                    double offset = Settings.Machine.NozzleDiamMM * Settings.Part.SparseFillBorderOverlapX;
                     infill_polys = ClipperUtil.MiterOffset(inner_shells, offset);
                 }
             }
@@ -704,9 +704,9 @@ namespace gs
             {
                 SupportLinesFillPolygon infill_gen = new SupportLinesFillPolygon(poly, Settings)
                 {
-                    InsetFromInputPolygon = (Settings.PartProfile.EnableSupportShell == false),
+                    InsetFromInputPolygon = (Settings.Part.EnableSupportShell == false),
                     PathSpacing = support_spacing,
-                    ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                    ToolWidth = Settings.Machine.NozzleDiamMM,
                     AngleDeg = 0,
                 };
                 infill_gen.Compute();
@@ -720,11 +720,11 @@ namespace gs
         protected virtual void fill_solid_regions(List<GeneralPolygon2d> solid_regions,
             IFillPathScheduler2d scheduler, PrintLayerData layer_data, bool bIsInfillAdjacent)
         {
-            double filter_area = Settings.MachineProfile.NozzleDiamMM * Settings.MachineProfile.NozzleDiamMM;
+            double filter_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
             // if we have bridge regions on this layer, we subtract them from solid regions
             // and fill them using bridge strategy
-            if (layer_data.layer_i > 0 && Settings.PartProfile.EnableBridging)
+            if (layer_data.layer_i > 0 && Settings.Part.EnableBridging)
             {
                 // bridge regions for layer i were computed at layer i-1...
                 List<GeneralPolygon2d> bridge_regions = get_layer_bridge_area(layer_data.layer_i - 1);
@@ -736,8 +736,8 @@ namespace gs
                     // bridge works better if there is a 'landing pad' on either side, so we
                     // expand and then clip with the solid regions, to get actual bridge fill region.
 
-                    double path_width = Settings.MachineProfile.NozzleDiamMM;
-                    double shells_width = Settings.PartProfile.Shells * path_width;
+                    double path_width = Settings.Machine.NozzleDiamMM;
+                    double shells_width = Settings.Part.Shells * path_width;
                     //bridge_regions = ClipperUtil.MiterOffset(bridge_regions, shells_width, filter_area);
                     bridge_regions = ClipperUtil.SeparateMiterOffsets(bridge_regions, shells_width, filter_area);
                     bridge_regions = ClipperUtil.Intersection(bridge_regions, solid_regions, filter_area);
@@ -749,7 +749,7 @@ namespace gs
                         // We are not going to inset bridge region or solid fill,
                         // so we need to add *two* half-width tolerances
                         //var offset_regions = ClipperUtil.MiterOffset(bridge_regions, Settings.Machine.NozzleDiamMM, filter_area);
-                        var offset_regions = ClipperUtil.SeparateMiterOffsets(bridge_regions, Settings.MachineProfile.NozzleDiamMM, filter_area);
+                        var offset_regions = ClipperUtil.SeparateMiterOffsets(bridge_regions, Settings.Machine.NozzleDiamMM, filter_area);
                         solid_regions = ClipperUtil.Difference(solid_regions, offset_regions, filter_area);
                         solid_regions = CurveUtils2.FilterDegenerate(solid_regions, filter_area);     // [RMS] do we need to do this?
 
@@ -786,24 +786,24 @@ namespace gs
             // [TODO] should only be doing this if solid-fill is adjecent to infill region.
             //   But how to determine this? not easly because we don't know which polys
             //   came from where. Would need to do loop above per-polygon
-            if (bIsInfillAdjacent && Settings.PartProfile.InteriorSolidRegionShells > 0)
+            if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, new InteriorShellFillType());
                 interior_shells.PathSpacing = Settings.ShellsFillPathSpacingMM();
-                interior_shells.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
-                interior_shells.Layers = Settings.PartProfile.InteriorSolidRegionShells;
+                interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
+                interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.InsetFromInputPolygonX = 0;
-                interior_shells.FilterSelfOverlaps = Settings.PartProfile.ClipSelfOverlaps;
+                interior_shells.FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps;
                 interior_shells.PreserveOuterShells = false;
-                interior_shells.SelfOverlapTolerance = Settings.PartProfile.SelfOverlapToleranceX * Settings.MachineProfile.NozzleDiamMM;
+                interior_shells.SelfOverlapTolerance = Settings.Part.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
                 interior_shells.Compute();
                 scheduler.AppendCurveSets(interior_shells.GetFillCurves());
                 fillPolys = interior_shells.InnerPolygons;
             }
 
-            if (Settings.PartProfile.SolidFillBorderOverlapX > 0)
+            if (Settings.Part.SolidFillBorderOverlapX > 0)
             {
-                double offset = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SolidFillBorderOverlapX;
+                double offset = Settings.Machine.NozzleDiamMM * Settings.Part.SolidFillBorderOverlapX;
                 fillPolys = ClipperUtil.MiterOffset(fillPolys, offset);
             }
 
@@ -820,10 +820,10 @@ namespace gs
             {
                 InsetFromInputPolygon = false,
                 PathSpacing = Settings.SolidFillPathSpacingMM(),
-                ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
-                FilterSelfOverlaps = Settings.PartProfile.ClipSelfOverlaps,
-                MinPathLengthMM = Settings.PartProfile.MinInfillLengthMM
+                FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps,
+                MinPathLengthMM = Settings.Part.MinInfillLengthMM
             };
 
             solid_gen.Compute();
@@ -855,7 +855,7 @@ namespace gs
             {
                 InsetFromInputPolygon = false,
                 PathSpacing = spacing,
-                ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = angle,
             };
             fill_gen.Compute();
@@ -866,7 +866,7 @@ namespace gs
         {
             poly.Simplify(0.1, 0.01, true);
 
-            double minLength = Settings.PartProfile.MaxBridgeWidthMM * 0.75;
+            double minLength = Settings.Part.MaxBridgeWidthMM * 0.75;
             double minArea = minLength * minLength;
 
             var polys = PolygonDecomposer.Compute(poly, minArea);
@@ -883,7 +883,7 @@ namespace gs
 
                 ShellsFillPolygon shells_fill = new ShellsFillPolygon(gp, Settings.FillTypeFactory.Bridge());
                 shells_fill.PathSpacing = Settings.SolidFillPathSpacingMM();
-                shells_fill.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
+                shells_fill.ToolWidth = Settings.Machine.NozzleDiamMM;
                 shells_fill.Layers = 1;
                 shells_fill.InsetFromInputPolygonX = 0.25;
                 shells_fill.FilterSelfOverlaps = false;
@@ -892,7 +892,7 @@ namespace gs
                 scheduler.AppendCurveSets(shells_fill.GetFillCurves());
                 var fillPolys = shells_fill.InnerPolygons;
 
-                double offset = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SolidFillBorderOverlapX;
+                double offset = Settings.Machine.NozzleDiamMM * Settings.Part.SolidFillBorderOverlapX;
                 fillPolys = ClipperUtil.MiterOffset(fillPolys, offset);
 
                 foreach (var fp in fillPolys)
@@ -901,7 +901,7 @@ namespace gs
                     {
                         InsetFromInputPolygon = false,
                         PathSpacing = spacing,
-                        ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                        ToolWidth = Settings.Machine.NozzleDiamMM,
                         AngleDeg = angle,
                     };
                     fill_gen.Compute();
@@ -921,7 +921,7 @@ namespace gs
                                                              out List<GeneralPolygon2d> solid_regions)
 
         {
-            double min_area = Settings.MachineProfile.NozzleDiamMM * Settings.MachineProfile.NozzleDiamMM;
+            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
             List<GeneralPolygon2d> infillPolys = fillRegions;
 
@@ -941,7 +941,7 @@ namespace gs
             if (solid_regions.Count > 0)
             {
                 List<GeneralPolygon2d> solidWithBorder =
-                    ClipperUtil.MiterOffset(solid_regions, Settings.MachineProfile.NozzleDiamMM, min_area);
+                    ClipperUtil.MiterOffset(solid_regions, Settings.Machine.NozzleDiamMM, min_area);
                 infillPolys = ClipperUtil.Difference(infillPolys, solidWithBorder, min_area);
             }
 
@@ -954,7 +954,7 @@ namespace gs
         /// </summary>
         protected virtual List<GeneralPolygon2d> find_roof_areas_for_layer(int layer_i)
         {
-            double min_area = Settings.MachineProfile.NozzleDiamMM * Settings.MachineProfile.NozzleDiamMM;
+            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
             List<GeneralPolygon2d> roof_cover = new List<GeneralPolygon2d>();
 
@@ -964,7 +964,7 @@ namespace gs
             // If we want > 1 roof layer, we need to look further ahead.
             // The full area we need to print as "roof" is the infill minus
             // the intersection of the infill areas above
-            for (int k = 2; k <= Settings.PartProfile.RoofLayers; ++k)
+            for (int k = 2; k <= Settings.Part.RoofLayers; ++k)
             {
                 int ri = layer_i + k;
                 if (ri < LayerShells.Length)
@@ -989,7 +989,7 @@ namespace gs
         /// </summary>
         protected virtual List<GeneralPolygon2d> find_floor_areas_for_layer(int layer_i)
         {
-            double min_area = Settings.MachineProfile.NozzleDiamMM * Settings.MachineProfile.NozzleDiamMM;
+            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
             List<GeneralPolygon2d> floor_cover = new List<GeneralPolygon2d>();
 
@@ -997,7 +997,7 @@ namespace gs
                 floor_cover.AddRange(shells.GetInnerPolygons());
 
             // If we want > 1 floor layer, we need to look further back.
-            for (int k = 2; k <= Settings.PartProfile.FloorLayers; ++k)
+            for (int k = 2; k <= Settings.Part.FloorLayers; ++k)
             {
                 int ri = layer_i - k;
                 if (ri >= 0)
@@ -1034,7 +1034,7 @@ namespace gs
                 };
 
                 // leave space for end-blobs (input paths are extent we want to hit)
-                var trimmed = pline.TrimFrontAndBack(Settings.MachineProfile.NozzleDiamMM / 2);
+                var trimmed = pline.TrimFrontAndBack(Settings.Machine.NozzleDiamMM / 2);
 
                 // ignore tiny paths
                 if (PathFilterF != null && PathFilterF(trimmed) == true)
@@ -1075,9 +1075,9 @@ namespace gs
             int nLayers = Slices.Count;
             LayerShells = new List<IShellsFillPolygon>[nLayers];
 
-            int max_roof_floor = Math.Max(Settings.PartProfile.RoofLayers, Settings.PartProfile.FloorLayers);
-            int start_layer = Math.Max(0, Settings.PartProfile.LayerRangeFilter.a - max_roof_floor);
-            int end_layer = Math.Min(nLayers - 1, Settings.PartProfile.LayerRangeFilter.b + max_roof_floor);
+            int max_roof_floor = Math.Max(Settings.Part.RoofLayers, Settings.Part.FloorLayers);
+            int start_layer = Math.Max(0, Settings.Part.LayerRangeFilter.a - max_roof_floor);
+            int end_layer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b + max_roof_floor);
 
             Interval1i interval = new Interval1i(start_layer, end_layer);
 
@@ -1131,14 +1131,14 @@ namespace gs
                 Settings.FillTypeFactory.OuterPerimeter());
 
             shells_gen.PathSpacing = Settings.ShellsFillPathSpacingMM();
-            shells_gen.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
-            shells_gen.Layers = Settings.PartProfile.Shells;
-            shells_gen.FilterSelfOverlaps = Settings.PartProfile.ClipSelfOverlaps;
+            shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
+            shells_gen.Layers = Settings.Part.Shells;
+            shells_gen.FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps;
             shells_gen.PreserveOuterShells = true;
-            shells_gen.SelfOverlapTolerance = Settings.PartProfile.SelfOverlapToleranceX * Settings.MachineProfile.NozzleDiamMM;
-            shells_gen.DiscardTinyPerimeterLengthMM = Settings.MachineProfile.NozzleDiamMM * 2.5;
-            shells_gen.DiscardTinyPolygonAreaMM2 = Settings.MachineProfile.NozzleDiamMM * Settings.MachineProfile.NozzleDiamMM * 6.25;
-            shells_gen.OuterShellLast = Settings.PartProfile.OuterShellLast;
+            shells_gen.SelfOverlapTolerance = Settings.Part.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
+            shells_gen.DiscardTinyPerimeterLengthMM = Settings.Machine.NozzleDiamMM * 2.5;
+            shells_gen.DiscardTinyPolygonAreaMM2 = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM * 6.25;
+            shells_gen.OuterShellLast = Settings.Part.OuterShellLast;
 
             shells_gen.Compute();
             return shells_gen;
@@ -1173,10 +1173,10 @@ namespace gs
             // the skirt is computed at each level independently instead of computing the outer path and using offsets
             // this improves the quality of the brim, as it will work in areas that have a narrow gap, and avoids overlaps
             // is some situations (e.g. when the width of the skirt is larger than an inside radius)
-            for (int i = Settings.PartProfile.SkirtCount - 1; i >= 0; i--)
+            for (int i = Settings.Part.SkirtCount - 1; i >= 0; i--)
             {
-                double skirtDistance = Settings.PartProfile.SkirtGap +
-                    Settings.MachineProfile.NozzleDiamMM + i * Settings.PartProfile.SkirtSpacingStepX * Settings.MachineProfile.NozzleDiamMM;
+                double skirtDistance = Settings.Part.SkirtGap +
+                    Settings.Machine.NozzleDiamMM + i * Settings.Part.SkirtSpacingStepX * Settings.Machine.NozzleDiamMM;
                 // TODO: Add back angular resolution
                 //List<GeneralPolygon2d> dilated = ClipperUtil.RoundOffset(slice.Solids, skirtDistance, -1, angularResolution);
                 List<GeneralPolygon2d> dilated = ClipperUtil.RoundOffset(slice.Solids, skirtDistance, -1);
@@ -1197,12 +1197,12 @@ namespace gs
         protected virtual IShellsFillPolygon compute_skirts_for_shape(GeneralPolygon2d shape, int layer_i)
         {
             ShellsFillPolygon skirt_gen = new ShellsFillPolygon(shape, new SkirtBrimFillType());
-            skirt_gen.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
-            skirt_gen.PathSpacing = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SkirtSpacingStepX;
+            skirt_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
+            skirt_gen.PathSpacing = Settings.Machine.NozzleDiamMM * Settings.Part.SkirtSpacingStepX;
             skirt_gen.Layers = 1; // the path is computed indepedently for each distance.
-            skirt_gen.FilterSelfOverlaps = Settings.PartProfile.ClipSelfOverlaps;
+            skirt_gen.FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps;
             skirt_gen.PreserveOuterShells = false;
-            skirt_gen.SelfOverlapTolerance = Settings.PartProfile.SelfOverlapToleranceX * Settings.MachineProfile.NozzleDiamMM;
+            skirt_gen.SelfOverlapTolerance = Settings.Part.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
             skirt_gen.OuterShellLast = false;
 
             skirt_gen.Compute();
@@ -1238,8 +1238,8 @@ namespace gs
             LayerRoofAreas = new List<GeneralPolygon2d>[nLayers];
             LayerFloorAreas = new List<GeneralPolygon2d>[nLayers];
 
-            int start_layer = Math.Max(0, Settings.PartProfile.LayerRangeFilter.a);
-            int end_layer = Math.Min(nLayers - 1, Settings.PartProfile.LayerRangeFilter.b);
+            int start_layer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
+            int end_layer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b);
             Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
 
 #if DEBUG
@@ -1249,11 +1249,11 @@ namespace gs
 #endif
             {
                 if (Cancelled()) return;
-                bool is_infill = (layer_i >= Settings.PartProfile.FloorLayers && layer_i < nLayers - Settings.PartProfile.RoofLayers);
+                bool is_infill = (layer_i >= Settings.Part.FloorLayers && layer_i < nLayers - Settings.Part.RoofLayers);
 
                 if (is_infill)
                 {
-                    if (Settings.PartProfile.RoofLayers > 0)
+                    if (Settings.Part.RoofLayers > 0)
                     {
                         LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i);
                     }
@@ -1261,7 +1261,7 @@ namespace gs
                     {
                         LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i - 1);     // will return "our" layer
                     }
-                    if (Settings.PartProfile.FloorLayers > 0)
+                    if (Settings.Part.FloorLayers > 0)
                     {
                         LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i);
                     }
@@ -1295,8 +1295,8 @@ namespace gs
         /// </summary>
         protected virtual void precompute_infill_regions()
         {
-            int start_layer = Math.Max(0, Settings.PartProfile.LayerRangeFilter.a);
-            int end_layer = Math.Min(Slices.Count - 1, Settings.PartProfile.LayerRangeFilter.b);
+            int start_layer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
+            int end_layer = Math.Min(Slices.Count - 1, Settings.Part.LayerRangeFilter.b);
 
             LayerShellFillRegions = new List<ShellFillRegionDict>(
                 new ShellFillRegionDict[Slices.Count]);
@@ -1321,7 +1321,7 @@ namespace gs
 
         protected virtual void compute_infill_regions(int layer_i)
         {
-            bool is_infill = (layer_i >= Settings.PartProfile.FloorLayers && layer_i < Slices.Count - Settings.PartProfile.RoofLayers);
+            bool is_infill = (layer_i >= Settings.Part.FloorLayers && layer_i < Slices.Count - Settings.Part.RoofLayers);
 
             List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
             List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
@@ -1370,12 +1370,12 @@ namespace gs
 
         protected virtual void precompute_skirt()
         {
-            if (Settings.PartProfile.SkirtLayers == 0 || Settings.PartProfile.SkirtCount == 0)
+            if (Settings.Part.SkirtLayers == 0 || Settings.Part.SkirtCount == 0)
             {
                 return;
             }
 
-            int skirtLayers = Settings.PartProfile.SkirtLayers;
+            int skirtLayers = Settings.Part.SkirtLayers;
             LayerSkirts = new List<IShellsFillPolygon>[skirtLayers];
 
             for (int layeri = 0; layeri < skirtLayers; ++layeri)
@@ -1397,7 +1397,7 @@ namespace gs
         {
             generate_bridge_areas();
 
-            if (Settings.PartProfile.GenerateSupport)
+            if (Settings.Part.GenerateSupport)
                 generate_support_areas();
             else
                 add_existing_support_areas();
@@ -1415,10 +1415,10 @@ namespace gs
                 return;
 
             // [RMS] does this make sense? maybe should be using 0 here?
-            double bridge_tol = Settings.MachineProfile.NozzleDiamMM * 0.5;
+            double bridge_tol = Settings.Machine.NozzleDiamMM * 0.5;
             double expand_delta = bridge_tol * 0.1;     // see usage below
             bridge_tol += expand_delta;
-            double min_area = Settings.MachineProfile.NozzleDiamMM;
+            double min_area = Settings.Machine.NozzleDiamMM;
             min_area *= min_area;
 
             gParallel.ForEach(Interval1i.Range(nLayers - 1), (layeri) =>
@@ -1430,7 +1430,7 @@ namespace gs
                 // To find bridgeable regions, we compute all floating regions in next layer.
                 // Then we look for polys that are bridgeable, ie thing enough and fully anchored.
                 List<GeneralPolygon2d> bridgePolys = null;
-                if (Settings.PartProfile.EnableBridging)
+                if (Settings.Part.EnableBridging)
                 {
                     // [RMS] bridge area is (next_solids - solids). However, for meshes with slight variations
                     // in identical stacked polygons (eg like created from mesh extrusions), there will be thousands
@@ -1474,14 +1474,14 @@ namespace gs
              *    The dilation amount is the fMergeDownDilate parameter.
              */
 
-            double fPrintWidth = Settings.MachineProfile.NozzleDiamMM;
+            double fPrintWidth = Settings.Machine.NozzleDiamMM;
 
             // "insert" distance that is related to overhang angle
             //  distance = 0 means, full support
             //  distance = nozzle_diam means, 45 degrees overhang
             //  ***can't use angle w/ nozzle diam. Angle is related to layer height.
             //double fOverhangAngleDist = 0;
-            double fOverhangAngleDist = Settings.PartProfile.LayerHeightMM / Math.Tan(Settings.PartProfile.SupportOverhangAngleDeg * MathUtil.Deg2Rad);
+            double fOverhangAngleDist = Settings.Part.LayerHeightMM / Math.Tan(Settings.Part.SupportOverhangAngleDeg * MathUtil.Deg2Rad);
             //double fOverhangAngleDist = Settings.PartProfile.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
             //double fOverhangAngleDist = Settings.Machine.NozzleDiamMM;          // support inset half a nozzle
             //double fOverhangAngleDist = Settings.Machine.NozzleDiamMM * 0.9;  // support directly below outer perimeter
@@ -1491,26 +1491,26 @@ namespace gs
             // to ensure overlap. Using a larger value here has the effect of
             // smoothing out the support polygons. However it can also end up
             // merging disjoint regions...
-            double fMergeDownDilate = Settings.MachineProfile.NozzleDiamMM * Settings.PartProfile.SupportRegionJoinTolX;
+            double fMergeDownDilate = Settings.Machine.NozzleDiamMM * Settings.Part.SupportRegionJoinTolX;
 
             // space we leave between support polygons and solids
             // [TODO] do we need to include SupportAreaOffsetX here?
-            double fSupportGapInLayer = Settings.PartProfile.SupportSolidSpace;
+            double fSupportGapInLayer = Settings.Part.SupportSolidSpace;
 
             // extra offset we add to support polygons, eg to nudge them
             // in/out depending on shell layers, etc
-            double fSupportOffset = Settings.PartProfile.SupportAreaOffsetX * Settings.MachineProfile.NozzleDiamMM;
+            double fSupportOffset = Settings.Part.SupportAreaOffsetX * Settings.Machine.NozzleDiamMM;
 
             // we will throw away holes in support regions smaller than these thresholds
-            double DiscardHoleSizeMM = 2 * Settings.MachineProfile.NozzleDiamMM;
+            double DiscardHoleSizeMM = 2 * Settings.Machine.NozzleDiamMM;
             double DiscardHoleArea = DiscardHoleSizeMM * DiscardHoleSizeMM;
 
             // throw away support polygons smaller than this
-            double fMinDiameter = Settings.PartProfile.SupportMinDimension;
+            double fMinDiameter = Settings.Part.SupportMinDimension;
 
             // if support poly is further than this from model, we consider
             // it a min-z-tip and it gets special handling
-            double fSupportMinDist = Settings.MachineProfile.NozzleDiamMM;
+            double fSupportMinDist = Settings.Machine.NozzleDiamMM;
 
             int nLayers = Slices.Count;
             LayerSupportAreas = new List<GeneralPolygon2d>[nLayers];
@@ -1596,8 +1596,8 @@ namespace gs
                         double dnear_sqr = slice.DistanceSquared(bounds.Center, 2 * fSupportMinDist);
                         if (dnear_sqr > fSupportMinDist * fSupportMinDist)
                         {
-                            if (Settings.PartProfile.SupportMinZTips)
-                                filteredPolys.Add(make_support_point_poly(bounds.Center, Settings.PartProfile.SupportPointDiam));
+                            if (Settings.Part.SupportMinZTips)
+                                filteredPolys.Add(make_support_point_poly(bounds.Center, Settings.Part.SupportPointDiam));
                             else
                                 filteredPolys.Add(make_support_point_poly(bounds.Center, fMinDiameter));
                             // else throw it away
@@ -1740,7 +1740,7 @@ namespace gs
                 LayerSupportAreas[i] = new List<GeneralPolygon2d>();
                 foreach (GeneralPolygon2d poly in combineSupport)
                 {
-                    PolySimplification2.Simplify(poly, 0.25 * Settings.MachineProfile.NozzleDiamMM);
+                    PolySimplification2.Simplify(poly, 0.25 * Settings.Machine.NozzleDiamMM);
                     LayerSupportAreas[i].Add(poly);
                 }
             }
@@ -1754,7 +1754,7 @@ namespace gs
         protected virtual void add_existing_support_areas()
         {
             // space we leave between support polygons and solids
-            double fSupportGapInLayer = Settings.PartProfile.SupportSolidSpace;
+            double fSupportGapInLayer = Settings.Part.SupportSolidSpace;
 
             int nLayers = Slices.Count;
             LayerSupportAreas = new List<GeneralPolygon2d>[nLayers];
@@ -1775,7 +1775,7 @@ namespace gs
                 // [RMS] for existing support we do only a very tiny amount of simplification...
                 foreach (GeneralPolygon2d poly in combineSupport)
                 {
-                    PolySimplification2.Simplify(poly, 0.05 * Settings.MachineProfile.NozzleDiamMM);
+                    PolySimplification2.Simplify(poly, 0.05 * Settings.Machine.NozzleDiamMM);
                 }
 
                 // make sure there is space between solid and support
@@ -1798,9 +1798,9 @@ namespace gs
         protected virtual GeneralPolygon2d make_support_point_poly(Vector2d v, double diameter = -1)
         {
             if (diameter <= 0)
-                diameter = Settings.PartProfile.SupportPointDiam;
+                diameter = Settings.Part.SupportPointDiam;
             Polygon2d circ = Polygon2d.MakeCircle(
-                diameter * 0.5, Settings.PartProfile.SupportPointSides);
+                diameter * 0.5, Settings.Part.SupportPointSides);
             circ.Translate(v);
             return new GeneralPolygon2d(circ);
         }
@@ -1814,7 +1814,7 @@ namespace gs
         /// </summary>
         protected virtual bool is_bridgeable(GeneralPolygon2d support_poly, int iLayer, double fTolDelta)
         {
-            double max_bridge_dist = Settings.PartProfile.MaxBridgeWidthMM;
+            double max_bridge_dist = Settings.Part.MaxBridgeWidthMM;
 
             // if we inset by half bridge dist, and this doesn't completely wipe out
             // polygon, then it is too wide to bridge, somewhere

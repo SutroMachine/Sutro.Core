@@ -12,11 +12,11 @@ namespace gs
 
         public PrintProfileFFF Settings;
 
-        public MakerbotAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.MachineProfile)
+        public MakerbotAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings as PrintProfileFFF;
 
-            PositionBounds = new AxisAlignedBox2d(settings.MachineProfile.BedSizeXMM, settings.MachineProfile.BedSizeYMM);
+            PositionBounds = new AxisAlignedBox2d(settings.Machine.BedSizeXMM, settings.Machine.BedSizeYMM);
             PositionBounds.Translate(-PositionBounds.Center);
 
             // [RMS] currently bed dimensions are hardcoded in header setup, and this trips bounds-checker.
@@ -76,7 +76,7 @@ namespace gs
         {
             base.AddStandardHeader(Settings);
 
-            Vector3d frontRight = new Vector3d(Settings.MachineProfile.BedSizeXMM / 2, -Settings.MachineProfile.BedSizeYMM / 2, 0);
+            Vector3d frontRight = new Vector3d(Settings.Machine.BedSizeXMM / 2, -Settings.Machine.BedSizeYMM / 2, 0);
             frontRight.x -= 10;
             frontRight.y += 5;
             Vector3d FrontLeft = frontRight; FrontLeft.x = -frontRight.x;
@@ -91,11 +91,11 @@ namespace gs
             Builder.BeginMLine(135, "select tool 0")
                 .AppendI("T", 0);
             Builder.BeginMLine(104, "set target tool temperature")
-                .AppendI("S", Settings.MaterialProfile.ExtruderTempC).AppendI("T", 0);
-            if (Settings.MachineProfile.HasHeatedBed)
+                .AppendI("S", Settings.Material.ExtruderTempC).AppendI("T", 0);
+            if (Settings.Machine.HasHeatedBed)
             {
                 Builder.BeginMLine(140, "set heated bed temperature")
-                    .AppendI("S", Settings.MaterialProfile.HeatedBedTempC).AppendI("T", 0);
+                    .AppendI("S", Settings.Material.HeatedBedTempC).AppendI("T", 0);
             }
 
             // homing
@@ -134,7 +134,7 @@ namespace gs
             Builder.BeginGLine(130, "(Lower stepper Vrefs while heating)").
                    AppendI("X", 20).AppendI("Y", 20).AppendI("A", 20).AppendI("B", 20);
 
-            if (Settings.MachineProfile.HasHeatedBed)
+            if (Settings.Machine.HasHeatedBed)
             {
                 Builder.BeginMLine(134, "wait for bed to heat")
                     .AppendI("T", 0);
@@ -181,8 +181,8 @@ namespace gs
             // final retract
             if (InRetract == false)
             {
-                BeginRetract(NozzlePosition, Settings.PartProfile.RetractSpeed,
-                                        ExtruderA - Settings.PartProfile.RetractDistanceMM, "Final Retract");
+                BeginRetract(NozzlePosition, Settings.Part.RetractSpeed,
+                                        ExtruderA - Settings.Part.RetractDistanceMM, "Final Retract");
             }
 
             //G1 X-9.119 Y10.721 Z0.200 F1500 A61.36007; Retract
@@ -200,7 +200,7 @@ namespace gs
             // set temp to 0
             Builder.BeginMLine(104, "set target tool temperature").AppendI("S", 0).AppendI("T", 0);
 
-            if (Settings.MachineProfile.HasHeatedBed)
+            if (Settings.Machine.HasHeatedBed)
             {
                 Builder.BeginMLine(140, "set heated bed temperature")
                     .AppendI("S", 0).AppendI("T", 0);

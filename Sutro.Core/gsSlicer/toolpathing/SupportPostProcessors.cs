@@ -69,7 +69,7 @@ namespace gs
         {
             LayerCache cache = new LayerCache();
 
-            cache.SupportAreas = ClipperUtil.MiterOffset(layerData.SupportAreas, layerData.Settings.MachineProfile.NozzleDiamMM);
+            cache.SupportAreas = ClipperUtil.MiterOffset(layerData.SupportAreas, layerData.Settings.Machine.NozzleDiamMM);
             cache.SupportAreaBounds = new AxisAlignedBox2d[cache.SupportAreas.Count];
             cache.AllSupportBounds = AxisAlignedBox2d.Empty;
             for (int i = 0; i < cache.SupportAreas.Count; ++i)

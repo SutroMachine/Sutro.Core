@@ -13,7 +13,7 @@ namespace gs
 
         public PrintProfileFFF Settings;
 
-        public GenericMillingAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.MachineProfile)
+        public GenericMillingAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings;
 

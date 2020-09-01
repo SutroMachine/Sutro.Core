@@ -98,14 +98,14 @@ namespace gs
         protected virtual ElementLocation FindLoopEntryPoint(FillLoop poly, Vector2d currentPos2)
         {
             int startIndex;
-            if (Settings.PartProfile.ZipperAlignedToPoint && poly.FillType.IsEntryLocationSpecified())
+            if (Settings.Part.ZipperAlignedToPoint && poly.FillType.IsEntryLocationSpecified())
             {
                 // split edges to position zipper closer to the desired point?
                 // TODO: Enter midsegment
-                Vector2d zipperLocation = new Vector2d(Settings.PartProfile.ZipperLocationX, Settings.PartProfile.ZipperLocationY);
+                Vector2d zipperLocation = new Vector2d(Settings.Part.ZipperLocationX, Settings.Part.ZipperLocationY);
                 startIndex = CurveUtils2.FindNearestVertex(zipperLocation, poly.Vertices(true));
             }
-            else if (Settings.PartProfile.ShellRandomizeStart && poly.FillType.IsEntryLocationSpecified())
+            else if (Settings.Part.ShellRandomizeStart && poly.FillType.IsEntryLocationSpecified())
             {
                 // split edges for a actual random location along the perimeter instead of a random vertex?
                 Random rnd = new Random();
@@ -129,18 +129,18 @@ namespace gs
                 travelDistance < ShortTravelDistance)
             {
                 // TODO: Add strategy for extrude move?
-                Builder.AppendExtrude(endPt, Settings.PartProfile.RapidTravelSpeed, new DefaultFillType());
+                Builder.AppendExtrude(endPt, Settings.Part.RapidTravelSpeed, new DefaultFillType());
             }
-            else if (Settings.PartProfile.TravelLiftEnabled &&
-                travelDistance > Settings.PartProfile.TravelLiftDistanceThreshold)
+            else if (Settings.Part.TravelLiftEnabled &&
+                travelDistance > Settings.Part.TravelLiftDistanceThreshold)
             {
-                Builder.AppendMoveToZ(LayerZ + Settings.PartProfile.TravelLiftHeight, Settings.PartProfile.ZTravelSpeed, ToolpathTypes.Travel);
-                Builder.AppendTravel(endPt, Settings.PartProfile.RapidTravelSpeed);
-                Builder.AppendMoveToZ(LayerZ, Settings.PartProfile.ZTravelSpeed, ToolpathTypes.Travel);
+                Builder.AppendMoveToZ(LayerZ + Settings.Part.TravelLiftHeight, Settings.Part.ZTravelSpeed, ToolpathTypes.Travel);
+                Builder.AppendTravel(endPt, Settings.Part.RapidTravelSpeed);
+                Builder.AppendMoveToZ(LayerZ, Settings.Part.ZTravelSpeed, ToolpathTypes.Travel);
             }
             else
             {
-                Builder.AppendTravel(endPt, Settings.PartProfile.RapidTravelSpeed);
+                Builder.AppendTravel(endPt, Settings.Part.RapidTravelSpeed);
             }
         }
 
@@ -221,7 +221,7 @@ namespace gs
         public virtual double SelectSpeed(FillBase pathCurve)
         {
             double speed = SpeedHint == SpeedHint.Careful ?
-                Settings.PartProfile.CarefulExtrudeSpeed : Settings.PartProfile.RapidExtrudeSpeed;
+                Settings.Part.CarefulExtrudeSpeed : Settings.Part.RapidExtrudeSpeed;
 
             return pathCurve.FillType.ModifySpeed(speed, SpeedHint);
         }

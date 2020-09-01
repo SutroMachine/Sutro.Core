@@ -105,7 +105,7 @@ namespace gs
                     // do retract cycle
                     if (Assembler.InRetract == false)
                     {
-                        Assembler.BeginRetract(useSettings.PartProfile.RetractDistanceMM, useSettings.PartProfile.RetractSpeed, "Retract");
+                        Assembler.BeginRetract(useSettings.Part.RetractDistanceMM, useSettings.Part.RetractSpeed, "Retract");
                     }
                     if (Assembler.InTravel == false)
                     {
@@ -118,7 +118,7 @@ namespace gs
                         Assembler.EndTravel();
 
                     if (Assembler.InRetract)
-                        Assembler.EndRetract(useSettings.PartProfile.RetractSpeed, "End Retract");
+                        Assembler.EndRetract(useSettings.Part.RetractSpeed, "End Retract");
                 }
 
                 i = 1;      // do not need to emit code for first point of path,

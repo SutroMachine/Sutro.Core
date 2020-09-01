@@ -13,7 +13,7 @@ namespace gs
 
         public PrintProfileFFF Settings;
 
-        public RepRapAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.MachineProfile)
+        public RepRapAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings;
 
@@ -23,7 +23,7 @@ namespace gs
 
             HomeSequenceF = StandardHomeSequence;
 
-            UseFirmwareRetraction = settings.PartProfile.UseFirmwareRetraction;
+            UseFirmwareRetraction = settings.Part.UseFirmwareRetraction;
         }
 
         //public override void BeginRetract(Vector3d pos, double feedRate, double extrudeDist, string comment = null) {
@@ -47,7 +47,7 @@ namespace gs
 
         public override void EnableFan()
         {
-            int fan_speed = (int)(Settings.PartProfile.FanSpeedX * 255.0);
+            int fan_speed = (int)(Settings.Part.FanSpeedX * 255.0);
             Builder.BeginMLine(106, "fan on").AppendI("S", fan_speed);
         }
 
@@ -89,19 +89,19 @@ namespace gs
              */
 
             // do this first so it happens while bed heats
-            SetExtruderTargetTemp(Settings.MaterialProfile.ExtruderTempC);
+            SetExtruderTargetTemp(Settings.Material.ExtruderTempC);
 
             // M190
-            if (Settings.MachineProfile.HasHeatedBed)
+            if (Settings.Machine.HasHeatedBed)
             {
-                if (Settings.MaterialProfile.HeatedBedTempC > 0)
-                    SetBedTargetTempAndWait(Settings.MaterialProfile.HeatedBedTempC);
+                if (Settings.Material.HeatedBedTempC > 0)
+                    SetBedTargetTempAndWait(Settings.Material.HeatedBedTempC);
                 else
                     SetBedTargetTemp(0, "disable heated bed");
             }
 
             // M109
-            SetExtruderTargetTempAndWait(Settings.MaterialProfile.ExtruderTempC);
+            SetExtruderTargetTempAndWait(Settings.Material.ExtruderTempC);
 
             HeaderCustomizerF(HeaderState.AfterTemperature, Builder);
 
@@ -110,9 +110,9 @@ namespace gs
             Builder.BeginMLine(82, "absolute extruder position");
 
             // Setup Firmware Retraction
-            if (Settings.PartProfile.UseFirmwareRetraction)
+            if (Settings.Part.UseFirmwareRetraction)
             {
-                Builder.BeginMLine(207, "configure firmware retraction").AppendF("S", Settings.PartProfile.RetractDistanceMM).AppendF("F", Settings.PartProfile.RetractSpeed).AppendF("Z", Settings.PartProfile.TravelLiftHeight);
+                Builder.BeginMLine(207, "configure firmware retraction").AppendF("S", Settings.Part.RetractDistanceMM).AppendF("F", Settings.Part.RetractSpeed).AppendF("Z", Settings.Part.TravelLiftHeight);
             }
 
             HeaderCustomizerF(HeaderState.BeforeHome, Builder);
@@ -137,7 +137,7 @@ namespace gs
 
             // move to z=0
             BeginTravel();
-            AppendMoveTo(new Vector3d(NozzlePosition.x, NozzlePosition.y, 0), Settings.PartProfile.ZTravelSpeed, "reset z");
+            AppendMoveTo(new Vector3d(NozzlePosition.x, NozzlePosition.y, 0), Settings.Part.ZTravelSpeed, "reset z");
             EndTravel();
 
             ShowMessage("Print Started");
@@ -168,7 +168,7 @@ namespace gs
             BeginRetractRelativeDist(currentPos, 300, -1, "final retract");
 
             Vector3d zup = currentPos;
-            zup.z = Math.Min(Settings.MachineProfile.MaxHeightMM, zup.z + 50);
+            zup.z = Math.Min(Settings.Machine.MaxHeightMM, zup.z + 50);
             AppendMoveToE(zup, 9000, ExtruderA - 5.0, "move up and retract");
 
             Builder.BeginGLine(28, "home x/y").AppendI("X", 0).AppendI("Y", 0);

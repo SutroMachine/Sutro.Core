@@ -565,32 +565,32 @@ namespace gs
         protected virtual void AddStandardHeader(PrintProfileFFF Settings)
         {
             Builder.AddCommentLine("; Generated on " + DateTime.Now.ToLongDateString() + " by Gradientspace gsSlicer");
-            Builder.AddCommentLine(string.Format("; Printer: {0} {1}", Settings.MachineProfile.ManufacturerName, Settings.MachineProfile.ModelIdentifier));
+            Builder.AddCommentLine(string.Format("; Printer: {0} {1}", Settings.Machine.ManufacturerName, Settings.Machine.ModelIdentifier));
             Builder.AddCommentLine("; Print Settings");
-            Builder.AddCommentLine("; Layer Height: " + Settings.PartProfile.LayerHeightMM);
-            Builder.AddCommentLine("; Nozzle Diameter: " + Settings.MachineProfile.NozzleDiamMM + "  Filament Diameter: " + Settings.MaterialProfile.FilamentDiamMM);
-            Builder.AddCommentLine("; Extruder Temp: " + Settings.MaterialProfile.ExtruderTempC);
-            Builder.AddCommentLine(string.Format("; Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.PartProfile.RapidExtrudeSpeed, Settings.PartProfile.RapidTravelSpeed, Settings.PartProfile.ZTravelSpeed));
-            if (Settings.PartProfile.EnableRetraction)
+            Builder.AddCommentLine("; Layer Height: " + Settings.Part.LayerHeightMM);
+            Builder.AddCommentLine("; Nozzle Diameter: " + Settings.Machine.NozzleDiamMM + "  Filament Diameter: " + Settings.Material.FilamentDiamMM);
+            Builder.AddCommentLine("; Extruder Temp: " + Settings.Material.ExtruderTempC);
+            Builder.AddCommentLine(string.Format("; Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.Part.RapidExtrudeSpeed, Settings.Part.RapidTravelSpeed, Settings.Part.ZTravelSpeed));
+            if (Settings.Part.EnableRetraction)
             {
-                Builder.AddCommentLine(string.Format("; Retract Distance: {0}  Speed: {1}", Settings.PartProfile.RetractDistanceMM, Settings.PartProfile.RetractSpeed));
+                Builder.AddCommentLine(string.Format("; Retract Distance: {0}  Speed: {1}", Settings.Part.RetractDistanceMM, Settings.Part.RetractSpeed));
             }
-            Builder.AddCommentLine(string.Format("; Shells: {0}  InteriorShells: {1}", Settings.PartProfile.Shells, Settings.PartProfile.InteriorSolidRegionShells));
-            Builder.AddCommentLine(string.Format("; RoofLayers: {0}  FloorLayers: {1}", Settings.PartProfile.RoofLayers, Settings.PartProfile.FloorLayers));
-            Builder.AddCommentLine(string.Format("; InfillX: {0}", Settings.PartProfile.SparseLinearInfillStepX));
+            Builder.AddCommentLine(string.Format("; Shells: {0}  InteriorShells: {1}", Settings.Part.Shells, Settings.Part.InteriorSolidRegionShells));
+            Builder.AddCommentLine(string.Format("; RoofLayers: {0}  FloorLayers: {1}", Settings.Part.RoofLayers, Settings.Part.FloorLayers));
+            Builder.AddCommentLine(string.Format("; InfillX: {0}", Settings.Part.SparseLinearInfillStepX));
             Builder.AddCommentLine(string.Format("; Support: {0}  Angle {1} SpacingX: {2}  Shell: {3}  Gap: {4}  VolScale: {5}",
-                Settings.PartProfile.GenerateSupport, Settings.PartProfile.SupportOverhangAngleDeg, Settings.PartProfile.SupportSpacingStepX, Settings.PartProfile.EnableSupportShell, Settings.PartProfile.SupportSolidSpace, Settings.PartProfile.SupportVolumeScale));
-            Builder.AddCommentLine(string.Format("; ClipOverlaps: {0}  Tolerance: {1}", Settings.PartProfile.ClipSelfOverlaps, Settings.PartProfile.SelfOverlapToleranceX));
-            Builder.AddCommentLine(string.Format("; LayerRange: {0}-{1}", Settings.PartProfile.LayerRangeFilter.a, Settings.PartProfile.LayerRangeFilter.b));
+                Settings.Part.GenerateSupport, Settings.Part.SupportOverhangAngleDeg, Settings.Part.SupportSpacingStepX, Settings.Part.EnableSupportShell, Settings.Part.SupportSolidSpace, Settings.Part.SupportVolumeScale));
+            Builder.AddCommentLine(string.Format("; ClipOverlaps: {0}  Tolerance: {1}", Settings.Part.ClipSelfOverlaps, Settings.Part.SelfOverlapToleranceX));
+            Builder.AddCommentLine(string.Format("; LayerRange: {0}-{1}", Settings.Part.LayerRangeFilter.a, Settings.Part.LayerRangeFilter.b));
             Builder.AddCommentLine("; the following configures extrusion width and height display for Simplify3D's gcode viewer");
-            Builder.AddCommentLine(string.Format("; tool H{0} W{1}", Settings.PartProfile.LayerHeightMM, Settings.MachineProfile.NozzleDiamMM));
+            Builder.AddCommentLine(string.Format("; tool H{0} W{1}", Settings.Part.LayerHeightMM, Settings.Machine.NozzleDiamMM));
         }
 
         public virtual List<string> GenerateTotalExtrusionReport(PrintProfileFFF settings)
         {
-            double volume = TotalExtrusion * Math.PI * Math.Pow(settings.MaterialProfile.FilamentDiamMM / 2d, 2);
-            double mass = volume * settings.MaterialProfile.GramsPerCubicMM;
-            double cost = mass * settings.MaterialProfile.CostPerKG / 1000d;
+            double volume = TotalExtrusion * Math.PI * Math.Pow(settings.Material.FilamentDiamMM / 2d, 2);
+            double mass = volume * settings.Material.GramsPerCubicMM;
+            double cost = mass * settings.Material.CostPerKG / 1000d;
 
             List<string> result = new List<string>
             {
@@ -611,11 +611,11 @@ namespace gs
             Builder.AddCommentLine("---begin prime type=line");
 
             // extruder prime by drawing line across front of bed
-            double PrimeHeight = Settings.MachineProfile.MaxLayerHeightMM;
-            double PrimeWidth = 2 * Settings.MachineProfile.NozzleDiamMM;
+            double PrimeHeight = Settings.Machine.MaxLayerHeightMM;
+            double PrimeWidth = 2 * Settings.Machine.NozzleDiamMM;
 
             // assumes origin is at center of bed...
-            Vector3d frontRight = new Vector3d(Settings.MachineProfile.BedSizeXMM / 2, -Settings.MachineProfile.BedSizeYMM / 2, PrimeHeight);
+            Vector3d frontRight = new Vector3d(Settings.Machine.BedSizeXMM / 2, -Settings.Machine.BedSizeYMM / 2, PrimeHeight);
             frontRight.x -= 10;
             frontRight.y += 5;
             Vector3d frontLeft = frontRight; frontLeft.x = -frontRight.x;
@@ -624,7 +624,7 @@ namespace gs
 
             double PrimeFeedRate = 1800;
             double prime_feed_len = AssemblerUtil.CalculateExtrudedFilament(
-                PrimeWidth, PrimeHeight, primeLen, Settings.MaterialProfile.FilamentDiamMM);
+                PrimeWidth, PrimeHeight, primeLen, Settings.Material.FilamentDiamMM);
 
             Builder.BeginGLine(92, "reset extruded length").AppendI("E", 0);
             BeginTravel();

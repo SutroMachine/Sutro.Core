@@ -127,7 +127,7 @@ namespace gs
                 paths.Initialize((double)(layer_i) * Settings.LayerHeightMM * Vector3d.AxisZ);
 
                 // layer-up (ie z-change)
-                paths.AppendZChange(Settings.LayerHeightMM, Settings.PartProfile.ZTravelSpeed);
+                paths.AppendZChange(Settings.LayerHeightMM, Settings.Part.ZTravelSpeed);
 
                 // rest of code does not directly access path builder, instead if
                 // sends paths to scheduler.
@@ -181,12 +181,12 @@ namespace gs
             // [TODO] should only be doing this if solid-fill is adjecent to infill region.
             //   But how to determine this? not easly because we don't know which polys
             //   came from where. Would need to do loop above per-polygon
-            if (bIsInfillAdjacent && Settings.PartProfile.InteriorSolidRegionShells > 0)
+            if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, Settings.FillTypeFactory.Solid());
                 interior_shells.PathSpacing = Settings.SolidFillPathSpacingMM();
-                interior_shells.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
-                interior_shells.Layers = Settings.PartProfile.InteriorSolidRegionShells;
+                interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
+                interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.PreserveOuterShells = true;
                 interior_shells.InsetFromInputPolygonX = 0;
                 interior_shells.Compute();
@@ -209,7 +209,7 @@ namespace gs
                     {
                         InsetFromInputPolygon = false,
                         PathSpacing = Settings.SolidFillPathSpacingMM(),
-                        ToolWidth = Settings.MachineProfile.NozzleDiamMM,
+                        ToolWidth = Settings.Machine.NozzleDiamMM,
                         AngleDeg = LayerFillAngleF(layer_i + odd)
                     };
                     return solid_gen;
@@ -239,9 +239,9 @@ namespace gs
                         Settings.FillTypeFactory.OuterPerimeter());
 
                     shells_gen.PathSpacing = Settings.SolidFillPathSpacingMM();
-                    shells_gen.ToolWidth = Settings.MachineProfile.NozzleDiamMM;
+                    shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
                     shells_gen.PreserveOuterShells = true;
-                    shells_gen.Layers = Settings.PartProfile.Shells;
+                    shells_gen.Layers = Settings.Part.Shells;
                     shells_gen.InsetInnerPolygons = false;
                     shells_gen.Compute();
                     LayerShells[layeri].Add(shells_gen);

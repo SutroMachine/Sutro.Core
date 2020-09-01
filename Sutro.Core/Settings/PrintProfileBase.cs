@@ -8,9 +8,9 @@ namespace Sutro.Core.Settings
 {
     public abstract class PrintProfileBase : SettingsPrototype, IPrintProfile
     {
-        public abstract IMachineProfile Machine { get; }
-        public abstract IMaterialProfile Material { get; }
-        public abstract IPartProfile Part { get; }
+        public abstract IMachineProfile MachineProfile { get; }
+        public abstract IMaterialProfile MaterialProfile { get; }
+        public abstract IPartProfile PartProfile { get; }
         public abstract double LayerHeightMM { get; set; }
 
         public abstract AssemblerFactoryF AssemblerFactory();
@@ -21,18 +21,18 @@ namespace Sutro.Core.Settings
         where TMaterial : MaterialProfileBase
         where TPart : PartProfileBase
     {
-        public TMachine MachineProfile { get; set; }
-        public TMaterial MaterialProfile { get; set; }
-        public TPart PartProfile { get; set; }
+        public TMachine Machine { get; set; }
+        public TMaterial Material { get; set; }
+        public TPart Part { get; set; }
 
-        public override IMachineProfile Machine => MachineProfile;
-        public override IMaterialProfile Material => MaterialProfile;
-        public override IPartProfile Part => PartProfile;
+        public override IMachineProfile MachineProfile => Machine;
+        public override IMaterialProfile MaterialProfile => Material;
+        public override IPartProfile PartProfile => Part;
 
         public override double LayerHeightMM
         {
-            get => PartProfile.LayerHeightMM;
-            set => PartProfile.LayerHeightMM = value;
+            get => Part.LayerHeightMM;
+            set => Part.LayerHeightMM = value;
         }
     }
 }

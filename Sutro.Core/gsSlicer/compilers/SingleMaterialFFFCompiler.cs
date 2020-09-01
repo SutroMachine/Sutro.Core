@@ -97,7 +97,7 @@ namespace gs
             {
                 if (Assembler.InRetract)
                 {
-                    Assembler.EndRetract(path[0].Position, useSettings.PartProfile.RetractSpeed, path[0].Extrusion.x);
+                    Assembler.EndRetract(path[0].Position, useSettings.Part.RetractSpeed, path[0].Extrusion.x);
                 }
                 Assembler.EndTravel();
                 Assembler.EnableFan();
@@ -118,7 +118,7 @@ namespace gs
                 {
                     if (Assembler.InRetract)
                         throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + pathIndex + ": already in retract!");
-                    Assembler.BeginRetract(path[0].Position, useSettings.PartProfile.RetractSpeed, path[0].Extrusion.x);
+                    Assembler.BeginRetract(path[0].Position, useSettings.Part.RetractSpeed, path[0].Extrusion.x);
                 }
                 Assembler.BeginTravel();
             }
@@ -220,10 +220,10 @@ namespace gs
 
         protected virtual void AppendDimensions(Vector2d dimensions)
         {
-            if (Settings.PartProfile.GCodeAppendBeadDimensions)
+            if (Settings.Part.GCodeAppendBeadDimensions)
             {
                 if (dimensions.x == GCodeUtil.UnspecifiedDimensions.x)
-                    dimensions.x = Settings.MachineProfile.NozzleDiamMM;
+                    dimensions.x = Settings.Machine.NozzleDiamMM;
                 if (dimensions.y == GCodeUtil.UnspecifiedDimensions.y)
                     dimensions.y = Settings.LayerHeightMM;
                 Assembler.AppendComment(" tool H" + dimensions.y + " W" + dimensions.x);

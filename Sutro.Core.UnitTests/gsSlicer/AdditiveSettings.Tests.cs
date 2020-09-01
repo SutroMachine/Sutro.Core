@@ -12,18 +12,18 @@ namespace gsCore.UnitTests
         {
             // arrange
             var orig = new FlashforgeSettings();
-            orig.PartProfile.Shells = 10;
-            orig.MachineProfile.NozzleDiamMM = 20;
-            orig.MachineProfile.ManufacturerName = "A";
+            orig.Part.Shells = 10;
+            orig.Machine.NozzleDiamMM = 20;
+            orig.Machine.ManufacturerName = "A";
 
             // act
             var copy = orig.CloneAs<FlashforgeSettings>();
 
             // assert
-            Assert.AreEqual(10, copy.PartProfile.Shells);
-            Assert.AreEqual(20, copy.MachineProfile.NozzleDiamMM);
-            Assert.AreEqual("A", orig.MachineProfile.ManufacturerName);
-            Assert.AreNotSame(copy.MachineProfile, orig.MachineProfile);
+            Assert.AreEqual(10, copy.Part.Shells);
+            Assert.AreEqual(20, copy.Machine.NozzleDiamMM);
+            Assert.AreEqual("A", orig.Machine.ManufacturerName);
+            Assert.AreNotSame(copy.Machine, orig.Machine);
         }
 
         [TestMethod]
@@ -31,21 +31,21 @@ namespace gsCore.UnitTests
         {
             // arrange
             var orig = new GenericRepRapSettings();
-            orig.PartProfile.Shells = 10;
-            orig.MachineProfile.NozzleDiamMM = 20;
-            orig.MachineProfile.ManufacturerName = "A";
+            orig.Part.Shells = 10;
+            orig.Machine.NozzleDiamMM = 20;
+            orig.Machine.ManufacturerName = "A";
 
             // act
             GenericRepRapSettings copy = orig.CloneAs<GenericRepRapSettings>();
-            copy.PartProfile.Shells *= 2;
-            copy.MachineProfile.NozzleDiamMM *= 20;
-            copy.MachineProfile.ManufacturerName = "B";
+            copy.Part.Shells *= 2;
+            copy.Machine.NozzleDiamMM *= 20;
+            copy.Machine.ManufacturerName = "B";
 
             // assert
-            Assert.AreEqual(10, orig.PartProfile.Shells);
-            Assert.AreEqual(20, orig.MachineProfile.NozzleDiamMM);
-            Assert.AreEqual("A", orig.MachineProfile.ManufacturerName);
-            Assert.AreNotSame(copy.MachineProfile, orig.MachineProfile);
+            Assert.AreEqual(10, orig.Part.Shells);
+            Assert.AreEqual(20, orig.Machine.NozzleDiamMM);
+            Assert.AreEqual("A", orig.Machine.ManufacturerName);
+            Assert.AreNotSame(copy.Machine, orig.Machine);
         }
 
         [TestMethod]

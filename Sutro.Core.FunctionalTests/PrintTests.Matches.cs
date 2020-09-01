@@ -14,7 +14,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Frustum.RepRap", new RepRapSettings
             {
-                PartProfile = { GenerateSupport = false }
+                Part = { GenerateSupport = false }
             });
 
             // Act
@@ -30,7 +30,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Cube.Prusa", new PrusaSettings
             {
-                PartProfile =
+                Part =
                 {
                     GenerateSupport = false,
                     LayerHeightMM = 0.3
@@ -50,7 +50,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Sphere.Flashforge", new FlashforgeSettings
             {
-                PartProfile = { GenerateSupport = true },
+                Part = { GenerateSupport = true },
             });
 
             // Act
@@ -66,7 +66,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Bunny.Printrbot", new PrintrbotSettings
             {
-                PartProfile = { GenerateSupport = false },
+                Part = { GenerateSupport = false },
             });
 
             // Act
@@ -82,7 +82,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Benchy.Monoprice", new MonopriceSettings
             {
-                PartProfile = { GenerateSupport = false },
+                Part = { GenerateSupport = false },
             });
 
             // Act
@@ -98,7 +98,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactoryFFF.CreateTestRunner("Robot.Makerbot", new MakerbotSettings
             {
-                PartProfile = {
+                Part = {
                 GenerateSupport = false,
                 Shells = 1,
                 FloorLayers = 3,

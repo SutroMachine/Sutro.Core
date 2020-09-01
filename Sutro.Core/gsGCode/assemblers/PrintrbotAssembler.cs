@@ -17,7 +17,7 @@ namespace gs
         {
             if (state == RepRapAssembler.HeaderState.BeforePrime)
             {
-                if (settings.MachineProfile.HasAutoBedLeveling && settings.MachineProfile.EnableAutoBedLeveling)
+                if (settings.Machine.HasAutoBedLeveling && settings.Machine.EnableAutoBedLeveling)
                     builder.BeginGLine(29, "auto-level bed");
             }
         }

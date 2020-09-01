@@ -39,12 +39,12 @@ namespace gs
             Paths = paths;
             Settings = settings;
 
-            EnableRetraction = settings.PartProfile.EnableRetraction;
-            FilamentDiam = settings.MaterialProfile.FilamentDiamMM;
-            NozzleDiam = settings.MachineProfile.NozzleDiamMM;
+            EnableRetraction = settings.Part.EnableRetraction;
+            FilamentDiam = settings.Material.FilamentDiamMM;
+            NozzleDiam = settings.Machine.NozzleDiamMM;
             LayerHeight = settings.LayerHeightMM;
-            FixedRetractDistance = settings.PartProfile.RetractDistanceMM;
-            MinRetractTravelLength = settings.PartProfile.MinRetractTravelLength;
+            FixedRetractDistance = settings.Part.RetractDistanceMM;
+            MinRetractTravelLength = settings.Part.MinRetractTravelLength;
         }
 
         public void Calculate(Vector3d vStartPos, double fStartA, bool alreadyInRetract = false)
@@ -110,7 +110,7 @@ namespace gs
                     double newRate = path[i].FeedRate;
 
                     // default line thickness and height
-                    double path_width = Settings.MachineProfile.NozzleDiamMM;
+                    double path_width = Settings.Machine.NozzleDiamMM;
                     double path_height = Settings.LayerHeightMM;
 
                     // override with custom dimensions if provided
@@ -161,7 +161,7 @@ namespace gs
                                 path[i].Dimensions.y : path_height;
 
                             double feed = ExtrusionMath.PathLengthToFilamentLength(
-                                segment_height, segment_width, Settings.MaterialProfile.FilamentDiamMM,
+                                segment_height, segment_width, Settings.Material.FilamentDiamMM,
                                 dist, vol_scale);
 
                             // Change the extrusion amount if a modifier is present.

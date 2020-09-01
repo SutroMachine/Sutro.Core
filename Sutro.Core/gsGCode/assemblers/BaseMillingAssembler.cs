@@ -232,16 +232,16 @@ namespace gs
         protected virtual void AddStandardHeader(PrintProfileFFF Settings)
         {
             Builder.AddCommentLine(" Generated on " + DateTime.Now.ToLongDateString() + " by Gradientspace gsSlicer");
-            Builder.AddCommentLine(string.Format(" Printer: {0} {1}", Settings.MachineProfile.ManufacturerName, Settings.MachineProfile.ModelIdentifier));
+            Builder.AddCommentLine(string.Format(" Printer: {0} {1}", Settings.Machine.ManufacturerName, Settings.Machine.ModelIdentifier));
             Builder.AddCommentLine(" Print Settings");
             Builder.AddCommentLine(" Layer Height: " + Settings.LayerHeightMM);
-            Builder.AddCommentLine(" Nozzle Diameter: " + Settings.MachineProfile.NozzleDiamMM + "  Filament Diameter: " + Settings.MaterialProfile.FilamentDiamMM);
-            Builder.AddCommentLine(" Extruder Temp: " + Settings.MaterialProfile.ExtruderTempC);
-            Builder.AddCommentLine(string.Format(" Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.PartProfile.RapidExtrudeSpeed, Settings.PartProfile.RapidTravelSpeed, Settings.PartProfile.ZTravelSpeed));
-            Builder.AddCommentLine(string.Format(" Retract Distance: {0}  Speed: {1}", Settings.PartProfile.RetractDistanceMM, Settings.PartProfile.RetractSpeed));
-            Builder.AddCommentLine(string.Format(" Shells: {0}  InteriorShells: {1}", Settings.PartProfile.Shells, Settings.PartProfile.InteriorSolidRegionShells));
-            Builder.AddCommentLine(string.Format(" InfillX: {0}", Settings.PartProfile.SparseLinearInfillStepX));
-            Builder.AddCommentLine(string.Format(" LayerRange: {0}-{1}", Settings.PartProfile.LayerRangeFilter.a, Settings.PartProfile.LayerRangeFilter.b));
+            Builder.AddCommentLine(" Nozzle Diameter: " + Settings.Machine.NozzleDiamMM + "  Filament Diameter: " + Settings.Material.FilamentDiamMM);
+            Builder.AddCommentLine(" Extruder Temp: " + Settings.Material.ExtruderTempC);
+            Builder.AddCommentLine(string.Format(" Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.Part.RapidExtrudeSpeed, Settings.Part.RapidTravelSpeed, Settings.Part.ZTravelSpeed));
+            Builder.AddCommentLine(string.Format(" Retract Distance: {0}  Speed: {1}", Settings.Part.RetractDistanceMM, Settings.Part.RetractSpeed));
+            Builder.AddCommentLine(string.Format(" Shells: {0}  InteriorShells: {1}", Settings.Part.Shells, Settings.Part.InteriorSolidRegionShells));
+            Builder.AddCommentLine(string.Format(" InfillX: {0}", Settings.Part.SparseLinearInfillStepX));
+            Builder.AddCommentLine(string.Format(" LayerRange: {0}-{1}", Settings.Part.LayerRangeFilter.a, Settings.Part.LayerRangeFilter.b));
         }
     }
 }

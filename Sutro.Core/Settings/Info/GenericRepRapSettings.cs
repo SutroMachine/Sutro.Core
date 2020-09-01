@@ -6,7 +6,7 @@ namespace Sutro.Core.Settings.Info
     {
         public GenericRepRapSettings()
         {
-            MachineProfile.Firmware = Settings.Machine.FirmwareOptions.RepRap;
+            Machine.Firmware = Settings.Machine.FirmwareOptions.RepRap;
         }
 
         public override IPrintProfile Clone()

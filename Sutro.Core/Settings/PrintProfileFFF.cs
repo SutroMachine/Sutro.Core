@@ -15,7 +15,7 @@ namespace Sutro.Core.Settings
 
         public override AssemblerFactoryF AssemblerFactory()
         {
-            return MachineProfile.Firmware switch
+            return Machine.Firmware switch
             {
                 FirmwareOptions.RepRap => RepRapAssembler.Factory,
                 FirmwareOptions.Prusa => PrusaAssembler.Factory,
@@ -30,9 +30,9 @@ namespace Sutro.Core.Settings
         public PrintProfileFFF()
         {
             FillTypeFactory = new FillTypeFactory(this);
-            MachineProfile = new MachineProfileFFF();
-            MaterialProfile = new MaterialProfileFFF();
-            PartProfile = new PartProfileFFF();
+            Machine = new MachineProfileFFF();
+            Material = new MaterialProfileFFF();
+            Part = new PartProfileFFF();
         }
 
         public virtual IPrintProfile Clone()
@@ -44,17 +44,17 @@ namespace Sutro.Core.Settings
 
         public virtual double ShellsFillPathSpacingMM()
         {
-            return MachineProfile.NozzleDiamMM * PartProfile.ShellsFillNozzleDiamStepX;
+            return Machine.NozzleDiamMM * Part.ShellsFillNozzleDiamStepX;
         }
 
         public virtual double SolidFillPathSpacingMM()
         {
-            return MachineProfile.NozzleDiamMM * PartProfile.SolidFillNozzleDiamStepX;
+            return Machine.NozzleDiamMM * Part.SolidFillNozzleDiamStepX;
         }
 
         public virtual double BridgeFillPathSpacingMM()
         {
-            return MachineProfile.NozzleDiamMM * PartProfile.BridgeFillNozzleDiamStepX;
+            return Machine.NozzleDiamMM * Part.BridgeFillNozzleDiamStepX;
         }
     }
 }

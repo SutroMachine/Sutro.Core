@@ -1,6 +1,6 @@
 ﻿using g3;
-using Sutro.Core.FunctionalTest;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
