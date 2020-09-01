@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace gs
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, PrintProfileFFF pathSettings);
+        void AppendPaths(ToolpathSet paths, IPrintProfile pathSettings);
 
         void AppendComment(string comment);
 
@@ -31,7 +32,7 @@ namespace gs
 
         void AppendBlankLine();
 
-        IEnumerable<string> GenerateTotalExtrusionReport(PrintProfileFFF settings);
+        IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfile settings);
     }
 
     public class SingleMaterialFFFCompiler : IThreeAxisPrinterCompiler
@@ -107,8 +108,9 @@ namespace gs
             AppendDimensions(path.Start.Dimensions);
         }
 
-        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, PrintProfileFFF useSettings)
+        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, IPrintProfile settings)
         {
+            var useSettings = settings as PrintProfileFFF;
             if (Assembler.InTravel == false)
             {
                 Assembler.DisableFan();
@@ -132,8 +134,9 @@ namespace gs
         /// Compile this set of toolpaths and pass to assembler.
         /// Settings are optional, pass null to ignore
         /// </summary>
-		public virtual void AppendPaths(ToolpathSet toolpathSet, PrintProfileFFF pathSettings)
+		public virtual void AppendPaths(ToolpathSet toolpathSet, IPrintProfile profile)
         {
+            var pathSettings = profile as PrintProfileFFF;
             Assembler.FlushQueues();
 
             PrintProfileFFF useSettings = (pathSettings == null) ? Settings : pathSettings;
@@ -274,9 +277,9 @@ namespace gs
                 EmitMessageF(string.Format(text, args));
         }
 
-        public IEnumerable<string> GenerateTotalExtrusionReport(PrintProfileFFF settings)
+        public IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfile settings)
         {
-            return Assembler.GenerateTotalExtrusionReport(settings);
+            return Assembler.GenerateTotalExtrusionReport(settings as PrintProfileFFF);
         }
     }
 }

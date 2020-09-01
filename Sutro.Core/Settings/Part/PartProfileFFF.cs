@@ -224,5 +224,21 @@ namespace Sutro.Core.Settings.Part
         public bool GCodeAppendBeadDimensions { get; set; } = true;
 
         #endregion Debug/Utility
+
+        public virtual double ShellsFillPathSpacingMM(double toolWidth)
+        {
+            return toolWidth * ShellsFillNozzleDiamStepX;
+        }
+
+        public virtual double SolidFillPathSpacingMM(double toolWidth)
+        {
+            return toolWidth * SolidFillNozzleDiamStepX;
+        }
+
+        public virtual double BridgeFillPathSpacingMM(double toolWidth)
+        {
+            return toolWidth * BridgeFillNozzleDiamStepX;
+        }
+
     }
 }

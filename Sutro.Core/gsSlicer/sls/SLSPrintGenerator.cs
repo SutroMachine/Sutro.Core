@@ -184,7 +184,7 @@ namespace gs
             if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, Settings.FillTypeFactory.Solid());
-                interior_shells.PathSpacing = Settings.SolidFillPathSpacingMM();
+                interior_shells.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
                 interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
                 interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.PreserveOuterShells = true;
@@ -197,10 +197,11 @@ namespace gs
             // now actually fill solid regions
             foreach (GeneralPolygon2d fillPoly in fillPolys)
             {
+                var solidFillSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
                 TiledFillPolygon tiled_fill = new TiledFillPolygon(fillPoly)
                 {
-                    TileSize = 13.1 * Settings.SolidFillPathSpacingMM(),
-                    TileOverlap = 0.3 * Settings.SolidFillPathSpacingMM()
+                    TileSize = 13.1 * solidFillSpacing,
+                    TileOverlap = 0.3 * solidFillSpacing
                 };
                 tiled_fill.TileFillGeneratorF = (tilePoly, index) =>
                 {
@@ -208,7 +209,7 @@ namespace gs
                     RasterFillPolygon solid_gen = new RasterFillPolygon(tilePoly, Settings.FillTypeFactory.Solid())
                     {
                         InsetFromInputPolygon = false,
-                        PathSpacing = Settings.SolidFillPathSpacingMM(),
+                        PathSpacing = solidFillSpacing,
                         ToolWidth = Settings.Machine.NozzleDiamMM,
                         AngleDeg = LayerFillAngleF(layer_i + odd)
                     };
@@ -238,7 +239,7 @@ namespace gs
                         Settings.FillTypeFactory.InnerPerimeter(),
                         Settings.FillTypeFactory.OuterPerimeter());
 
-                    shells_gen.PathSpacing = Settings.SolidFillPathSpacingMM();
+                    shells_gen.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
                     shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
                     shells_gen.PreserveOuterShells = true;
                     shells_gen.Layers = Settings.Part.Shells;

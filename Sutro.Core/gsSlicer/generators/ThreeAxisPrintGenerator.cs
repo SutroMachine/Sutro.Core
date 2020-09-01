@@ -624,7 +624,7 @@ namespace gs
             ICurvesFillPolygon infill_gen = new SparseLinesFillPolygon(infill_poly, new SparseFillType())
             {
                 InsetFromInputPolygon = false,
-                PathSpacing = Settings.Part.SparseLinearInfillStepX * Settings.SolidFillPathSpacingMM(),
+                PathSpacing = Settings.Part.SparseLinearInfillStepX * Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
                 MinPathLengthMM = Settings.Part.MinInfillLengthMM
@@ -775,7 +775,7 @@ namespace gs
                                                  IFillPathScheduler2d scheduler,
                                                  bool bIsInfillAdjacent = false)
         {
-            if (Settings.SolidFillPathSpacingMM() == 0)
+            if (Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM) == 0)
                 return;
 
             List<GeneralPolygon2d> fillPolys = new List<GeneralPolygon2d>() { solid_poly };
@@ -789,7 +789,7 @@ namespace gs
             if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, new InteriorShellFillType());
-                interior_shells.PathSpacing = Settings.ShellsFillPathSpacingMM();
+                interior_shells.PathSpacing = Settings.Part.ShellsFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
                 interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
                 interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.InsetFromInputPolygonX = 0;
@@ -819,7 +819,7 @@ namespace gs
             ICurvesFillPolygon solid_gen = new ParallelLinesFillPolygon(fillPoly, Settings.FillTypeFactory.Solid())
             {
                 InsetFromInputPolygon = false,
-                PathSpacing = Settings.SolidFillPathSpacingMM(),
+                PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
                 FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps,
@@ -838,7 +838,7 @@ namespace gs
         /// </summary>
         protected virtual void fill_bridge_region(GeneralPolygon2d poly, IFillPathScheduler2d scheduler, PrintLayerData layer_data)
         {
-            double spacing = Settings.BridgeFillPathSpacingMM();
+            double spacing = Settings.Part.BridgeFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
 
             // fit bbox to try to find fill angle that has shortest spans
             Box2d box = poly.Outer.MinimalBoundingBox(0.00001);
@@ -871,7 +871,7 @@ namespace gs
 
             var polys = PolygonDecomposer.Compute(poly, minArea);
 
-            double spacing = Settings.BridgeFillPathSpacingMM();
+            double spacing = Settings.Part.BridgeFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
 
             foreach (Polygon2d polypart in polys)
             {
@@ -882,7 +882,7 @@ namespace gs
                 GeneralPolygon2d gp = new GeneralPolygon2d(polypart);
 
                 ShellsFillPolygon shells_fill = new ShellsFillPolygon(gp, Settings.FillTypeFactory.Bridge());
-                shells_fill.PathSpacing = Settings.SolidFillPathSpacingMM();
+                shells_fill.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
                 shells_fill.ToolWidth = Settings.Machine.NozzleDiamMM;
                 shells_fill.Layers = 1;
                 shells_fill.InsetFromInputPolygonX = 0.25;
@@ -1130,7 +1130,7 @@ namespace gs
                 Settings.FillTypeFactory.InnerPerimeter(),
                 Settings.FillTypeFactory.OuterPerimeter());
 
-            shells_gen.PathSpacing = Settings.ShellsFillPathSpacingMM();
+            shells_gen.PathSpacing = Settings.Part.ShellsFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
             shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
             shells_gen.Layers = Settings.Part.Shells;
             shells_gen.FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps;

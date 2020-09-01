@@ -27,20 +27,5 @@ namespace Sutro.Core.Settings
         }
 
         public FillTypeFactory FillTypeFactory { get; }
-
-        public virtual double ShellsFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.ShellsFillNozzleDiamStepX;
-        }
-
-        public virtual double SolidFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.SolidFillNozzleDiamStepX;
-        }
-
-        public virtual double BridgeFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.BridgeFillNozzleDiamStepX;
-        }
     }
 }
