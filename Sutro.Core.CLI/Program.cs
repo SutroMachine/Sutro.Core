@@ -1,12 +1,7 @@
-using CommandLine;
-using CommandLine.Text;
-using g3;
 using gs;
 using Sutro.Core.Settings;
-using Sutro.Core.Settings.Info;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace gsSlicer.CLI
 {
@@ -21,7 +16,7 @@ namespace gsSlicer.CLI
                 logger: logger,
                 printGenerators: new List<IPrintGeneratorManager> {
                     new PrintGeneratorManager<SingleMaterialFFFPrintGenerator, PrintProfileFFF>(
-                        new GenericRepRapSettings(), "fff", "Basic FFF prints", logger)
+                        new PrintProfileFFF(), "fff", "Basic FFF prints", logger)
                 });
 
             cli.Execute(args);

@@ -1,9 +1,6 @@
-﻿using g3;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using Sutro.Core.Settings;
-using Sutro.Core.Settings.Info;
-using System.Security;
+using Sutro.Core.Settings.Machine;
 
 namespace Sutro.Core.UnitTests
 {
@@ -14,21 +11,21 @@ namespace Sutro.Core.UnitTests
         public void Clone()
         {
             // Arrange
-            var settings = new PrusaSettings();
+            var settings = MachineProfilesFactoryFFF.Prusa.Create_i3Mk3();
 
             // Act
             var clone = settings.Clone();
 
             // Asert
             Assert.IsNotNull(clone);
-            Assert.IsInstanceOfType(clone, typeof(PrusaSettings));
+            Assert.IsInstanceOfType(clone, typeof(MachineProfileFFF));
         }
 
         [TestMethod]
         public void Serialize()
         {
             // Arrange
-            var settings = new PrusaSettings();
+            var settings = MachineProfilesFactoryFFF.Prusa.Create_i3Mk3();
 
             // Act
             var json = JsonConvert.SerializeObject(settings);
