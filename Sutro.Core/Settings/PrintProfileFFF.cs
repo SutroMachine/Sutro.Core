@@ -33,4 +33,23 @@ namespace Sutro.Core.Settings
 
         public FillTypeFactory FillTypeFactory { get; }
     }
+
+
+    public static class PrintProfileFFFExtensions
+    {
+        public static double ShellsFillPathSpacingMM(this IPrintProfileFFF profile)
+        {
+            return profile.Machine.NozzleDiamMM * profile.Part.ShellsFillNozzleDiamStepX;
+        }
+
+        public static double SolidFillPathSpacingMM(this IPrintProfileFFF profile)
+        {
+            return profile.Machine.NozzleDiamMM * profile.Part.SolidFillNozzleDiamStepX;
+        }
+
+        public static double BridgeFillPathSpacingMM(this IPrintProfileFFF profile)
+        {
+            return profile.Machine.NozzleDiamMM * profile.Part.BridgeFillNozzleDiamStepX;
+        }
+    }
 }

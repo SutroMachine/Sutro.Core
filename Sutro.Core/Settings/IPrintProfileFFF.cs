@@ -13,20 +13,5 @@ namespace Sutro.Core.Settings
         MachineProfileFFF Machine { get; set; }
         MaterialProfileFFF Material { get; set; }
         PartProfileFFF Part { get; set; }
-
-        public double ShellsFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.ShellsFillNozzleDiamStepX;
-        }
-
-        public double SolidFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.SolidFillNozzleDiamStepX;
-        }
-
-        public double BridgeFillPathSpacingMM()
-        {
-            return Machine.NozzleDiamMM * Part.BridgeFillNozzleDiamStepX;
-        }
     }
 }

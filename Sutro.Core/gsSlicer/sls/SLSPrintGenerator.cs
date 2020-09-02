@@ -16,7 +16,7 @@ namespace gs
 
         protected PlanarSliceStack Slices;
         protected IThreeAxisLaserCompiler Compiler;
-        public IPrintProfileFFF Settings;      // public because you could modify
+        public PrintProfileFFF Settings;      // public because you could modify
                                                         // this during process, ie in BeginLayerF
                                                         // to implement per-layer settings
 
