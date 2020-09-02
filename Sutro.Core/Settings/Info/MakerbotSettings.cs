@@ -8,7 +8,7 @@ namespace Sutro.Core.Settings.Info
     {
         public override IPrintProfile Clone()
         {
-            return CloneAs<MakerbotSettings>();
+            return SettingsPrototype.CloneAs<MakerbotSettings, MakerbotSettings>(this);
         }
 
         public MakerbotSettings() : base()

@@ -8,7 +8,7 @@ namespace Sutro.Core.FunctionalTest
 {
     public class ResultGenerator<TGenerator, TSettings> : IResultGenerator
         where TGenerator : IPrintGenerator<TSettings>, new()
-        where TSettings : PrintProfileBase, new()
+        where TSettings : class, IPrintProfileFFF, new()
     {
         private readonly PrintGeneratorManager<TGenerator, TSettings> generator;
         private readonly ILogger logger;

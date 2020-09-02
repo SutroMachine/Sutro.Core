@@ -11,7 +11,7 @@ namespace Sutro.Core.Settings.Info
 
         public override IPrintProfile Clone()
         {
-            return CloneAs<GenericRepRapSettings>();
+            return SettingsPrototype.CloneAs<GenericRepRapSettings, GenericRepRapSettings>(this);
         }
     }
 }

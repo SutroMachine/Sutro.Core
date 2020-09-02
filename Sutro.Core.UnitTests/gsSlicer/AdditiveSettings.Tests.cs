@@ -17,7 +17,7 @@ namespace gsCore.UnitTests
             orig.Machine.ManufacturerName = "A";
 
             // act
-            var copy = orig.CloneAs<FlashforgeSettings>();
+            var copy = SettingsPrototype.CloneAs<FlashforgeSettings, FlashforgeSettings>(orig);
 
             // assert
             Assert.AreEqual(10, copy.Part.Shells);
@@ -36,7 +36,7 @@ namespace gsCore.UnitTests
             orig.Machine.ManufacturerName = "A";
 
             // act
-            GenericRepRapSettings copy = orig.CloneAs<GenericRepRapSettings>();
+            GenericRepRapSettings copy = SettingsPrototype.CloneAs<GenericRepRapSettings, GenericRepRapSettings>(orig);
             copy.Part.Shells *= 2;
             copy.Machine.NozzleDiamMM *= 20;
             copy.Machine.ManufacturerName = "B";
@@ -55,7 +55,7 @@ namespace gsCore.UnitTests
             var orig = new GenericPrinterSettings("", "", "");
 
             // act
-            var clone = orig.CloneAs<GenericRepRapSettings>();
+            var clone = SettingsPrototype.CloneAs<GenericRepRapSettings, GenericPrinterSettings>(orig);
 
             // assert
             Assert.IsNotNull(clone);
@@ -68,7 +68,7 @@ namespace gsCore.UnitTests
             var orig = new GenericRepRapSettings();
 
             // act
-            var clone = orig.CloneAs<GenericPrinterSettings>();
+            var clone = SettingsPrototype.CloneAs<GenericPrinterSettings, GenericRepRapSettings>(orig);
 
             // assert
             Assert.IsNotNull(clone);
@@ -81,7 +81,7 @@ namespace gsCore.UnitTests
             var orig = PrusaSettings.Create_i3MK3();
 
             // act
-            var clone = orig.CloneAs<FlashforgeSettings>();
+            var clone = SettingsPrototype.CloneAs<FlashforgeSettings, PrusaSettings>(orig);
 
             // assert
             Assert.IsNotNull(clone);

@@ -18,7 +18,7 @@ namespace gs
         TSettings Settings { get; }
     }
 
-    public class SettingsBuilder<TSettings> : ISettingsBuilder<TSettings> where TSettings : SettingsPrototype, new()
+    public class SettingsBuilder<TSettings> : ISettingsBuilder<TSettings> where TSettings : new()
     {
         private readonly ILogger logger;
 

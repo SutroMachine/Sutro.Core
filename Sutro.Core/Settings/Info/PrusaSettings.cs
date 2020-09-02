@@ -8,7 +8,7 @@ namespace Sutro.Core.Settings.Info
     {
         public override IPrintProfile Clone()
         {
-            return CloneAs<PrusaSettings>();
+            return SettingsPrototype.CloneAs<PrusaSettings, PrusaSettings>(this);
         }
 
         public PrusaSettings() : base()

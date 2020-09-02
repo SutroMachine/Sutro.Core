@@ -27,11 +27,11 @@ namespace Sutro.Core.Settings
     /// <remarks>
     /// Allows bi-directional copying and cloning between parent and child classes, as well as sibling classes. This facilitates working with settings instances, but should be used with caution. The CopyValuesFrom and CloneAs methods use reflection to copy any public properties or fields that are present in both types. Reference types (except for string) must derive from Settings also, to allow recursive deep copying.
     /// </remarks>
-    public abstract class SettingsPrototype
+    public static class SettingsPrototype
     {
-        public virtual void CopyValuesFrom<T>(T other) where T : SettingsPrototype
+        public static void CopyValuesFrom<S, T>(S subject, T other)
         {
-            foreach (PropertyInfo prop_this in GetType().GetProperties())
+            foreach (PropertyInfo prop_this in subject.GetType().GetProperties())
             {
                 if (prop_this.CanWrite)
                 {
@@ -50,23 +50,23 @@ namespace Sutro.Core.Settings
                         {
                             if (prop_this.PropertyType == prop_other.PropertyType)
                             {
-                                prop_this.SetValue(this, prop_other.GetValue(other));
+                                prop_this.SetValue(subject, prop_other.GetValue(other));
                             }
                         }
                         else
                         {
-                            if (prop_this.GetValue(this) == null)
+                            if (prop_this.GetValue(subject) == null)
                             {
                                 var a = Activator.CreateInstance(prop_this.PropertyType);
-                                prop_this.SetValue(this, a);
+                                prop_this.SetValue(subject, a);
                             }
-                            prop_this.SetValue(this, CopyValue(prop_other.GetValue(other)));
+                            prop_this.SetValue(subject, CopyValue(prop_other.GetValue(other)));
                         }
                     }
                 }
             }
 
-            foreach (FieldInfo field_this in GetType().GetFields())
+            foreach (FieldInfo field_this in subject.GetType().GetFields())
             {
                 FieldInfo field_other = null;
                 try
@@ -84,18 +84,18 @@ namespace Sutro.Core.Settings
                     {
                         if (field_this.FieldType == field_other.FieldType)
                         {
-                            field_this.SetValue(this, field_other.GetValue(other));
+                            field_this.SetValue(subject, field_other.GetValue(other));
                         }
                     }
                     else
                     {
-                        field_this.SetValue(this, CopyValue(field_other.GetValue(other)));
+                        field_this.SetValue(subject, CopyValue(field_other.GetValue(other)));
                     }
                 }
             }
         }
 
-        private object CopyValue(object v)
+        private static object CopyValue(object v)
         {
             var type = v.GetType();
             if (type.IsValueType)
@@ -125,10 +125,10 @@ namespace Sutro.Core.Settings
                     }
                     return instance;
                 }
-                else if (v is SettingsPrototype v_typed)
+                else if (v is object v_typed)
                 {
                     var instance = Activator.CreateInstance(type);
-                    ((SettingsPrototype)instance).CopyValuesFrom(v_typed);
+                    CopyValuesFrom(instance, v_typed);
                     return instance;
                 }
                 else
@@ -141,16 +141,11 @@ namespace Sutro.Core.Settings
             }
         }
 
-        public virtual T CloneAs<T>() where T : SettingsPrototype, new()
+        public static TClone CloneAs<TClone, TInput>(TInput subject) where TClone : new()
         {
-            var clone = new T();
-            clone.CopyValuesFrom(this);
+            var clone = new TClone();
+            CopyValuesFrom(clone, subject);
             return clone;
-        }
-
-        public string ClassTypeName
-        {
-            get { return GetType().ToString(); }
         }
     }
 }

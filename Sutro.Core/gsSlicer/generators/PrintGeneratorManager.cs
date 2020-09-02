@@ -1,5 +1,6 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using System;
@@ -11,7 +12,7 @@ namespace gs
 {
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
         where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
-        where TPrintSettings : PrintProfileBase, new()
+        where TPrintSettings : class, IPrintProfileFFF, new()
     {
         private readonly ILogger logger;
         private ISettingsBuilder<TPrintSettings> settingsBuilder;

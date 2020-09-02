@@ -6,14 +6,14 @@ namespace gs
 {
     public class GenericMillingAssembler : BaseMillingAssembler
     {
-        public static BaseMillingAssembler Factory(GCodeBuilder builder, PrintProfileFFF settings)
+        public static BaseMillingAssembler Factory(GCodeBuilder builder, IPrintProfileFFF settings)
         {
             return new GenericMillingAssembler(builder, settings);
         }
 
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
-        public GenericMillingAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
+        public GenericMillingAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings;
 

@@ -27,7 +27,7 @@ namespace Sutro.Core.Settings.Material
 
         public override IProfile Clone()
         {
-            return CloneAs<MaterialProfileFFF>();
+            return SettingsPrototype.CloneAs<MaterialProfileFFF, MaterialProfileFFF>(this);
         }
     }
 }

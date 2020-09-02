@@ -3,7 +3,7 @@ using Sutro.Core.Models.Profiles;
 
 namespace Sutro.Core.Settings.Machine
 {
-    public abstract class MachineProfileBase : SettingsPrototype, IMachineProfile
+    public abstract class MachineProfileBase : IMachineProfile
     {
         public string ManufacturerName { get; set; } = "Unknown";
         public string ModelIdentifier { get; set; } = "Machine";

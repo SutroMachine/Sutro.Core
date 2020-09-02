@@ -6,16 +6,16 @@ namespace gs
     public static class FlashforgeAssembler
     {
         public static BaseDepositionAssembler Factory(
-            GCodeBuilder builder, IPrintProfile settings)
+            GCodeBuilder builder, IPrintProfileFFF settings)
         {
-            var asm = new RepRapAssembler(builder, settings as PrintProfileFFF);
-            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings as PrintProfileFFF);
+            var asm = new RepRapAssembler(builder, settings);
+            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings);
             asm.HeaderCustomizerF = HeaderCustomF;
             asm.TravelGCode = 1;
             return asm;
         }
 
-        private static void HomeSequence(GCodeBuilder builder, PrintProfileFFF settings)
+        private static void HomeSequence(GCodeBuilder builder, IPrintProfileFFF settings)
         {
             if (settings.Machine.HasAutoBedLeveling && settings.Machine.EnableAutoBedLeveling)
             {

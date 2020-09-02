@@ -2,7 +2,7 @@
 
 namespace Sutro.Core.Settings.Material
 {
-    public abstract class MaterialProfileBase : SettingsPrototype, IMaterialProfile
+    public abstract class MaterialProfileBase : IMaterialProfile
     {
         protected string name = null;
 

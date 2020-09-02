@@ -6,16 +6,16 @@ namespace gs
     public class PrusaAssembler
     {
         public static BaseDepositionAssembler Factory(
-            GCodeBuilder builder, IPrintProfile settings)
+            GCodeBuilder builder, IPrintProfileFFF settings)
         {
-            var asm = new RepRapAssembler(builder, settings as PrintProfileFFF);
-            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings as PrintProfileFFF);
+            var asm = new RepRapAssembler(builder, settings);
+            asm.HomeSequenceF = (builder) => HomeSequence(builder, settings);
             asm.HeaderCustomizerF = HeaderCustomF;
             asm.TravelGCode = 1;
             return asm;
         }
 
-        private static void HomeSequence(GCodeBuilder builder, PrintProfileFFF profile)
+        private static void HomeSequence(GCodeBuilder builder, IPrintProfileFFF profile)
         {
             if (profile.Machine.HasAutoBedLeveling && profile.Machine.EnableAutoBedLeveling)
             {

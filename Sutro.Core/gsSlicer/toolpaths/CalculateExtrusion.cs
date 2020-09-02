@@ -17,7 +17,7 @@ namespace gs
 	public class CalculateExtrusion<T> where T : IExtrusionVertex
     {
         public IEnumerable<LinearToolpath3<T>> Paths;
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
         public bool EnableRetraction = true;
 
@@ -34,7 +34,7 @@ namespace gs
 
         public double ExtrusionLength = 0;
 
-        public CalculateExtrusion(IEnumerable<LinearToolpath3<T>> paths, PrintProfileFFF settings)
+        public CalculateExtrusion(IEnumerable<LinearToolpath3<T>> paths, IPrintProfileFFF settings)
         {
             Paths = paths;
             Settings = settings;
@@ -42,7 +42,7 @@ namespace gs
             EnableRetraction = settings.Part.EnableRetraction;
             FilamentDiam = settings.Material.FilamentDiamMM;
             NozzleDiam = settings.Machine.NozzleDiamMM;
-            LayerHeight = settings.LayerHeightMM;
+            LayerHeight = settings.Part.LayerHeightMM;
             FixedRetractDistance = settings.Part.RetractDistanceMM;
             MinRetractTravelLength = settings.Part.MinRetractTravelLength;
         }
@@ -111,7 +111,7 @@ namespace gs
 
                     // default line thickness and height
                     double path_width = Settings.Machine.NozzleDiamMM;
-                    double path_height = Settings.LayerHeightMM;
+                    double path_height = Settings.Part.LayerHeightMM;
 
                     // override with custom dimensions if provided
                     Vector2d vtx_dims = path[i].Dimensions;

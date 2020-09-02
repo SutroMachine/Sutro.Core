@@ -8,7 +8,7 @@ namespace Sutro.Core.Settings.Info
     {
         public override IPrintProfile Clone()
         {
-            return CloneAs<FlashforgeSettings>();
+            return SettingsPrototype.CloneAs<FlashforgeSettings, FlashforgeSettings>(this);
         }
 
         public FlashforgeSettings() : base()

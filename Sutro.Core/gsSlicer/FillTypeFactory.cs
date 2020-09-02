@@ -5,9 +5,9 @@ namespace gs
 {
     public class FillTypeFactory
     {
-        private PrintProfileFFF settings;
+        private IPrintProfileFFF settings;
 
-        public FillTypeFactory(PrintProfileFFF settings)
+        public FillTypeFactory(IPrintProfileFFF settings)
         {
             this.settings = settings;
         }

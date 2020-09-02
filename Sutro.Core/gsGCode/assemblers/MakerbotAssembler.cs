@@ -6,16 +6,16 @@ namespace gs
 {
     public class MakerbotAssembler : BaseDepositionAssembler
     {
-        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfile settings)
+        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfileFFF settings)
         {
-            return new MakerbotAssembler(builder, settings as PrintProfileFFF);
+            return new MakerbotAssembler(builder, settings);
         }
 
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
-        public MakerbotAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
+        public MakerbotAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
-            Settings = settings as PrintProfileFFF;
+            Settings = settings;
 
             PositionBounds = new AxisAlignedBox2d(settings.Machine.BedSizeXMM, settings.Machine.BedSizeYMM);
             PositionBounds.Translate(-PositionBounds.Center);

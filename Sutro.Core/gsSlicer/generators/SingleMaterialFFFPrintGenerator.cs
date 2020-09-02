@@ -3,7 +3,7 @@ using Sutro.Core.Settings;
 
 namespace gs
 {
-    public class SingleMaterialFFFPrintGenerator : ThreeAxisPrintGenerator
+    public class SingleMaterialFFFPrintGenerator : ThreeAxisPrintGenerator<PrintProfileFFF>
     {
         private GCodeFileAccumulator file_accumulator;
         private GCodeBuilder builder;

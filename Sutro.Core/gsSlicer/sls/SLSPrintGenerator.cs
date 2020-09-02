@@ -16,7 +16,7 @@ namespace gs
 
         protected PlanarSliceStack Slices;
         protected IThreeAxisLaserCompiler Compiler;
-        public PrintProfileFFF Settings;      // public because you could modify
+        public IPrintProfileFFF Settings;      // public because you could modify
                                                         // this during process, ie in BeginLayerF
                                                         // to implement per-layer settings
 
@@ -184,7 +184,7 @@ namespace gs
             if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, Settings.FillTypeFactory.Solid());
-                interior_shells.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+                interior_shells.PathSpacing = Settings.SolidFillPathSpacingMM();
                 interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
                 interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.PreserveOuterShells = true;
@@ -197,7 +197,7 @@ namespace gs
             // now actually fill solid regions
             foreach (GeneralPolygon2d fillPoly in fillPolys)
             {
-                var solidFillSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+                var solidFillSpacing = Settings.SolidFillPathSpacingMM();
                 TiledFillPolygon tiled_fill = new TiledFillPolygon(fillPoly)
                 {
                     TileSize = 13.1 * solidFillSpacing,
@@ -239,7 +239,7 @@ namespace gs
                         Settings.FillTypeFactory.InnerPerimeter(),
                         Settings.FillTypeFactory.OuterPerimeter());
 
-                    shells_gen.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+                    shells_gen.PathSpacing = Settings.SolidFillPathSpacingMM();
                     shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
                     shells_gen.PreserveOuterShells = true;
                     shells_gen.Layers = Settings.Part.Shells;

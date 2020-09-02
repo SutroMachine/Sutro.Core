@@ -9,7 +9,7 @@ using System;
 namespace Sutro.Core.Settings
 {
     public class PrintProfileFFF : PrintProfileBase<
-        MachineProfileFFF, MaterialProfileFFF, PartProfileFFF>
+        MachineProfileFFF, MaterialProfileFFF, PartProfileFFF>, IPrintProfileFFF
     {
         public static int SchemaVersion => 1;
 
@@ -23,7 +23,12 @@ namespace Sutro.Core.Settings
 
         public virtual IPrintProfile Clone()
         {
-            return CloneAs<PrintProfileFFF>();
+            return SettingsPrototype.CloneAs<PrintProfileFFF, PrintProfileFFF>(this);
+        }
+
+        IPlanarAdditiveProfile IPlanarAdditiveProfile.Clone()
+        {
+            return SettingsPrototype.CloneAs<PrintProfileFFF, PrintProfileFFF>(this);
         }
 
         public FillTypeFactory FillTypeFactory { get; }

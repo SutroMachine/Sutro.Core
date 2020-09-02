@@ -6,7 +6,7 @@ using Sutro.Core.Settings.Part;
 
 namespace Sutro.Core.Settings
 {
-    public abstract class PrintProfileBase : SettingsPrototype, IPrintProfile
+    public abstract class PrintProfileBase : IPrintProfile
     {
         public abstract IMachineProfile MachineProfile { get; }
         public abstract IMaterialProfile MaterialProfile { get; }

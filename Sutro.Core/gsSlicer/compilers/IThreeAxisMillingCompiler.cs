@@ -17,7 +17,7 @@ namespace gs
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, PrintProfileFFF pathSettings);
+        void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings);
 
         void AppendComment(string comment);
 
@@ -26,7 +26,7 @@ namespace gs
 
     public class BaseThreeAxisMillingCompiler : IThreeAxisMillingCompiler
     {
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
         public GCodeBuilder Builder;
         public BaseMillingAssembler Assembler;
 
@@ -37,7 +37,7 @@ namespace gs
         /// </summary>
         public virtual Action<string> EmitMessageF { get; set; }
 
-        public BaseThreeAxisMillingCompiler(GCodeBuilder builder, PrintProfileFFF settings, MillingAssemblerFactoryF AssemblerF)
+        public BaseThreeAxisMillingCompiler(GCodeBuilder builder, IPrintProfileFFF settings, MillingAssemblerFactoryF AssemblerF)
         {
             Builder = builder;
             Settings = settings;
@@ -77,9 +77,9 @@ namespace gs
         /// Compile this set of toolpaths and pass to assembler.
         /// Settings are optional, pass null to ignore
         /// </summary>
-		public virtual void AppendPaths(ToolpathSet paths, PrintProfileFFF pathSettings)
+		public virtual void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings)
         {
-            PrintProfileFFF useSettings = (pathSettings == null) ? Settings : pathSettings;
+            var useSettings = (pathSettings == null) ? Settings : pathSettings;
 
             int path_index = 0;
             foreach (var gpath in paths)

@@ -22,7 +22,7 @@ namespace gs
     public class SequentialScheduler2d : IFillPathScheduler2d
     {
         public ToolpathSetBuilder Builder;
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
         public bool ExtrudeOnShortTravels = false;
         public double ShortTravelDistance = 0;
@@ -32,7 +32,7 @@ namespace gs
         // optional function we will call when curve sets are appended
         public Action<List<FillCurveSet2d>, SequentialScheduler2d> OnAppendCurveSetsF = null;
 
-        public SequentialScheduler2d(ToolpathSetBuilder builder, PrintProfileFFF settings, double layerZ)
+        public SequentialScheduler2d(ToolpathSetBuilder builder, IPrintProfileFFF settings, double layerZ)
         {
             Builder = builder;
             Settings = settings;

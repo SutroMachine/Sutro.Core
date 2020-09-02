@@ -9,7 +9,7 @@ namespace gs
     {
     }
 
-    public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, PrintProfileFFF settings);
+    public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
     /// <summary>
     /// Assembler translates high-level commands from Compiler (eg MoveTo, BeginRetract, etc)
@@ -229,12 +229,12 @@ namespace gs
                 .AppendI("P", milliseconds);
         }
 
-        protected virtual void AddStandardHeader(PrintProfileFFF Settings)
+        protected virtual void AddStandardHeader(IPrintProfileFFF Settings)
         {
             Builder.AddCommentLine(" Generated on " + DateTime.Now.ToLongDateString() + " by Gradientspace gsSlicer");
             Builder.AddCommentLine(string.Format(" Printer: {0} {1}", Settings.Machine.ManufacturerName, Settings.Machine.ModelIdentifier));
             Builder.AddCommentLine(" Print Settings");
-            Builder.AddCommentLine(" Layer Height: " + Settings.LayerHeightMM);
+            Builder.AddCommentLine(" Layer Height: " + Settings.Part.LayerHeightMM);
             Builder.AddCommentLine(" Nozzle Diameter: " + Settings.Machine.NozzleDiamMM + "  Filament Diameter: " + Settings.Material.FilamentDiamMM);
             Builder.AddCommentLine(" Extruder Temp: " + Settings.Material.ExtruderTempC);
             Builder.AddCommentLine(string.Format(" Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.Part.RapidExtrudeSpeed, Settings.Part.RapidTravelSpeed, Settings.Part.ZTravelSpeed));

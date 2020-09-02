@@ -54,7 +54,7 @@ namespace Sutro.Core.Settings.Machine
 
         public override IProfile Clone()
         {
-            return CloneAs<MachineProfileFFF>();
+            return SettingsPrototype.CloneAs<MachineProfileFFF, MachineProfileFFF>(this);
         }
 
         public override AssemblerFactoryF AssemblerFactory()

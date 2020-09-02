@@ -7,14 +7,14 @@ namespace gs
 {
     public class RepRapAssembler : BaseDepositionAssembler
     {
-        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfile settings)
+        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfileFFF settings)
         {
-            return new RepRapAssembler(builder, settings as PrintProfileFFF);
+            return new RepRapAssembler(builder, settings);
         }
 
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
-        public RepRapAssembler(GCodeBuilder useBuilder, PrintProfileFFF settings) : base(useBuilder, settings.Machine)
+        public RepRapAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings;
 

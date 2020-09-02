@@ -17,7 +17,7 @@ namespace gs
     {
         public int layer_i;
         public PlanarSlice Slice;
-        public PrintProfileFFF Settings;
+        public IPrintProfileFFF Settings;
 
         public PrintLayerData PreviousLayer;
 
@@ -29,7 +29,7 @@ namespace gs
 
         public TemporalPathHash Spatial;
 
-        public PrintLayerData(int layer_i, PlanarSlice slice, PrintProfileFFF settings)
+        public PrintLayerData(int layer_i, PlanarSlice slice, IPrintProfileFFF settings)
         {
             this.layer_i = layer_i;
             Slice = slice;
@@ -69,14 +69,14 @@ namespace gs
     /// This is the top-level class that generates a GCodeFile for a stack of slices.
     /// Currently must subclass to provide resulting GCodeFile.
     /// </summary>
-    public abstract class ThreeAxisPrintGenerator : IPrintGenerator<PrintProfileFFF>
+    public abstract class ThreeAxisPrintGenerator<T> : IPrintGenerator<T> where T : IPrintProfileFFF
     {
         // Data structures that must be provided by client
         public PrintMeshAssembly PrintMeshes { get; protected set; }
 
         public PlanarSliceStack Slices { get; protected set; }
         public IThreeAxisPrinterCompiler Compiler { get; protected set; }
-        public PrintProfileFFF Settings;      // public because you could modify
+        public IPrintProfileFFF Settings;      // public because you could modify
                                                         // this during process, ie in BeginLayerF
                                                         // to implement per-layer settings
 
@@ -127,7 +127,7 @@ namespace gs
         public bool WasCancelled = false;
 
         // Replace this if you want to customize PrintLayerData type
-        public Func<int, PlanarSlice, PrintProfileFFF, PrintLayerData> PrintLayerDataFactoryF;
+        public Func<int, PlanarSlice, IPrintProfileFFF, PrintLayerData> PrintLayerDataFactoryF;
 
         // Replace this to use a different path builder
         public Func<PrintLayerData, ToolpathSetBuilder> PathBuilderFactoryF;
@@ -158,7 +158,7 @@ namespace gs
 
         // Called after we have finished print generation, use this to post-process the paths, etc.
         // By default appends a comment block with print time & material usage statistics
-        public Action<IThreeAxisPrinterCompiler, ThreeAxisPrintGenerator> PostProcessCompilerF
+        public Action<IThreeAxisPrinterCompiler, ThreeAxisPrintGenerator<T>> PostProcessCompilerF
             = PrintGeneratorDefaults.AppendPrintStatistics;
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace gs
 
         public ThreeAxisPrintGenerator(PrintMeshAssembly meshes,
                                        PlanarSliceStack slices,
-                                       PrintProfileFFF settings,
+                                       T settings,
                                        IThreeAxisPrinterCompiler compiler)
         {
             Initialize(meshes, slices, settings, compiler);
@@ -181,12 +181,12 @@ namespace gs
 
         public abstract void Initialize(PrintMeshAssembly meshes,
                                         PlanarSliceStack slices,
-                                        PrintProfileFFF settings,
+                                        T settings,
                                         AssemblerFactoryF overrideAssemblerF);
 
         public void Initialize(PrintMeshAssembly meshes,
                                PlanarSliceStack slices,
-                               PrintProfileFFF settings,
+                               T settings,
                                IThreeAxisPrinterCompiler compiler)
         {
             PrintMeshes = meshes;
@@ -343,7 +343,7 @@ namespace gs
                 if (Cancelled()) return;
 
                 // allocate new layer data structure
-                PrintProfileFFF layerSettings = MakeLayerSettings(layer_i);
+                IPrintProfileFFF layerSettings = MakeLayerSettings(layer_i);
                 PrintLayerData layerdata = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
                 layerdata.PreviousLayer = prevLayerData;
 
@@ -517,9 +517,9 @@ namespace gs
         /// <summary>
         /// assemble Settings for a given layer.
         /// </summary>
-        protected virtual PrintProfileFFF MakeLayerSettings(int layer_i)
+        protected virtual IPrintProfileFFF MakeLayerSettings(int layer_i)
         {
-            var layerSettings = (PrintProfileFFF)Settings.Clone();
+            var layerSettings = (IPrintProfileFFF)Settings.Clone();
             PlanarSlice slice = Slices[layer_i];
             // override standard layer height with slice ZSpan
             layerSettings.Part.LayerHeightMM = slice.LayerZSpan.Length;
@@ -624,7 +624,7 @@ namespace gs
             ICurvesFillPolygon infill_gen = new SparseLinesFillPolygon(infill_poly, new SparseFillType())
             {
                 InsetFromInputPolygon = false,
-                PathSpacing = Settings.Part.SparseLinearInfillStepX * Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM),
+                PathSpacing = Settings.Part.SparseLinearInfillStepX * Settings.SolidFillPathSpacingMM(),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
                 MinPathLengthMM = Settings.Part.MinInfillLengthMM
@@ -775,7 +775,7 @@ namespace gs
                                                  IFillPathScheduler2d scheduler,
                                                  bool bIsInfillAdjacent = false)
         {
-            if (Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM) == 0)
+            if (Settings.SolidFillPathSpacingMM() == 0)
                 return;
 
             List<GeneralPolygon2d> fillPolys = new List<GeneralPolygon2d>() { solid_poly };
@@ -789,7 +789,7 @@ namespace gs
             if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, new InteriorShellFillType());
-                interior_shells.PathSpacing = Settings.Part.ShellsFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+                interior_shells.PathSpacing = Settings.ShellsFillPathSpacingMM();
                 interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
                 interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.InsetFromInputPolygonX = 0;
@@ -819,7 +819,7 @@ namespace gs
             ICurvesFillPolygon solid_gen = new ParallelLinesFillPolygon(fillPoly, Settings.FillTypeFactory.Solid())
             {
                 InsetFromInputPolygon = false,
-                PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM),
+                PathSpacing = Settings.SolidFillPathSpacingMM(),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
                 FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps,
@@ -838,7 +838,7 @@ namespace gs
         /// </summary>
         protected virtual void fill_bridge_region(GeneralPolygon2d poly, IFillPathScheduler2d scheduler, PrintLayerData layer_data)
         {
-            double spacing = Settings.Part.BridgeFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+            double spacing = Settings.BridgeFillPathSpacingMM();
 
             // fit bbox to try to find fill angle that has shortest spans
             Box2d box = poly.Outer.MinimalBoundingBox(0.00001);
@@ -871,7 +871,7 @@ namespace gs
 
             var polys = PolygonDecomposer.Compute(poly, minArea);
 
-            double spacing = Settings.Part.BridgeFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+            double spacing = Settings.BridgeFillPathSpacingMM();
 
             foreach (Polygon2d polypart in polys)
             {
@@ -882,7 +882,7 @@ namespace gs
                 GeneralPolygon2d gp = new GeneralPolygon2d(polypart);
 
                 ShellsFillPolygon shells_fill = new ShellsFillPolygon(gp, Settings.FillTypeFactory.Bridge());
-                shells_fill.PathSpacing = Settings.Part.SolidFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+                shells_fill.PathSpacing = Settings.SolidFillPathSpacingMM();
                 shells_fill.ToolWidth = Settings.Machine.NozzleDiamMM;
                 shells_fill.Layers = 1;
                 shells_fill.InsetFromInputPolygonX = 0.25;
@@ -1130,7 +1130,7 @@ namespace gs
                 Settings.FillTypeFactory.InnerPerimeter(),
                 Settings.FillTypeFactory.OuterPerimeter());
 
-            shells_gen.PathSpacing = Settings.Part.ShellsFillPathSpacingMM(Settings.Machine.NozzleDiamMM);
+            shells_gen.PathSpacing = Settings.ShellsFillPathSpacingMM();
             shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
             shells_gen.Layers = Settings.Part.Shells;
             shells_gen.FilterSelfOverlaps = Settings.Part.ClipSelfOverlaps;

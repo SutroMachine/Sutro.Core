@@ -24,7 +24,7 @@ namespace gs
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, IPrintProfile pathSettings);
+        void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings);
 
         void AppendComment(string comment);
 
@@ -32,12 +32,12 @@ namespace gs
 
         void AppendBlankLine();
 
-        IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfile settings);
+        IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings);
     }
 
     public class SingleMaterialFFFCompiler : IThreeAxisPrinterCompiler
     {
-        private PrintProfileFFF Settings;
+        private IPrintProfileFFF Settings;
         private GCodeBuilder Builder;
         protected BaseDepositionAssembler Assembler;
 
@@ -48,7 +48,7 @@ namespace gs
         /// </summary>
         public virtual Action<string> EmitMessageF { get; set; }
 
-        public SingleMaterialFFFCompiler(GCodeBuilder builder, PrintProfileFFF settings, AssemblerFactoryF AssemblerF)
+        public SingleMaterialFFFCompiler(GCodeBuilder builder, IPrintProfileFFF settings, AssemblerFactoryF AssemblerF)
         {
             Builder = builder;
             Settings = settings;
@@ -91,7 +91,7 @@ namespace gs
             Assembler.AppendFooter();
         }
 
-        public virtual void HandleDepositionPath(LinearToolpath path, PrintProfileFFF useSettings)
+        public virtual void HandleDepositionPath(LinearToolpath path, IPrintProfileFFF useSettings)
         {
             // end travel / retract if we are in that state
             if (Assembler.InTravel)
@@ -108,9 +108,8 @@ namespace gs
             AppendDimensions(path.Start.Dimensions);
         }
 
-        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, IPrintProfile settings)
+        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, IPrintProfileFFF settings)
         {
-            var useSettings = settings as PrintProfileFFF;
             if (Assembler.InTravel == false)
             {
                 Assembler.DisableFan();
@@ -120,7 +119,7 @@ namespace gs
                 {
                     if (Assembler.InRetract)
                         throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + pathIndex + ": already in retract!");
-                    Assembler.BeginRetract(path[0].Position, useSettings.Part.RetractSpeed, path[0].Extrusion.x);
+                    Assembler.BeginRetract(path[0].Position, settings.Part.RetractSpeed, path[0].Extrusion.x);
                 }
                 Assembler.BeginTravel();
             }
@@ -134,12 +133,11 @@ namespace gs
         /// Compile this set of toolpaths and pass to assembler.
         /// Settings are optional, pass null to ignore
         /// </summary>
-		public virtual void AppendPaths(ToolpathSet toolpathSet, IPrintProfile profile)
+		public virtual void AppendPaths(ToolpathSet toolpathSet, IPrintProfileFFF profile)
         {
-            var pathSettings = profile as PrintProfileFFF;
             Assembler.FlushQueues();
 
-            PrintProfileFFF useSettings = (pathSettings == null) ? Settings : pathSettings;
+            IPrintProfileFFF useSettings = (profile == null) ? Settings : profile;
 
             var paths = toolpathSet.GetPaths<PrintVertex>();
             var calc = new CalculateExtrusion<PrintVertex>(paths, useSettings);
@@ -228,7 +226,7 @@ namespace gs
                 if (dimensions.x == GCodeUtil.UnspecifiedDimensions.x)
                     dimensions.x = Settings.Machine.NozzleDiamMM;
                 if (dimensions.y == GCodeUtil.UnspecifiedDimensions.y)
-                    dimensions.y = Settings.LayerHeightMM;
+                    dimensions.y = Settings.Part.LayerHeightMM;
                 Assembler.AppendComment(" tool H" + dimensions.y + " W" + dimensions.x);
             }
         }
@@ -277,9 +275,9 @@ namespace gs
                 EmitMessageF(string.Format(text, args));
         }
 
-        public IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfile settings)
+        public IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings)
         {
-            return Assembler.GenerateTotalExtrusionReport(settings as PrintProfileFFF);
+            return Assembler.GenerateTotalExtrusionReport(settings);
         }
     }
 }

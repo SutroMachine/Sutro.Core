@@ -2,7 +2,7 @@
 
 namespace Sutro.Core.Settings.Part
 {
-    public abstract class PartProfileBase : SettingsPrototype, IPartProfile
+    public abstract class PartProfileBase : IPartProfile
     {
         public virtual double LayerHeightMM { get; set; } = 0.2;
 
