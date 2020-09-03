@@ -230,7 +230,7 @@ namespace gs
                 generate_result();
                 Result = extract_result();
             }
-            catch (Exception e)
+            catch (Exception e) when (!Sutro.Core.Models.Config.Debug)
             {
                 ErrorF(e.Message, e.StackTrace);
                 return false;

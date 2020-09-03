@@ -11,11 +11,7 @@ namespace gs
     {
     }
 
-    public interface IDepositionAssembler : IGCodeAssembler
-    {
-    }
-
-    public delegate BaseDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
+    public delegate IDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
     /// <summary>
     /// Assembler translates high-level commands from Compiler (eg MoveTo, ExtrudeTo, BeginRetract, etc)
@@ -587,7 +583,7 @@ namespace gs
             Builder.AddCommentLine(string.Format("; tool H{0} W{1}", Settings.Part.LayerHeightMM, Settings.Machine.NozzleDiamMM));
         }
 
-        public virtual List<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings)
+        public virtual IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings)
         {
             double volume = TotalExtrusion * Math.PI * Math.Pow(settings.Material.FilamentDiamMM / 2d, 2);
             double mass = volume * settings.Material.GramsPerCubicMM;

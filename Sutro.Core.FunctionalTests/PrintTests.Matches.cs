@@ -9,6 +9,16 @@ namespace gsCore.FunctionalTests
     [TestClass]
     public class FFF_PrintTests_Matches
     {
+        [TestInitialize]
+        public void Initialize()
+        {
+#if DEBUG
+            Sutro.Core.Models.Config.Debug = true;
+#else
+            Sutro.Core.Models.Config.Debug = false;
+#endif
+        }
+
         [TestMethod]
         public void Frustum_RepRap()
         {

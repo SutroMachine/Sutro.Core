@@ -16,14 +16,6 @@ namespace Sutro.Core.Settings.Machine
                 profile.ManufacturerName = "Prusa";
             }
 
-            public static MachineProfileFFF CreateGeneric()
-            {
-                var profile = new MachineProfileFFF();
-                ConfigureCommon(profile);
-                ConfigureGeneric(profile);
-                return profile;
-            }
-
             public static MachineProfileFFF Create_i3Mk3()
             {
                 var profile = new MachineProfileFFF();
@@ -34,12 +26,12 @@ namespace Sutro.Core.Settings.Machine
 
             public static IEnumerable<MachineProfileFFF> EnumerateDefaults()
             {
-                yield return CreateGeneric();
                 yield return Create_i3Mk3();
             }
 
             private static void Configure_i3Mk3(MachineProfileFFF profile)
             {
+                profile.Name = "Prusa i3 Mk3";
                 profile.ModelIdentifier = "i3 MK3";
                 profile.BedSizeXMM = 250;
                 profile.BedSizeYMM = 210;
@@ -59,30 +51,6 @@ namespace Sutro.Core.Settings.Machine
                 profile.MaxRetractSpeedMMM = 35 * 60;
                 profile.MinLayerHeightMM = 0.05;
                 profile.MaxLayerHeightMM = 0.35;
-
-            }
-
-            private static void ConfigureGeneric(MachineProfileFFF profile)
-            {
-                profile.ModelIdentifier = "Generic";
-                profile.BedSizeXMM = 100;
-                profile.BedSizeYMM = 100;
-                profile.MaxHeightMM = 100;
-                profile.NozzleDiamMM = 0.4;
-
-                profile.MaxExtruderTempC = 230;
-                profile.HasHeatedBed = false;
-                profile.MaxBedTempC = 0;
-
-                profile.HasAutoBedLeveling = false;
-                profile.EnableAutoBedLeveling = false;
-
-                profile.MaxExtrudeSpeedMMM = 60 * 60;
-                profile.MaxTravelSpeedMMM = 80 * 60;
-                profile.MaxZTravelSpeedMMM = 23 * 60;
-                profile.MaxRetractSpeedMMM = 20 * 60;
-                profile.MinLayerHeightMM = 0.1;
-                profile.MaxLayerHeightMM = 0.3;
             }
         }
     }

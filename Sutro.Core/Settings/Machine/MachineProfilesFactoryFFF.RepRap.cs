@@ -30,7 +30,7 @@ namespace Sutro.Core.Settings.Machine
             }
             private static void ConfigureGeneric(MachineProfileFFF profile)
             {
-                profile.ModelIdentifier = "Generic";
+                profile.ModelIdentifier = "Generic RepRap";
 
                 profile.BedSizeXMM = 80;
                 profile.BedSizeYMM = 80;

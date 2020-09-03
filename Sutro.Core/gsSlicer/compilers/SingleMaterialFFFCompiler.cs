@@ -39,7 +39,7 @@ namespace gs
     {
         private IPrintProfileFFF Settings;
         private GCodeBuilder Builder;
-        protected BaseDepositionAssembler Assembler;
+        protected IDepositionAssembler Assembler;
 
         protected AssemblerFactoryF AssemblerF;
 
