@@ -9,12 +9,6 @@ namespace Sutro.Core.Settings.Material
 
         public string Color { get; set; } = "Blue";
 
-        public override string MaterialName
-        {
-            get => name ?? $"{Supplier} {Material} - {Color}";
-            set { name = value; }
-        }
-
         // Properties
 
         public double FilamentDiamMM { get; set; } = 1.75;

@@ -6,14 +6,6 @@ namespace Sutro.Core.Settings.Machine
     {
         public static class Monoprice
         {
-            public static MachineProfileFFF CreateGeneric()
-            {
-                var profile = new MachineProfileFFF();
-                ConfigureCommon(profile);
-                ConfigureGeneric(profile);
-                return profile;
-            }
-
             public static MachineProfileFFF CreateSelectMiniV2()
             {
                 var profile = new MachineProfileFFF();
@@ -24,7 +16,6 @@ namespace Sutro.Core.Settings.Machine
 
             public static IEnumerable<MachineProfileFFF> EnumerateDefaults()
             {
-                yield return CreateGeneric();
                 yield return CreateSelectMiniV2();
             }
 
@@ -34,32 +25,10 @@ namespace Sutro.Core.Settings.Machine
                 profile.Firmware = FirmwareOptions.Monoprice;
                 profile.ManufacturerName = "Monoprice";
             }
-
-            private static void ConfigureGeneric(MachineProfileFFF profile)
-            {
-                profile.ModelIdentifier = "Generic";
-                profile.BedSizeXMM = 100;
-                profile.BedSizeYMM = 100;
-                profile.MaxHeightMM = 100;
-                profile.NozzleDiamMM = 0.4;
-
-                profile.MaxExtruderTempC = 230;
-                profile.HasHeatedBed = false;
-                profile.MaxBedTempC = 0;
-
-                profile.HasAutoBedLeveling = false;
-                profile.EnableAutoBedLeveling = false;
-
-                profile.MaxExtrudeSpeedMMM = 60 * 60;
-                profile.MaxTravelSpeedMMM = 80 * 60;
-                profile.MaxZTravelSpeedMMM = 23 * 60;
-                profile.MaxRetractSpeedMMM = 20 * 60;
-                profile.MinLayerHeightMM = 0.1;
-                profile.MaxLayerHeightMM = 0.3;
-            }
-
+          
             private static void ConfigureSelectMiniV2(MachineProfileFFF profile)
             {
+                profile.Name = "Monoprice Select Mini V2";
                 profile.ModelIdentifier = "MP Select Mini V2";
                 profile.BedSizeXMM = 120;
                 profile.BedSizeYMM = 120;

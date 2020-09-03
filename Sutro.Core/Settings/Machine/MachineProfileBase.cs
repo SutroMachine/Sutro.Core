@@ -5,6 +5,8 @@ namespace Sutro.Core.Settings.Machine
 {
     public abstract class MachineProfileBase : IMachineProfile
     {
+        public string Name { get; set; } = "Generic";
+
         public string ManufacturerName { get; set; } = "Unknown";
         public string ModelIdentifier { get; set; } = "Machine";
 
@@ -20,8 +22,6 @@ namespace Sutro.Core.Settings.Machine
         public MachineBedOriginLocationY OriginY { get; set; }
 
         public abstract int SchemaVersion { get; }
-
-        public string Name => $"{ManufacturerName} {ModelIdentifier}";
 
         public abstract AssemblerFactoryF AssemblerFactory();
 

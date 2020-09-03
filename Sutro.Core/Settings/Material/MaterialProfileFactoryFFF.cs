@@ -15,6 +15,7 @@ namespace Sutro.Core.Settings.Material
 
         private static MaterialProfileFFF ConfigureABS(this MaterialProfileFFF material)
         {
+            material.Name = "Generic ABS";
             material.Material = "ABS";
             material.ExtruderTempC = 230;
             material.HeatedBedTempC = 90;
@@ -30,6 +31,7 @@ namespace Sutro.Core.Settings.Material
 
         private static MaterialProfileFFF ConfigureNylon(this MaterialProfileFFF material)
         {
+            material.Name = "Generic Nylon";
             material.Material = "Nylon";
             material.ExtruderTempC = 250;
             material.HeatedBedTempC = 85;
@@ -38,6 +40,7 @@ namespace Sutro.Core.Settings.Material
 
         private static MaterialProfileFFF ConfigurePETG(this MaterialProfileFFF material)
         {
+            material.Name = "Generic PETG";
             material.Material = "PETG";
             material.ExtruderTempC = 235;
             material.HeatedBedTempC = 70;
@@ -46,6 +49,7 @@ namespace Sutro.Core.Settings.Material
 
         private static MaterialProfileFFF ConfigurePLA(this MaterialProfileFFF material)
         {
+            material.Name = "Generic PLA";
             material.Material = "PLA";
             material.ExtruderTempC = 210;
             material.HeatedBedTempC = 50;
@@ -54,6 +58,7 @@ namespace Sutro.Core.Settings.Material
 
         private static MaterialProfileFFF ConfigureTPU(this MaterialProfileFFF material)
         {
+            material.Name = "Generic TPU";
             material.Material = "TPU";
             material.ExtruderTempC = 220;
             material.HeatedBedTempC = 50;

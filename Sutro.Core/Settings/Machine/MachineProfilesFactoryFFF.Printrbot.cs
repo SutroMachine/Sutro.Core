@@ -16,14 +16,6 @@ namespace Sutro.Core.Settings.Machine
                 profile.ManufacturerName = "Printrbot";
             }
 
-            public static MachineProfileFFF CreateGeneric()
-            {
-                var profile = new MachineProfileFFF();
-                ConfigureCommon(profile);
-                ConfigureGeneric(profile);
-                return profile;
-            }
-
             public static MachineProfileFFF CreatePlus()
             {
                 var profile = new MachineProfileFFF();
@@ -34,12 +26,12 @@ namespace Sutro.Core.Settings.Machine
 
             public static IEnumerable<MachineProfileFFF> EnumerateDefaults()
             {
-                yield return CreateGeneric();
                 yield return CreatePlus();
             }
 
             private static void ConfigurePlus(MachineProfileFFF profile)
             {
+                profile.Name = "Printrbot Plus";
                 profile.ModelIdentifier = "Plus";
 
                 profile.BedSizeXMM = 250;
@@ -60,29 +52,6 @@ namespace Sutro.Core.Settings.Machine
                 profile.HasAutoBedLeveling = true;
                 profile.EnableAutoBedLeveling = true;
 
-            }
-
-            private static void ConfigureGeneric(MachineProfileFFF profile)
-            {
-                profile.ModelIdentifier = "Generic";
-
-                profile.BedSizeXMM = 100;
-                profile.BedSizeYMM = 100;
-                profile.MaxHeightMM = 100;
-
-                profile.MaxExtruderTempC = 230;
-                profile.HasHeatedBed = false;
-                profile.MaxBedTempC = 0;
-
-                profile.HasAutoBedLeveling = false;
-                profile.EnableAutoBedLeveling = false;
-
-                profile.MaxExtrudeSpeedMMM = 60 * 60;
-                profile.MaxTravelSpeedMMM = 80 * 60;
-                profile.MaxZTravelSpeedMMM = 23 * 60;
-                profile.MaxRetractSpeedMMM = 20 * 60;
-                profile.MinLayerHeightMM = 0.1;
-                profile.MaxLayerHeightMM = 0.3;
             }
         }
     }

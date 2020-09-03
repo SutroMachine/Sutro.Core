@@ -4,17 +4,12 @@ namespace Sutro.Core.Settings.Material
 {
     public abstract class MaterialProfileBase : IMaterialProfile
     {
-        protected string name = null;
 
         // Identifiers
+        public string Name { get; set; } = "Generic Material";
+
         public string Material { get; set; } = "PLA";
         public string Supplier { get; set; } = "Generic";
-
-        public virtual string Name
-        {
-            get => name ?? $"{Supplier} {Material}";
-            set { name = value; }
-        }
 
         // Properties
 
