@@ -1,4 +1,5 @@
 ﻿using g3;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +17,7 @@ namespace gs
 	public class CalculateExtrusion<T> where T : IExtrusionVertex
     {
         public IEnumerable<LinearToolpath3<T>> Paths;
-        public SingleMaterialFFFSettings Settings;
+        public IPrintProfileFFF Settings;
 
         public bool EnableRetraction = true;
 
@@ -33,17 +34,17 @@ namespace gs
 
         public double ExtrusionLength = 0;
 
-        public CalculateExtrusion(IEnumerable<LinearToolpath3<T>> paths, SingleMaterialFFFSettings settings)
+        public CalculateExtrusion(IEnumerable<LinearToolpath3<T>> paths, IPrintProfileFFF settings)
         {
             Paths = paths;
             Settings = settings;
 
-            EnableRetraction = settings.EnableRetraction;
-            FilamentDiam = settings.Machine.FilamentDiamMM;
+            EnableRetraction = settings.Part.EnableRetraction;
+            FilamentDiam = settings.Material.FilamentDiamMM;
             NozzleDiam = settings.Machine.NozzleDiamMM;
-            LayerHeight = settings.LayerHeightMM;
-            FixedRetractDistance = settings.RetractDistanceMM;
-            MinRetractTravelLength = settings.MinRetractTravelLength;
+            LayerHeight = settings.Part.LayerHeightMM;
+            FixedRetractDistance = settings.Part.RetractDistanceMM;
+            MinRetractTravelLength = settings.Part.MinRetractTravelLength;
         }
 
         public void Calculate(Vector3d vStartPos, double fStartA, bool alreadyInRetract = false)
@@ -110,7 +111,7 @@ namespace gs
 
                     // default line thickness and height
                     double path_width = Settings.Machine.NozzleDiamMM;
-                    double path_height = Settings.LayerHeightMM;
+                    double path_height = Settings.Part.LayerHeightMM;
 
                     // override with custom dimensions if provided
                     Vector2d vtx_dims = path[i].Dimensions;
@@ -160,7 +161,7 @@ namespace gs
                                 path[i].Dimensions.y : path_height;
 
                             double feed = ExtrusionMath.PathLengthToFilamentLength(
-                                segment_height, segment_width, Settings.Machine.FilamentDiamMM,
+                                segment_height, segment_width, Settings.Material.FilamentDiamMM,
                                 dist, vol_scale);
 
                             // Change the extrusion amount if a modifier is present.

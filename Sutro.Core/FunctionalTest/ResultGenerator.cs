@@ -1,13 +1,14 @@
 ﻿using g3;
 using gs;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Settings;
 using System.IO;
 
 namespace Sutro.Core.FunctionalTest
 {
     public class ResultGenerator<TGenerator, TSettings> : IResultGenerator
         where TGenerator : IPrintGenerator<TSettings>, new()
-        where TSettings : PlanarAdditiveSettings, new()
+        where TSettings : class, IPrintProfileFFF, new()
     {
         private readonly PrintGeneratorManager<TGenerator, TSettings> generator;
         private readonly ILogger logger;

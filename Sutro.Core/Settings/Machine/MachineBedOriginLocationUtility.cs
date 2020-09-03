@@ -1,8 +1,8 @@
 ﻿using g3;
-using Sutro.Core.Models;
+using Sutro.Core.Models.Profiles;
 using System;
 
-namespace gs
+namespace Sutro.Core.Settings.Machine
 {
     public static class MachineBedOriginLocationUtility
     {

@@ -1,6 +1,8 @@
 ﻿using g3;
-using gs.FillTypes;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,8 +11,8 @@ using System.Reflection;
 namespace gs
 {
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
-            where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
-            where TPrintSettings : SettingsPrototype, IPlanarAdditiveSettings, new()
+        where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
+        where TPrintSettings : class, IPrintProfileFFF, new()
     {
         private readonly ILogger logger;
         private ISettingsBuilder<TPrintSettings> settingsBuilder;
@@ -75,7 +77,7 @@ namespace gs
             // Run the print generator
             logger.WriteLine("Running print generator...");
             var printGenerator = new TPrintGenerator();
-            AssemblerFactoryF overrideAssemblerF = globalSettings.AssemblerType();
+            AssemblerFactoryF overrideAssemblerF = (globalSettings.MachineProfile as MachineProfileBase).AssemblerFactory();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
 
             if (printGenerator.Generate())

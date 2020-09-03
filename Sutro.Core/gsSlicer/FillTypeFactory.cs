@@ -1,19 +1,20 @@
 ﻿using gs.FillTypes;
+using Sutro.Core.Settings;
 
 namespace gs
 {
     public class FillTypeFactory
     {
-        private SingleMaterialFFFSettings settings;
+        private IPrintProfileFFF settings;
 
-        public FillTypeFactory(SingleMaterialFFFSettings settings)
+        public FillTypeFactory(IPrintProfileFFF settings)
         {
             this.settings = settings;
         }
 
         public IFillType Bridge()
         {
-            return new BridgeFillType(settings.BridgeVolumeScale, settings.CarefulExtrudeSpeed * settings.BridgeExtrudeSpeedX);
+            return new BridgeFillType(settings.Part.BridgeVolumeScale, settings.Part.CarefulExtrudeSpeed * settings.Part.BridgeExtrudeSpeedX);
         }
 
         public IFillType Default()
@@ -23,7 +24,7 @@ namespace gs
 
         public IFillType InnerPerimeter()
         {
-            return new InnerPerimeterFillType(1, settings.InnerPerimeterSpeedX);
+            return new InnerPerimeterFillType(1, settings.Part.InnerPerimeterSpeedX);
         }
 
         public IFillType InteriorShell()
@@ -38,17 +39,17 @@ namespace gs
 
         public IFillType OuterPerimeter()
         {
-            return new OuterPerimeterFillType(1, settings.OuterPerimeterSpeedX);
+            return new OuterPerimeterFillType(1, settings.Part.OuterPerimeterSpeedX);
         }
 
-        public IFillType SkirtBrim(SingleMaterialFFFSettings settings)
+        public IFillType SkirtBrim(PrintProfileFFF settings)
         {
             return new SkirtBrimFillType();
         }
 
         public IFillType Solid()
         {
-            return new SolidFillType(1, settings.SolidFillSpeedX);
+            return new SolidFillType(1, settings.Part.SolidFillSpeedX);
         }
 
         public IFillType Sparse()
@@ -58,7 +59,7 @@ namespace gs
 
         public IFillType Support()
         {
-            return new SupportFillType(settings.SupportVolumeScale, settings.OuterPerimeterSpeedX);
+            return new SupportFillType(settings.Part.SupportVolumeScale, settings.Part.OuterPerimeterSpeedX);
         }
     }
 }

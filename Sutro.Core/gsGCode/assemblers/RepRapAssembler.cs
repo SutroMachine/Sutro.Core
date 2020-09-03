@@ -1,18 +1,20 @@
 ﻿using g3;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
 using System;
 
 namespace gs
 {
     public class RepRapAssembler : BaseDepositionAssembler
     {
-        public static BaseDepositionAssembler Factory(GCodeBuilder builder, SingleMaterialFFFSettings settings)
+        public static BaseDepositionAssembler Factory(GCodeBuilder builder, IPrintProfileFFF settings)
         {
             return new RepRapAssembler(builder, settings);
         }
 
-        public SingleMaterialFFFSettings Settings;
+        public IPrintProfileFFF Settings;
 
-        public RepRapAssembler(GCodeBuilder useBuilder, SingleMaterialFFFSettings settings) : base(useBuilder, settings.Machine)
+        public RepRapAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {
             Settings = settings;
 
@@ -22,7 +24,7 @@ namespace gs
 
             HomeSequenceF = StandardHomeSequence;
 
-            UseFirmwareRetraction = settings.UseFirmwareRetraction;
+            UseFirmwareRetraction = settings.Part.UseFirmwareRetraction;
         }
 
         //public override void BeginRetract(Vector3d pos, double feedRate, double extrudeDist, string comment = null) {
@@ -46,7 +48,7 @@ namespace gs
 
         public override void EnableFan()
         {
-            int fan_speed = (int)(Settings.FanSpeedX * 255.0);
+            int fan_speed = (int)(Settings.Part.FanSpeedX * 255.0);
             Builder.BeginMLine(106, "fan on").AppendI("S", fan_speed);
         }
 
@@ -88,19 +90,19 @@ namespace gs
              */
 
             // do this first so it happens while bed heats
-            SetExtruderTargetTemp(Settings.ExtruderTempC);
+            SetExtruderTargetTemp(Settings.Material.ExtruderTempC);
 
             // M190
             if (Settings.Machine.HasHeatedBed)
             {
-                if (Settings.HeatedBedTempC > 0)
-                    SetBedTargetTempAndWait(Settings.HeatedBedTempC);
+                if (Settings.Material.HeatedBedTempC > 0)
+                    SetBedTargetTempAndWait(Settings.Material.HeatedBedTempC);
                 else
                     SetBedTargetTemp(0, "disable heated bed");
             }
 
             // M109
-            SetExtruderTargetTempAndWait(Settings.ExtruderTempC);
+            SetExtruderTargetTempAndWait(Settings.Material.ExtruderTempC);
 
             HeaderCustomizerF(HeaderState.AfterTemperature, Builder);
 
@@ -109,9 +111,9 @@ namespace gs
             Builder.BeginMLine(82, "absolute extruder position");
 
             // Setup Firmware Retraction
-            if (Settings.UseFirmwareRetraction)
+            if (Settings.Part.UseFirmwareRetraction)
             {
-                Builder.BeginMLine(207, "configure firmware retraction").AppendF("S", Settings.RetractDistanceMM).AppendF("F", Settings.RetractSpeed).AppendF("Z", Settings.TravelLiftHeight);
+                Builder.BeginMLine(207, "configure firmware retraction").AppendF("S", Settings.Part.RetractDistanceMM).AppendF("F", Settings.Part.RetractSpeed).AppendF("Z", Settings.Part.TravelLiftHeight);
             }
 
             HeaderCustomizerF(HeaderState.BeforeHome, Builder);
@@ -136,7 +138,7 @@ namespace gs
 
             // move to z=0
             BeginTravel();
-            AppendMoveTo(new Vector3d(NozzlePosition.x, NozzlePosition.y, 0), Settings.ZTravelSpeed, "reset z");
+            AppendMoveTo(new Vector3d(NozzlePosition.x, NozzlePosition.y, 0), Settings.Part.ZTravelSpeed, "reset z");
             EndTravel();
 
             ShowMessage("Print Started");

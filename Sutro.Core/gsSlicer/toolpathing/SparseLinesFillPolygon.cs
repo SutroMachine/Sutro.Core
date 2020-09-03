@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 
 namespace gs
 {
@@ -19,7 +20,7 @@ namespace gs
     /// </summary>
     public class SupportLinesFillPolygon : ParallelLinesFillPolygon
     {
-        public SupportLinesFillPolygon(GeneralPolygon2d poly, SingleMaterialFFFSettings settings) : base(poly, settings.FillTypeFactory.Support())
+        public SupportLinesFillPolygon(GeneralPolygon2d poly, IPrintProfileFFF settings) : base(poly, settings.FillTypeFactory.Support())
         {
             SimplifyAmount = SimplificationLevel.Aggressive;
         }
@@ -30,7 +31,7 @@ namespace gs
     /// </summary>
     public class BridgeLinesFillPolygon : ParallelLinesFillPolygon
     {
-        public BridgeLinesFillPolygon(GeneralPolygon2d poly, SingleMaterialFFFSettings settings) : base(poly, settings.FillTypeFactory.Bridge())
+        public BridgeLinesFillPolygon(GeneralPolygon2d poly, IPrintProfileFFF settings) : base(poly, settings.FillTypeFactory.Bridge())
         {
             SimplifyAmount = SimplificationLevel.Minor;
         }

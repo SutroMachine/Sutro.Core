@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
@@ -15,7 +16,7 @@ namespace gs
 
         protected PlanarSliceStack Slices;
         protected IThreeAxisLaserCompiler Compiler;
-        public SingleMaterialFFFSettings Settings;      // public because you could modify
+        public PrintProfileFFF Settings;      // public because you could modify
                                                         // this during process, ie in BeginLayerF
                                                         // to implement per-layer settings
 
@@ -42,7 +43,7 @@ namespace gs
 
         public SLSPrintGenerator(PrintMeshAssembly meshes,
                                        PlanarSliceStack slices,
-                                       SingleMaterialFFFSettings settings,
+                                       PrintProfileFFF settings,
                                        IThreeAxisLaserCompiler compiler)
         {
             Initialize(meshes, slices, settings, compiler);
@@ -50,7 +51,7 @@ namespace gs
 
         public void Initialize(PrintMeshAssembly meshes,
                                PlanarSliceStack slices,
-                               SingleMaterialFFFSettings settings,
+                               PrintProfileFFF settings,
                                IThreeAxisLaserCompiler compiler)
         {
             PrintMeshes = meshes;
@@ -126,7 +127,7 @@ namespace gs
                 paths.Initialize((double)(layer_i) * Settings.LayerHeightMM * Vector3d.AxisZ);
 
                 // layer-up (ie z-change)
-                paths.AppendZChange(Settings.LayerHeightMM, Settings.ZTravelSpeed);
+                paths.AppendZChange(Settings.LayerHeightMM, Settings.Part.ZTravelSpeed);
 
                 // rest of code does not directly access path builder, instead if
                 // sends paths to scheduler.
@@ -180,12 +181,12 @@ namespace gs
             // [TODO] should only be doing this if solid-fill is adjecent to infill region.
             //   But how to determine this? not easly because we don't know which polys
             //   came from where. Would need to do loop above per-polygon
-            if (bIsInfillAdjacent && Settings.InteriorSolidRegionShells > 0)
+            if (bIsInfillAdjacent && Settings.Part.InteriorSolidRegionShells > 0)
             {
                 ShellsFillPolygon interior_shells = new ShellsFillPolygon(solid_poly, Settings.FillTypeFactory.Solid());
                 interior_shells.PathSpacing = Settings.SolidFillPathSpacingMM();
                 interior_shells.ToolWidth = Settings.Machine.NozzleDiamMM;
-                interior_shells.Layers = Settings.InteriorSolidRegionShells;
+                interior_shells.Layers = Settings.Part.InteriorSolidRegionShells;
                 interior_shells.PreserveOuterShells = true;
                 interior_shells.InsetFromInputPolygonX = 0;
                 interior_shells.Compute();
@@ -196,10 +197,11 @@ namespace gs
             // now actually fill solid regions
             foreach (GeneralPolygon2d fillPoly in fillPolys)
             {
+                var solidFillSpacing = Settings.SolidFillPathSpacingMM();
                 TiledFillPolygon tiled_fill = new TiledFillPolygon(fillPoly)
                 {
-                    TileSize = 13.1 * Settings.SolidFillPathSpacingMM(),
-                    TileOverlap = 0.3 * Settings.SolidFillPathSpacingMM()
+                    TileSize = 13.1 * solidFillSpacing,
+                    TileOverlap = 0.3 * solidFillSpacing
                 };
                 tiled_fill.TileFillGeneratorF = (tilePoly, index) =>
                 {
@@ -207,7 +209,7 @@ namespace gs
                     RasterFillPolygon solid_gen = new RasterFillPolygon(tilePoly, Settings.FillTypeFactory.Solid())
                     {
                         InsetFromInputPolygon = false,
-                        PathSpacing = Settings.SolidFillPathSpacingMM(),
+                        PathSpacing = solidFillSpacing,
                         ToolWidth = Settings.Machine.NozzleDiamMM,
                         AngleDeg = LayerFillAngleF(layer_i + odd)
                     };
@@ -240,7 +242,7 @@ namespace gs
                     shells_gen.PathSpacing = Settings.SolidFillPathSpacingMM();
                     shells_gen.ToolWidth = Settings.Machine.NozzleDiamMM;
                     shells_gen.PreserveOuterShells = true;
-                    shells_gen.Layers = Settings.Shells;
+                    shells_gen.Layers = Settings.Part.Shells;
                     shells_gen.InsetInnerPolygons = false;
                     shells_gen.Compute();
                     LayerShells[layeri].Add(shells_gen);

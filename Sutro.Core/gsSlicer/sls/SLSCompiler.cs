@@ -1,4 +1,6 @@
-﻿namespace gs
+﻿using Sutro.Core.Settings;
+
+namespace gs
 {
     public interface IThreeAxisLaserCompiler
     {
@@ -11,10 +13,10 @@
 
     public class SLSCompiler : IThreeAxisLaserCompiler
     {
-        private SingleMaterialFFFSettings Settings;
+        private PrintProfileFFF Settings;
         private IPathsAssembler Assembler;
 
-        public SLSCompiler(SingleMaterialFFFSettings settings)
+        public SLSCompiler(PrintProfileFFF settings)
         {
             Settings = settings;
         }
