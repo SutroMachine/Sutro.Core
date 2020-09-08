@@ -1,4 +1,5 @@
 ﻿using gs;
+using Newtonsoft.Json;
 using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Material;
@@ -8,9 +9,16 @@ namespace Sutro.Core.Settings
 {
     public abstract class PrintProfileBase : IPrintProfile
     {
+        [JsonIgnore]
         public abstract IMachineProfile MachineProfile { get; }
+
+        [JsonIgnore]
         public abstract IMaterialProfile MaterialProfile { get; }
+
+        [JsonIgnore]
         public abstract IPartProfile PartProfile { get; }
+
+        [JsonIgnore]
         public abstract double LayerHeightMM { get; set; }
     }
 

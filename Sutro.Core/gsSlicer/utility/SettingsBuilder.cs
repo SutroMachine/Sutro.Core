@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Sutro.Core.Persistence;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -22,10 +23,20 @@ namespace gs
     {
         private readonly ILogger logger;
 
-        private readonly static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        private readonly static JsonSerializerSettings jsonSerializerSettings = GetSerializerSettings();
+
+        private static JsonSerializerSettings GetSerializerSettings()
         {
-            MissingMemberHandling = MissingMemberHandling.Error,
-        };
+            var contractResolver = new IgnoreablePropertiesContractResolver();
+            contractResolver.Ignore(typeof(string), new string[] { "$schema" });
+
+            return new JsonSerializerSettings
+            {
+                MissingMemberHandling = MissingMemberHandling.Error,
+                ContractResolver = contractResolver,
+                
+            };
+        }
 
         public TSettings Settings { get; }
 
