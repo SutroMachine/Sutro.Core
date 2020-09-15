@@ -20,11 +20,6 @@ namespace Sutro.Core.Decompilers
             {BridgeFillType.Label, new BridgeFillType()},
         };
 
-        public override void Begin()
-        {
-            previousVertex = new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
-        }
-
         public override void ProcessGCodeLine(GCodeLine line)
         {
             if (LineIsEmpty(line))
@@ -145,6 +140,11 @@ namespace Sutro.Core.Decompilers
                 ExtractFeedRate(line, previousVertex.FeedRate),
                 ExtractDimensions(line, previousVertex.Dimensions),
                 ExtractExtrusion(line, previousVertex.Extrusion.x));
+        }
+
+        protected override PrintVertex CreateDefaultVertex()
+        {
+            return new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
         }
     }
 }

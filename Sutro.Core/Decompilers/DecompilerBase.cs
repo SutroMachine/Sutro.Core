@@ -10,11 +10,11 @@ namespace Sutro.Core.Decompilers
 {
     public abstract class DecompilerBase<TPrintVertex> where TPrintVertex : IToolpathVertex
     {
-        protected int currentLayerIndex = 0;
+        protected int currentLayerIndex;
         protected TPrintVertex currentVertex;
         protected TPrintVertex previousVertex;
         protected LinearToolpath3<TPrintVertex> toolpath;
-        protected bool extruderRelativeCoordinates = false;
+        protected bool extruderRelativeCoordinates;
 
         public event Action<IToolpath> OnToolpathComplete;
 
@@ -24,7 +24,14 @@ namespace Sutro.Core.Decompilers
 
         protected Regex fillTypeLabelPattern => new Regex(@"feature (.+)$");
 
-        public abstract void Begin();
+        public virtual void Begin()
+        {
+            extruderRelativeCoordinates = false;
+            currentLayerIndex = 0;
+            previousVertex = CreateDefaultVertex();
+        }
+
+        protected abstract TPrintVertex CreateDefaultVertex();
 
         protected void EmitNewLayer(int layerIndex)
         {
