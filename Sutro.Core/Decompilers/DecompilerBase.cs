@@ -146,12 +146,12 @@ namespace Sutro.Core.Decompilers
             return false;
         }
 
-        protected static bool LineIsEmpty(GCodeLine line)
+        protected virtual bool LineIsEmpty(GCodeLine line)
         {
             return line == null || line.Type == LineType.Blank;
         }
 
-        protected static bool LineIsNewLayerComment(GCodeLine line)
+        protected virtual bool LineIsNewLayerComment(GCodeLine line)
         {
             return line.Comment != null && line.Comment.Contains("layer") && !line.Comment.Contains("feature");
         }
