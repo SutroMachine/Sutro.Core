@@ -29,7 +29,12 @@ namespace Sutro.Core.FunctionalTest
         public void GenerateResultFile(string meshFilePath, string outputFilePath)
         {
             var mesh = StandardMeshReader.ReadMesh(meshFilePath);
-            var gcode = generator.GCodeFromMesh(mesh, out _);
+
+            var gcode = generator.GCodeFromMesh(
+                mesh: mesh, 
+                generationReport: out _,
+                cancellationToken: null);
+
             SaveGCode(outputFilePath, gcode);
         }
     }

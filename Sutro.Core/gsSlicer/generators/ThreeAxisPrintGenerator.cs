@@ -58,7 +58,7 @@ namespace gs
             TPrintSettings settings,
             AssemblerFactoryF overrideAssemblerF);
 
-        bool Generate();
+        bool Generate(CancellationToken? cancellationToken);
 
         GCodeFile Result { get; }
 
@@ -119,12 +119,6 @@ namespace gs
         {
             System.Console.WriteLine("[EXCEPTION] ThreeAxisPrintGenerator: " + message + "\nSTACK TRACE: " + stack_trace);
         };
-
-        // use this to cancel slicer
-        public Func<bool> CancelF = () => { return false; };
-
-        // will be set to true if CancelF() ever returns true
-        public bool WasCancelled = false;
 
         // Replace this if you want to customize PrintLayerData type
         public Func<int, PlanarSlice, IPrintProfileFFF, PrintLayerData> PrintLayerDataFactoryF;
@@ -223,11 +217,11 @@ namespace gs
                 PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.Machine.NozzleDiamMM; };
         }
 
-        public virtual bool Generate()
+        public virtual bool Generate(CancellationToken? cancellationToken)
         {
             try
             {
-                generate_result();
+                generate_result(cancellationToken);
                 Result = extract_result();
             }
             catch (Exception e) when (!Sutro.Core.Models.Config.Debug)
@@ -250,6 +244,8 @@ namespace gs
         /*
          *  Internals
          */
+
+        protected CancellationToken? cancellationToken;
 
         // tags on slice polygons get transferred to shells
         protected IntTagSet<IFillPolygon> ShellTags = new IntTagSet<IFillPolygon>();
@@ -283,8 +279,10 @@ namespace gs
         /// <summary>
         /// This is the main driver of the slicing process
         /// </summary>
-        protected virtual void generate_result()
+        protected virtual void generate_result(CancellationToken? cancellationToken)
         {
+            this.cancellationToken = cancellationToken;
+
             // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
             //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
             OverhangAllowanceMM = Settings.Part.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
@@ -1895,15 +1893,7 @@ namespace gs
 
         protected virtual bool Cancelled()
         {
-            if (WasCancelled)
-                return true;
-            bool cancel = CancelF();
-            if (cancel)
-            {
-                WasCancelled = true;
-                return true;
-            }
-            return false;
+            return cancellationToken?.IsCancellationRequested ?? false;
         }
 
         public IEnumerable<string> TotalExtrusionReport
