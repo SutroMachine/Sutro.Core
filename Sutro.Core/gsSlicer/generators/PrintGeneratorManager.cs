@@ -53,7 +53,7 @@ namespace gs
             return GCodeFromMesh(
                 mesh: mesh, 
                 generationReport: out generationReport, 
-                settings: null, 
+                settings: Settings, 
                 cancellationToken: cancellationToken);
         }
 
