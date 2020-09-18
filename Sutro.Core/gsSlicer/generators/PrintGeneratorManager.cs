@@ -72,12 +72,12 @@ namespace gs
         {
             PlanarSliceStack slices = null;
 
+            var globalSettings = settings ?? settingsBuilder.Settings;
+
             if (AcceptsParts)
             {
-                SliceMesh(printMeshAssembly, out slices);
+                SliceMesh(printMeshAssembly, out slices, globalSettings.Part.LayerHeightMM);
             }
-
-            var globalSettings = settings ?? settingsBuilder.Settings;
 
             // Run the print generator
             logger.WriteLine("Running print generator...");
@@ -107,14 +107,14 @@ namespace gs
             return null;
         }
 
-        private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
+        private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices, double layerHeight)
         {
             logger?.WriteLine("Slicing...");
 
             // Do slicing
             MeshPlanarSlicer slicer = new MeshPlanarSlicer()
             {
-                LayerHeightMM = Settings.LayerHeightMM
+                LayerHeightMM = layerHeight
             };
 
             slicer.Add(meshes);
