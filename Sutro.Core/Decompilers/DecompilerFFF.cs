@@ -31,7 +31,7 @@ namespace Sutro.Core.Decompilers
             if (LineIsNewLayerComment(line))
             {
                 toolpath = FinishToolpath();
-                EmitNewLayer(currentLayerIndex++);
+                EmitNewLayer(currentLayerIndex++, GetLayerHeight(line));
             }
 
             if (LineIsTravel(line))
@@ -64,6 +64,12 @@ namespace Sutro.Core.Decompilers
             }
 
             previousVertex = currentVertex;
+        }
+
+        private double GetLayerHeight(GCodeLine line)
+        {
+            // May want to extract this from line comment instead of using current position
+            return currentVertex.Position.z;
         }
 
         private void AppendVertexToCurrentToolpath(PrintVertex vertex)

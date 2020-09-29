@@ -18,7 +18,7 @@ namespace Sutro.Core.Decompilers
 
         public event Action<IToolpath> OnToolpathComplete;
 
-        public event Action<int> OnNewLayer;
+        public event Action<int, double> OnNewLayer;
 
         protected abstract Dictionary<string, IFillType> FillTypes { get; }
 
@@ -33,9 +33,9 @@ namespace Sutro.Core.Decompilers
 
         protected abstract TPrintVertex CreateDefaultVertex();
 
-        protected void EmitNewLayer(int layerIndex)
+        protected void EmitNewLayer(int layerIndex, double layerHeight = 0)
         {
-            OnNewLayer?.Invoke(layerIndex);
+            OnNewLayer?.Invoke(layerIndex, layerHeight);
         }
 
         protected void SetExtrusionCoordinateMode(GCodeLine line)
