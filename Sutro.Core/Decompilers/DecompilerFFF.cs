@@ -28,10 +28,10 @@ namespace Sutro.Core.Decompilers
             SetExtrusionCoordinateMode(line);
             currentVertex = UpdatePrintVertex(line, previousVertex);
 
-            if (LineIsNewLayerComment(line))
+            if (LineIsNewLayerComment(line, out int index, out double height))
             {
                 toolpath = FinishToolpath();
-                EmitNewLayer(currentLayerIndex++, GetLayerHeight(line));
+                EmitNewLayer(currentLayerIndex++, height);
             }
 
             if (LineIsTravel(line))
@@ -64,12 +64,6 @@ namespace Sutro.Core.Decompilers
             }
 
             previousVertex = currentVertex;
-        }
-
-        private double GetLayerHeight(GCodeLine line)
-        {
-            // May want to extract this from line comment instead of using current position
-            return currentVertex.Position.z;
         }
 
         private void AppendVertexToCurrentToolpath(PrintVertex vertex)

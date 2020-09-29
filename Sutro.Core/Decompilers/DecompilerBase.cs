@@ -151,9 +151,21 @@ namespace Sutro.Core.Decompilers
             return line == null || line.Type == LineType.Blank;
         }
 
-        protected virtual bool LineIsNewLayerComment(GCodeLine line)
+        protected static Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+), Z = (?<LayerHeight>\d+(\.\d+)?)");
+        protected virtual bool LineIsNewLayerComment(GCodeLine line, out int index, out double height)
         {
-            return line.Comment != null && line.Comment.Contains("layer") && !line.Comment.Contains("feature");
+            var input = string.IsNullOrWhiteSpace(line.Comment) ? line.OriginalString : line.Comment;
+            var match = newLayerPattern.Match(input);
+
+            if (match.Success)
+            {
+                index = int.Parse(match.Groups["LayerIndex"].Value);
+                height = double.Parse(match.Groups["LayerHeight"].Value);
+                return true;
+            }
+            index = 0;
+            height = 0;
+            return false;
         }
 
         public void End()
