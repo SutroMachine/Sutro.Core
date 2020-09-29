@@ -154,7 +154,16 @@ namespace Sutro.Core.Decompilers
         protected static Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+), Z = (?<LayerHeight>\d+(\.\d+)?)");
         protected virtual bool LineIsNewLayerComment(GCodeLine line, out int index, out double height)
         {
+            index = 0;
+            height = 0;
+
             var input = string.IsNullOrWhiteSpace(line.Comment) ? line.OriginalString : line.Comment;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
             var match = newLayerPattern.Match(input);
 
             if (match.Success)
@@ -163,8 +172,6 @@ namespace Sutro.Core.Decompilers
                 height = double.Parse(match.Groups["LayerHeight"].Value);
                 return true;
             }
-            index = 0;
-            height = 0;
             return false;
         }
 

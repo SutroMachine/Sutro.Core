@@ -38,7 +38,7 @@ namespace Sutro.Core.UnitTests.Decompilers
         }
 
         [TestMethod()]
-        public void NotNewLayer()
+        public void NotNewLayer_Comment()
         {
             var line = new GCodeLine(0, LineType.GCode);
             line.Code = 1;
@@ -50,5 +50,16 @@ namespace Sutro.Core.UnitTests.Decompilers
             Assert.IsFalse(isNewLine);
         }
 
+        [TestMethod()]
+        public void NotNewLayer_NoComment()
+        {
+            var line = new GCodeLine(0, LineType.GCode);
+            line.Code = 1;
+            line.Parameters = new GCodeParam[] { GCodeParam.Double(200, "X") };
+
+            var isNewLine = LineIsNewLayerComment(line, out int index, out double height);
+
+            Assert.IsFalse(isNewLine);
+        }
     }
 }
