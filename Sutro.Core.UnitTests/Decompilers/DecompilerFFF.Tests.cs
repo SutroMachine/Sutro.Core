@@ -25,6 +25,19 @@ namespace Sutro.Core.UnitTests.Decompilers
         }
 
         [TestMethod()]
+        public void NewLayerCommentAlternate()
+        {
+            var line = new GCodeLine(0, LineType.Comment);
+            line.Comment = "layer 99: 33.33mm";
+
+            var isNewLine = LineIsNewLayerComment(line, out int index, out double height);
+
+            Assert.IsTrue(isNewLine);
+            Assert.AreEqual(99, index);
+            Assert.AreEqual(33.33, height);
+        }
+
+        [TestMethod()]
         public void NewLayerUnknown()
         {
             var line = new GCodeLine(0, LineType.UnknownString);

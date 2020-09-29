@@ -151,7 +151,11 @@ namespace Sutro.Core.Decompilers
             return line == null || line.Type == LineType.Blank;
         }
 
-        protected static Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+), Z = (?<LayerHeight>\d+(\.\d+)?)");
+        // Matches variations of new layer lines:
+        //  - "layer 1, Z = 0.3"  
+        //  - "layer 1: 0.3"  
+        protected virtual Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+)(,\s?Z\s?=\s?|:\s?)(?<LayerHeight>\d+(\.\d+)?)");
+
         protected virtual bool LineIsNewLayerComment(GCodeLine line, out int index, out double height)
         {
             index = 0;
