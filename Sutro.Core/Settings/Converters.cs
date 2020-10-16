@@ -14,11 +14,16 @@ namespace Sutro.Core.Settings
         public override Interval1i ReadJson(JsonReader reader, Type objectType, [AllowNull] Interval1i existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             var interval = new Interval1i(Interval1i.Empty);
+            if (hasExistingValue)
+            {
+                interval.a = existingValue.a;
+                interval.b = existingValue.b;
+            }
 
             var data = JObject.Load(reader);
 
             var min = data.Property(MinPropertyName);
-            if (min.HasValues)
+            if (min?.HasValues ?? false)
             {
                 if (min.Count != 1)
                     throw new JsonException("Malformed Json");
@@ -26,7 +31,7 @@ namespace Sutro.Core.Settings
             }
 
             var max = data.Property(MaxPropertyName);
-            if (max.HasValues)
+            if (max?.HasValues ?? false)
             {
                 if (max.Count != 1)
                     throw new JsonException("Malformed Json");

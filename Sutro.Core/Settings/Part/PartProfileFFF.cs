@@ -112,6 +112,7 @@ namespace Sutro.Core.Settings.Part
         // overlap solid fill onto border shells (if 0, no overlap)
         public double SparseFillBorderOverlapX { get; set; } = 0.25f;
 
+        [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<double> InfillAngles { get; set; } = new List<double> { -45, 45 };
 
         #endregion Sparse Fill
