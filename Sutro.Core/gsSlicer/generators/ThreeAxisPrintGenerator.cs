@@ -283,6 +283,9 @@ namespace gs
         {
             this.cancellationToken = cancellationToken;
 
+            if (InputsAreInvalid())
+                return;
+
             // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
             //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
             OverhangAllowanceMM = Settings.Part.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
@@ -510,6 +513,14 @@ namespace gs
             PostProcessCompilerF(Compiler, this);
 
             // TODO: May need to force Build.EndLine() somehow if losing the end
+        }
+
+        protected bool InputsAreInvalid()
+        {
+            if (Settings.Part.LayerHeightMM > Settings.Machine.NozzleDiamMM)
+                LoggedWarnings.Add("Layer height should not be greater than nozzle diameter.");
+
+            return false;
         }
 
         /// <summary>
