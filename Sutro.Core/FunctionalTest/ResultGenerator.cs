@@ -32,7 +32,7 @@ namespace Sutro.Core.FunctionalTest
 
             var gcode = generator.GCodeFromMesh(
                 mesh: mesh, 
-                generationReport: out _,
+                details: out _,
                 cancellationToken: null);
 
             SaveGCode(outputFilePath, gcode);

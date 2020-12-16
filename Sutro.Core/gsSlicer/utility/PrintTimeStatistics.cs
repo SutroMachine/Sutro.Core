@@ -26,7 +26,6 @@ namespace gs
         {
             return new List<string>()
             {
-                "TOTAL PRINT TIME ESTIMATE:",
                 $"        Total: {new TimeSpan(0, 0, (int)TotalTimeS):c}",
                 $"    Extrusion: {new TimeSpan(0, 0, (int)ExtrudeTimeS):c}    ({ExtrudeTimeS/TotalTimeS*100,4:##.0}%)",
                 $"       Travel: {new TimeSpan(0, 0, (int)TravelTimeS):c}    ({TravelTimeS/TotalTimeS*100,4:##.0}%)",

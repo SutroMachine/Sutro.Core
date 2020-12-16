@@ -48,27 +48,27 @@ namespace gs
             this.logger = logger ?? new NullLogger();
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out IEnumerable<string> generationReport, CancellationToken? cancellationToken = null)
+        public GCodeFile GCodeFromMesh(DMesh3 mesh, out GCodeGenerationDetails details, CancellationToken? cancellationToken = null)
         {
             return GCodeFromMesh(
                 mesh: mesh, 
-                generationReport: out generationReport, 
+                details: out details, 
                 settings: Settings, 
                 cancellationToken: cancellationToken);
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public GCodeFile GCodeFromMesh(DMesh3 mesh, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
         {
-            return GCodeFromMeshes(new DMesh3[] { mesh }, out generationReport, settings, cancellationToken: cancellationToken);
+            return GCodeFromMeshes(new DMesh3[] { mesh }, out details, settings, cancellationToken: cancellationToken);
         }
 
-        public GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
         {
             var printMeshAssembly = PrintMeshAssemblyFromMeshes(meshes);
-            return GCodeFromPrintMeshAssembly(printMeshAssembly, out generationReport, settings, cancellationToken: cancellationToken);
+            return GCodeFromPrintMeshAssembly(printMeshAssembly, out details, settings, cancellationToken: cancellationToken);
         }
 
-        public GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
         {
             PlanarSliceStack slices = null;
 
@@ -87,7 +87,7 @@ namespace gs
 
             if (printGenerator.Generate(cancellationToken))
             {
-                generationReport = printGenerator.GenerationReport;
+                details = new GCodeGenerationDetails(printGenerator.PrintTimeEstimate, printGenerator.MaterialUsageEstimate, printGenerator.Warnings);
                 return printGenerator.Result;
             }
             else

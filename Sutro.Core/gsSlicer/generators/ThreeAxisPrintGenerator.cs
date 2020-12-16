@@ -4,6 +4,7 @@ using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace gs
@@ -62,7 +63,9 @@ namespace gs
 
         GCodeFile Result { get; }
 
-        IEnumerable<string> GenerationReport { get; }
+        IReadOnlyList<string> PrintTimeEstimate { get; }
+        IReadOnlyList<string> MaterialUsageEstimate { get; }
+        IReadOnlyList<string> Warnings { get; }
     }
 
     /// <summary>
@@ -83,8 +86,9 @@ namespace gs
         // available after calling Generate()
         public GCodeFile Result { get; protected set; }
 
-        public List<string> LoggedErrors { get; private set; } = new List<string>();
-        public List<string> LoggedWarnings { get; private set; } = new List<string>();
+
+        protected List<string> warnings = new List<string>();
+        public IReadOnlyList<string> Warnings => warnings;
 
         // Generally we discard the paths at each layer as we generate them. If you
         // would like to analyze, set this to true, and then AccumulatedPaths will
@@ -96,19 +100,9 @@ namespace gs
 
         public PrintTimeStatistics TotalPrintTimeStatistics { get; private set; } = new PrintTimeStatistics();
 
-        public virtual IEnumerable<string> GenerationReport
-        {
-            get
-            {
-                foreach (var s in TotalPrintTimeStatistics.ToStringList())
-                    yield return s;
+        public virtual IReadOnlyList<string> PrintTimeEstimate => TotalPrintTimeStatistics.ToStringList();
 
-                yield return "";
-
-                foreach (var s in TotalExtrusionReport)
-                    yield return s;
-            }
-        }
+        public virtual IReadOnlyList<string> MaterialUsageEstimate => TotalExtrusionReport.ToList();
 
         /*
 		 * Customizable functions you can use to configure/modify slicer behavior
@@ -518,7 +512,7 @@ namespace gs
         protected bool InputsAreInvalid()
         {
             if (Settings.Part.LayerHeightMM > Settings.Machine.NozzleDiamMM)
-                LoggedWarnings.Add("Layer height should not be greater than nozzle diameter.");
+                warnings.Add("Layer height should not be greater than nozzle diameter.");
 
             return false;
         }
