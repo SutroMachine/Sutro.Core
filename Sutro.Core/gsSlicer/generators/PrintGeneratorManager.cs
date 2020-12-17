@@ -62,13 +62,13 @@ namespace gs
             return GCodeFromMeshes(new DMesh3[] { mesh }, out generationReport, settings, cancellationToken: cancellationToken);
         }
 
-        public GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public virtual GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
         {
             var printMeshAssembly = PrintMeshAssemblyFromMeshes(meshes);
             return GCodeFromPrintMeshAssembly(printMeshAssembly, out generationReport, settings, cancellationToken: cancellationToken);
         }
 
-        public GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public virtual GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out IEnumerable<string> generationReport, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
         {
             PlanarSliceStack slices = null;
 
@@ -96,7 +96,7 @@ namespace gs
             }
         }
 
-        private PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)
+        protected virtual PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)
         {
             if (AcceptsParts)
             {
@@ -107,14 +107,14 @@ namespace gs
             return null;
         }
 
-        private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices, double layerHeight)
+        protected virtual void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices, double layerHeight)
         {
             logger?.WriteLine("Slicing...");
 
             // Do slicing
             MeshPlanarSlicer slicer = new MeshPlanarSlicer()
             {
-                LayerHeightMM = layerHeight
+                LayerHeightMM = layerHeight,
             };
 
             slicer.Add(meshes);
