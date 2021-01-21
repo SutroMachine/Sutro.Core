@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Sutro.Core</PackageId>
-    <Version>2.2-preview.2</Version>
+    <Version>2.2-preview.3</Version>
     <PackageDescription>Library for additive manufacturing.</PackageDescription>
     <RepositoryUrl>https://github.com/SutroMachine/Sutro.Core</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
