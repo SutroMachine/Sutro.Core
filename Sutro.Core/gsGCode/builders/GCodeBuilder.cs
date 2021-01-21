@@ -6,7 +6,7 @@ namespace gs
 {
     public class GCodeBuilder
     {
-        public IGCodeAccumulator Target;
+        public virtual IGCodeAccumulator Target { get; }
 
         public GCodeBuilder(IGCodeAccumulator target)
         {
@@ -145,15 +145,15 @@ namespace gs
             return this;
         }
 
-        private int line_number = 0;
+        protected int line_number = 0;
 
         protected virtual int next_line_number()
         {
             return line_number++;
         }
 
-        private GCodeLine next_line;
-        private List<GCodeParam> next_params;
+        protected GCodeLine next_line;
+        protected List<GCodeParam> next_params;
 
         protected virtual void close_current_line()
         {
