@@ -591,7 +591,6 @@ namespace gs
 
             List<string> result = new List<string>
             {
-                "TOTAL EXTRUSION ESTIMATE:",
                 "    Length: " + TotalExtrusion.ToString("N2") + " mm",
                 "    Volume: " + volume.ToString("N2") + " mm^3",
                 "      Mass: " + mass.ToString("N2") + " g",

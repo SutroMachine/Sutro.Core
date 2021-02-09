@@ -90,13 +90,13 @@ namespace gs
             MeshTransforms.Translate(mesh, new Vector3d(0, 0, mesh.CachedBounds.Extents.z - mesh.CachedBounds.Center.z));
         }
 
-        protected void GenerateGCode(DMesh3 mesh, out GCodeFile gcode, out IEnumerable<string> generationReport)
+        protected void GenerateGCode(DMesh3 mesh, out GCodeFile gcode, out GCodeGenerationDetails details)
         {
             ConsoleWriteSeparator();
             logger.WriteLine($"GENERATION");
             logger.WriteLine();
 
-            gcode = printGeneratorManager.GCodeFromMesh(mesh, out generationReport);
+            gcode = printGeneratorManager.GCodeFromMesh(mesh, out details);
         }
 
         protected virtual void LoadMesh(CommandLineOptions o, out DMesh3 mesh)
@@ -136,17 +136,32 @@ namespace gs
             return true;
         }
 
-        protected virtual void OutputGenerationReport(IEnumerable<string> generationReport)
+        protected virtual void OutputGenerationDetails(GCodeGenerationDetails generationDetails)
         {
             ConsoleWriteSeparator();
 
-            foreach (var s in generationReport)
+            WriteStringCollection("TOTAL EXTRUSION ESTIMATE:", generationDetails.MaterialUsageEstimate);
+
+            WriteStringCollection("TOTAL PRINT TIME ESTIMATE:", generationDetails.PrintTimeEstimate);
+
+            WriteStringCollection("WARNINGS:", generationDetails.Warnings, ConsoleColor.Red);
+
+            logger.WriteLine("Print generation complete.");
+        }
+
+        private void WriteStringCollection(string label, IReadOnlyCollection<string> lines, ConsoleColor? color = null)
+        {
+            if (lines == null || lines.Count == 0)
+                return;
+
+            logger.WriteLine(label.ToUpper(), color);
+
+            foreach (var line in lines)
             {
-                logger.WriteLine(s);
+                logger.WriteLine(line, color);
             }
 
             logger.WriteLine();
-            logger.WriteLine("Print generation complete.");
         }
 
         protected virtual void OutputVersionInfo()
@@ -179,7 +194,7 @@ namespace gs
 
             WriteGCodeToFile(o.GCodeFilePath, gcode);
 
-            OutputGenerationReport(generationReport);
+            OutputGenerationDetails(generationReport);
         }
 
         protected virtual void HandleInvalidGeneratorId(string id)

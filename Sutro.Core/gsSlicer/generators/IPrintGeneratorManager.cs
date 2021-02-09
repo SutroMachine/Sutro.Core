@@ -1,7 +1,6 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -19,7 +18,9 @@ namespace gs
         bool AcceptsParts { get; }
         ISettingsBuilder SettingsBuilder { get; }
 
-        GCodeFile GCodeFromMesh(DMesh3 mesh, out IEnumerable<string> generationReport, CancellationToken? cancellationToken = null);
+        GCodeFile GCodeFromMesh(DMesh3 mesh, 
+            out GCodeGenerationDetails details,
+            CancellationToken? cancellationToken = null);
 
         void SaveGCodeToFile(TextWriter output, GCodeFile file);
     }
