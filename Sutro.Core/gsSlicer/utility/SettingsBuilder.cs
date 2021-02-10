@@ -22,11 +22,11 @@ namespace gs
 
     public class SettingsBuilder<TSettings> : ISettingsBuilder<TSettings> where TSettings : new()
     {
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
-        private readonly static JsonSerializerSettings jsonSerializerSettings = GetSerializerSettings();
+        protected readonly JsonSerializerSettings jsonSerializerSettings = GetSerializerSettings();
 
-        private static JsonSerializerSettings GetSerializerSettings()
+        protected static JsonSerializerSettings GetSerializerSettings()
         {
             var contractResolver = new IgnoreablePropertiesContractResolver();
             contractResolver.Ignore(typeof(string), new string[] { "$schema" });
@@ -41,21 +41,30 @@ namespace gs
 
         public TSettings Settings { get; }
 
-        public SettingsBuilder(TSettings settings, ILogger logger)
+        protected static JsonSerializerSettings CreateDefaultSerializerSettings()
+        {
+            return new JsonSerializerSettings()
+            {
+                MissingMemberHandling = MissingMemberHandling.Error,
+            };
+        }
+
+        public SettingsBuilder(TSettings settings, ILogger logger, JsonSerializerSettings jsonSerializerSettings = null)
         {
             Settings = settings;
             this.logger = logger;
+            this.jsonSerializerSettings = jsonSerializerSettings ?? CreateDefaultSerializerSettings();
         }
 
         public void ApplyJSONFile(string settingFile)
         {
             if (!File.Exists(settingFile))
             {
-                logger.WriteLine("Must provide valid settings file path.");
+                throw new FileLoadException("Must provide valid settings file path.");
             }
             else
             {
-                logger.WriteLine($"Loading file {Path.GetFullPath(settingFile)}");
+                logger.LogMessage($"Loading file {Path.GetFullPath(settingFile)}");
                 string json = File.ReadAllText(settingFile);
                 JsonConvert.PopulateObject(json, Settings, jsonSerializerSettings);
             }

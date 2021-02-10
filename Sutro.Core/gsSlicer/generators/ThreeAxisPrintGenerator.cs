@@ -191,7 +191,7 @@ namespace gs
 
             PrintLayerDataFactoryF = (layer_i, slice, settingsArg) =>
             {
-                return new PrintLayerData(layer_i, slice, settingsArg);
+                return new PrintLayerData(slice.LayerIndex, slice, settingsArg);
             };
 
             PathBuilderFactoryF = (layer_data) =>
@@ -316,6 +316,9 @@ namespace gs
                 PrintLayerData layerdata = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
                 layerdata.PreviousLayer = prevLayerData;
 
+                if (LayerIsEmpty(layerdata))
+                    continue;
+
                 // create path accumulator
                 ToolpathSetBuilder pathAccum = PathBuilderFactoryF(layerdata);
                 layerdata.PathAccum = pathAccum;
@@ -323,7 +326,7 @@ namespace gs
                 // rest of code does not directly access path builder, instead it
                 // sends paths to scheduler.
                 IFillPathScheduler2d layerScheduler = SchedulerFactoryF(layerdata);
-                var groupScheduler = GroupSchedulerFactoryF(layerdata, layerScheduler, layerScheduler.CurrentPosition);
+                var groupScheduler = GroupSchedulerFactoryF(layerdata, layerScheduler, Compiler.NozzlePosition.xy);
                 layerdata.Scheduler = groupScheduler;
 
                 BeginLayerF(layerdata);
@@ -334,11 +337,7 @@ namespace gs
                 // make path-accumulator for this layer
                 pathAccum.Initialize(Compiler.NozzlePosition);
 
-                // layer-up (ie z-change)
-                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
-
-                // Move to current layer Z
-                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
+                MoveToLayerPlane(pathAccum, layerdata);
 
                 ScheduleSkirtBrim(layer_i, groupScheduler);
                 if (Cancelled()) return;
@@ -381,6 +380,30 @@ namespace gs
             }
 
             FinishGeneration();
+        }
+
+        private bool LayerIsEmpty(PrintLayerData layerdata)
+        {
+            int i = layerdata.layer_i;
+
+            bool noShells = 
+                LayerShells == null ||
+                LayerShells.Length <= i ||
+                LayerShells[i] == null ||
+                LayerShells[i].Count == 0;
+
+            bool noSupport =
+                LayerSupportAreas == null ||
+                LayerSupportAreas.Length <= i ||
+                LayerSupportAreas[i] == null ||
+                LayerSupportAreas[i].Count == 0;
+
+            return noShells && noSupport;       
+        }
+
+        protected virtual void MoveToLayerPlane(ToolpathSetBuilder pathAccum, PrintLayerData layer)
+        {
+            pathAccum.AppendMoveToZ(layer.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
         }
 
         private void EnforceMinimumLayerTime(IPrintProfileFFF profile, ToolpathSetBuilder pathAccum)
@@ -439,7 +462,7 @@ namespace gs
             }
         }
 
-        private void CompileNewLayerHeader(PrintLayerData layerdata)
+        protected virtual void CompileNewLayerHeader(PrintLayerData layerdata)
         {
             Compiler.AppendComment(" ");
             Compiler.AppendComment("========================");

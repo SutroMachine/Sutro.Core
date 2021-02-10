@@ -2,15 +2,12 @@
 {
     public interface ILogger
     {
-        void Write(string s, System.ConsoleColor? color = null);
+        void LogMessage(string s);
 
-        void WriteLine(string s, System.ConsoleColor? color = null);
+        void LogWarning(string s);
 
-        void WriteLine();
+        void LogInfo(string s);
 
-        void WriteLine(object o)
-        {
-            WriteLine(o.ToString());
-        }
+        void LogError(string s);
     }
 }

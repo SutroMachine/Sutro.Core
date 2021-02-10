@@ -18,19 +18,35 @@ namespace Sutro.Core.Logging
             Console.BackgroundColor = previousBackground;
 
         }
-        public void Write(string s, ConsoleColor? color = null)
-        {
-            UseConsoleWithColorOverride(() => Console.Write(s), color);
-        }
 
-        public void WriteLine(string s, ConsoleColor? color = null)
+        private void WriteLine(string s, ConsoleColor? color = null)
         {
             UseConsoleWithColorOverride(() => Console.WriteLine(s), color);
         }
 
-        public void WriteLine()
+        private void ErrorWriteLine(string s, ConsoleColor? color = null)
         {
-            Console.WriteLine();
+            UseConsoleWithColorOverride(() => Console.Error.WriteLine(s), color);
+        }
+
+        public void LogError(string s)
+        {
+            ErrorWriteLine($"error: {s}", ConsoleColor.Red);
+        }
+
+        public void LogMessage(string s)
+        {
+            WriteLine($"{s}");
+        }
+
+        public void LogWarning(string s)
+        {
+            WriteLine($"warning: {s}", ConsoleColor.Yellow);
+        }
+
+        public void LogInfo(string s)
+        {
+            WriteLine($"info: {s}", ConsoleColor.Gray);
         }
     }
 }

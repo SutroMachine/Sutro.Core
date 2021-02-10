@@ -1,5 +1,4 @@
 ﻿using g3;
-using gs.FillTypes;
 using Sutro.Core;
 using Sutro.Core.Logging;
 using Sutro.Core.Models;
@@ -15,10 +14,14 @@ using System.Threading;
 
 namespace gs
 {
+
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
         where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
         where TPrintSettings : class, IPrintProfileFFF, new()
     {
+
+        public delegate ISettingsBuilder<TPrintSettings> SettingsBuilderF(TPrintSettings settings, ILogger logger);
+
         private readonly ILogger logger;
         private ISettingsBuilder<TPrintSettings> settingsBuilder;
 
@@ -41,15 +44,19 @@ namespace gs
         public GCodeParserBase Parser { get; set; } = new GenericGCodeParser();
         public GCodeWriterBase Writer { get; set; } = new StandardGCodeWriter();
 
-        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true)
+        protected static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
+
+        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true, 
+            SettingsBuilderF settingsBuilderF = null)
         {
             AcceptsParts = acceptsParts;
 
             Id = id;
             Description = description;
 
-            settingsBuilder = new SettingsBuilder<TPrintSettings>(settings, logger);
             this.logger = logger ?? new NullLogger();
+
+            settingsBuilder = (settingsBuilderF ?? DefaultSettingsBuilderF).Invoke(settings, logger);
         }
 
         public GenerationResult GCodeFromMesh(DMesh3 mesh,
@@ -79,12 +86,17 @@ namespace gs
             var globalSettings = settings ?? settingsBuilder.Settings;
 
             if (AcceptsParts)
-            {
-                SliceMesh(printMeshAssembly, out slices, globalSettings.Part.LayerHeightMM);
+            {                
+                var success = SliceMesh(printMeshAssembly, out slices);
+                if (!success)
+                {
+                    var generationResult = new GenerationResult();
+                    generationResult.AddLog(LoggingLevel.Error, "Mesh slicing failed");
+                }                    
             }
 
             // Run the print generator
-            logger.WriteLine("Running print generator...");
+            logger.LogMessage("Running print generator...");
             var printGenerator = new TPrintGenerator();
             AssemblerFactoryF overrideAssemblerF = (globalSettings.MachineProfile as MachineProfileBase).AssemblerFactory();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
@@ -103,18 +115,34 @@ namespace gs
             return null;
         }
 
-        protected virtual void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices, double layerHeight)
+        public Func<TPrintSettings, MeshPlanarSlicerBase> GetSlicerF { get; set; } = 
+            (settings) => new MeshSlicerHorizontalPlanes()
         {
-            logger?.WriteLine("Slicing...");
+            LayerHeightMM = settings.Part.LayerHeightMM
+        };
 
-            // Do slicing
-            MeshPlanarSlicer slicer = new MeshPlanarSlicer()
+
+
+        private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
+        {
+            logger?.LogMessage("Slicing...");
+
+            try
             {
-                LayerHeightMM = layerHeight,
-            };
+                var slicer = GetSlicerF(Settings);
 
-            slicer.Add(meshes);
-            slices = slicer.Compute();
+                slicer.Add(meshes);
+                slices = slicer.Compute();
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger?.LogError(e.Message);
+                if (Config.Debug)
+                    throw;
+                slices = null;
+                return false;
+            }
         }
 
         public virtual GCodeFile LoadGCode(TextReader input)
