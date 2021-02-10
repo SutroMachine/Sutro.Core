@@ -20,6 +20,9 @@ namespace gs
         [Option('z', "drop_z", Required = false, Default = false, HelpText = "Drop the part to the print bed in Z.")]
         public bool DropZ { get; set; }
 
+        [Option('r', "repair", Required = false, Default = false, HelpText = "Repair the mesh before slicing.")]
+        public bool Repair { get; set; }
+
         [Option('s', "settings_files", Required = false, HelpText = "Settings file(s).")]
         public IEnumerable<string> SettingsFiles { get; set; }
 

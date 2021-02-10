@@ -114,9 +114,11 @@ namespace gs
                 logger.LogMessage("Loading mesh " + fMeshFilePath + "...");
                 mesh = StandardMeshReader.ReadMesh(fMeshFilePath);
 
-                logger.LogMessage("Repairing mesh... ");
-                bool repaired = new MeshAutoRepair(mesh).Apply();
-                logger.LogMessage("Mesh " + (repaired ? "repaired." : "not repaired."));
+                if (o.Repair) {
+                    logger.LogMessage("Repairing mesh... ");
+                    bool repaired = new MeshAutoRepair(mesh).Apply();
+                    logger.LogMessage(repaired ? "Mesh repaired." : "Mesh not repaired.");
+                }
 
                 if (o.CenterXY) CenterMeshAboveOrigin(mesh);
                 if (o.DropZ) DropMeshToBuildPlate(mesh);
