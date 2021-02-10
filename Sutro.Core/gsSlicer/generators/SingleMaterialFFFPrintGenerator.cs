@@ -1,8 +1,9 @@
 ﻿using Sutro.Core.Models.GCode;
+using Sutro.Core.Settings;
 
 namespace gs
 {
-    public class SingleMaterialFFFPrintGenerator : ThreeAxisPrintGenerator
+    public class SingleMaterialFFFPrintGenerator : ThreeAxisPrintGenerator<PrintProfileFFF>
     {
         private GCodeFileAccumulator file_accumulator;
         private GCodeBuilder builder;
@@ -14,7 +15,7 @@ namespace gs
 
         public SingleMaterialFFFPrintGenerator(PrintMeshAssembly meshes,
                                                PlanarSliceStack slices,
-                                               SingleMaterialFFFSettings settings,
+                                               PrintProfileFFF settings,
                                                AssemblerFactoryF overrideAssemblerF = null)
         {
             Initialize(meshes, slices, settings, overrideAssemblerF);
@@ -22,12 +23,12 @@ namespace gs
 
         public override void Initialize(PrintMeshAssembly meshes,
                                PlanarSliceStack slices,
-                               SingleMaterialFFFSettings settings,
+                               PrintProfileFFF settings,
                                AssemblerFactoryF overrideAssemblerF = null)
         {
             file_accumulator = new GCodeFileAccumulator();
             builder = new GCodeBuilder(file_accumulator);
-            AssemblerFactoryF useAssembler = overrideAssemblerF ?? settings.AssemblerType();
+            AssemblerFactoryF useAssembler = overrideAssemblerF ?? settings.Machine.AssemblerFactory();
             compiler = new SingleMaterialFFFCompiler(builder, settings, useAssembler);
             Initialize(meshes, slices, settings, compiler);
         }

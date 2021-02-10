@@ -1,4 +1,6 @@
 ﻿using g3;
+using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 using System;
 
 namespace gs
@@ -7,7 +9,7 @@ namespace gs
     {
     }
 
-    public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, SingleMaterialFFFSettings settings);
+    public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
     /// <summary>
     /// Assembler translates high-level commands from Compiler (eg MoveTo, BeginRetract, etc)
@@ -47,7 +49,7 @@ namespace gs
         // threshold for omitting "duplicate" Z/F parameters
         public double MoveEpsilon = 0.00001;
 
-        public BaseMillingAssembler(GCodeBuilder useBuilder, FFFMachineInfo machineInfo)
+        public BaseMillingAssembler(GCodeBuilder useBuilder, MachineProfileFFF machineInfo)
         {
             Builder = useBuilder;
             currentPos = Vector3d.Zero;
@@ -227,19 +229,19 @@ namespace gs
                 .AppendI("P", milliseconds);
         }
 
-        protected virtual void AddStandardHeader(SingleMaterialFFFSettings Settings)
+        protected virtual void AddStandardHeader(IPrintProfileFFF Settings)
         {
             Builder.AddCommentLine(" Generated on " + DateTime.Now.ToLongDateString() + " by Gradientspace gsSlicer");
             Builder.AddCommentLine(string.Format(" Printer: {0} {1}", Settings.Machine.ManufacturerName, Settings.Machine.ModelIdentifier));
             Builder.AddCommentLine(" Print Settings");
-            Builder.AddCommentLine(" Layer Height: " + Settings.LayerHeightMM);
-            Builder.AddCommentLine(" Nozzle Diameter: " + Settings.Machine.NozzleDiamMM + "  Filament Diameter: " + Settings.Machine.FilamentDiamMM);
-            Builder.AddCommentLine(" Extruder Temp: " + Settings.ExtruderTempC);
-            Builder.AddCommentLine(string.Format(" Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.RapidExtrudeSpeed, Settings.RapidTravelSpeed, Settings.ZTravelSpeed));
-            Builder.AddCommentLine(string.Format(" Retract Distance: {0}  Speed: {1}", Settings.RetractDistanceMM, Settings.RetractSpeed));
-            Builder.AddCommentLine(string.Format(" Shells: {0}  InteriorShells: {1}", Settings.Shells, Settings.InteriorSolidRegionShells));
-            Builder.AddCommentLine(string.Format(" InfillX: {0}", Settings.SparseLinearInfillStepX));
-            Builder.AddCommentLine(string.Format(" LayerRange: {0}-{1}", Settings.LayerRangeFilter.a, Settings.LayerRangeFilter.b));
+            Builder.AddCommentLine(" Layer Height: " + Settings.Part.LayerHeightMM);
+            Builder.AddCommentLine(" Nozzle Diameter: " + Settings.Machine.NozzleDiamMM + "  Filament Diameter: " + Settings.Material.FilamentDiamMM);
+            Builder.AddCommentLine(" Extruder Temp: " + Settings.Material.ExtruderTempC);
+            Builder.AddCommentLine(string.Format(" Speeds Extrude: {0}  Travel: {1} Z: {2}", Settings.Part.RapidExtrudeSpeed, Settings.Part.RapidTravelSpeed, Settings.Part.ZTravelSpeed));
+            Builder.AddCommentLine(string.Format(" Retract Distance: {0}  Speed: {1}", Settings.Part.RetractDistanceMM, Settings.Part.RetractSpeed));
+            Builder.AddCommentLine(string.Format(" Shells: {0}  InteriorShells: {1}", Settings.Part.Shells, Settings.Part.InteriorSolidRegionShells));
+            Builder.AddCommentLine(string.Format(" InfillX: {0}", Settings.Part.SparseLinearInfillStepX));
+            Builder.AddCommentLine(string.Format(" LayerRange: {0}-{1}", Settings.Part.LayerRangeFilter.a, Settings.Part.LayerRangeFilter.b));
         }
     }
 }

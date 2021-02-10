@@ -1,6 +1,6 @@
-using gs;
-using gs.info;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 
 namespace gsCore.UnitTests
 {
@@ -11,16 +11,16 @@ namespace gsCore.UnitTests
         public void CloneAs_ValuesCloneCorrectly()
         {
             // arrange
-            var orig = new FlashforgeSettings();
-            orig.Shells = 10;
+            var orig = new PrintProfileFFF();
+            orig.Part.Shells = 10;
             orig.Machine.NozzleDiamMM = 20;
             orig.Machine.ManufacturerName = "A";
 
             // act
-            var copy = orig.CloneAs<FlashforgeSettings>();
+            var copy = SettingsPrototype.CloneAs<PrintProfileFFF, PrintProfileFFF>(orig);
 
             // assert
-            Assert.AreEqual(10, copy.Shells);
+            Assert.AreEqual(10, copy.Part.Shells);
             Assert.AreEqual(20, copy.Machine.NozzleDiamMM);
             Assert.AreEqual("A", orig.Machine.ManufacturerName);
             Assert.AreNotSame(copy.Machine, orig.Machine);
@@ -30,62 +30,35 @@ namespace gsCore.UnitTests
         public void CloneAs_CloneValuesDoNotAffectOriginal()
         {
             // arrange
-            var orig = new GenericRepRapSettings();
-            orig.Shells = 10;
+            var orig = new PrintProfileFFF();
+            orig.Part.Shells = 10;
             orig.Machine.NozzleDiamMM = 20;
             orig.Machine.ManufacturerName = "A";
 
             // act
-            GenericRepRapSettings copy = orig.CloneAs<GenericRepRapSettings>();
-            copy.Shells *= 2;
+            PrintProfileFFF copy = SettingsPrototype.CloneAs<PrintProfileFFF, PrintProfileFFF>(orig);
+            copy.Part.Shells *= 2;
             copy.Machine.NozzleDiamMM *= 20;
             copy.Machine.ManufacturerName = "B";
 
             // assert
-            Assert.AreEqual(10, orig.Shells);
+            Assert.AreEqual(10, orig.Part.Shells);
             Assert.AreEqual(20, orig.Machine.NozzleDiamMM);
             Assert.AreEqual("A", orig.Machine.ManufacturerName);
             Assert.AreNotSame(copy.Machine, orig.Machine);
         }
 
         [TestMethod]
-        public void CloneAs_ToDerivedClass()
-        {
-            // arrange
-            var orig = new GenericPrinterSettings("", "", "");
-
-            // act
-            var clone = orig.CloneAs<GenericRepRapSettings>();
-
-            // assert
-            Assert.IsNotNull(clone);
-        }
-
-        [TestMethod]
-        public void CloneAs_ToParentClass()
-        {
-            // arrange
-            var orig = new GenericRepRapSettings();
-
-            // act
-            var clone = orig.CloneAs<GenericPrinterSettings>();
-
-            // assert
-            Assert.IsNotNull(clone);
-        }
-
-        [TestMethod]
         public void CloneAs_SiblingClass()
         {
             // arrange
-            var orig = new PrusaSettings(Prusa.Models.i3_MK3);
+            var orig = MachineProfilesFactoryFFF.Prusa.Create_i3Mk3();
 
             // act
-            var clone = orig.CloneAs<FlashforgeSettings>();
+            var clone = SettingsPrototype.CloneAs<MachineProfileFFF, MachineProfileFFF>(orig);
 
             // assert
             Assert.IsNotNull(clone);
-            Assert.AreEqual(Flashforge.Models.Unknown, clone.ModelEnum);
         }
     }
 }

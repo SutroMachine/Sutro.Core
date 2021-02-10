@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 
 namespace gs.UnitTests.Fill
 {
@@ -354,7 +355,7 @@ namespace gs.UnitTests.Fill
         public void CloneBare()
         {
             // Arrange
-            var settings = new SingleMaterialFFFSettings();
+            var settings = new PrintProfileFFF();
             var loop = FillFactory.CreateTriangleCCW();
             loop.FillType = settings.FillTypeFactory.OuterPerimeter();
             loop.PerimeterOrder = 100;
@@ -375,7 +376,7 @@ namespace gs.UnitTests.Fill
         public void CloneBareAsCurve()
         {
             // Arrange
-            var settings = new SingleMaterialFFFSettings();
+            var settings = new PrintProfileFFF();
             var loop = FillFactory.CreateTriangleCCW();
             loop.FillType = settings.FillTypeFactory.OuterPerimeter();
             loop.PerimeterOrder = 100;

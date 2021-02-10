@@ -10,25 +10,32 @@ namespace Sutro.Core.Decompilers
 {
     public abstract class DecompilerBase<TPrintVertex> where TPrintVertex : IToolpathVertex
     {
-        protected int currentLayerIndex = 0;
+        protected int currentLayerIndex;
         protected TPrintVertex currentVertex;
         protected TPrintVertex previousVertex;
         protected LinearToolpath3<TPrintVertex> toolpath;
-        protected bool extruderRelativeCoordinates = false;
+        protected bool extruderRelativeCoordinates;
 
         public event Action<IToolpath> OnToolpathComplete;
 
-        public event Action<int> OnNewLayer;
+        public event Action<int, double> OnNewLayer;
 
         protected abstract Dictionary<string, IFillType> FillTypes { get; }
 
         protected Regex fillTypeLabelPattern => new Regex(@"feature (.+)$");
 
-        public abstract void Begin();
-
-        protected void EmitNewLayer(int layerIndex)
+        public virtual void Begin()
         {
-            OnNewLayer?.Invoke(layerIndex);
+            extruderRelativeCoordinates = false;
+            currentLayerIndex = 0;
+            previousVertex = CreateDefaultVertex();
+        }
+
+        protected abstract TPrintVertex CreateDefaultVertex();
+
+        protected void EmitNewLayer(int layerIndex, double layerHeight = 0)
+        {
+            OnNewLayer?.Invoke(layerIndex, layerHeight);
         }
 
         protected void SetExtrusionCoordinateMode(GCodeLine line)
@@ -139,14 +146,37 @@ namespace Sutro.Core.Decompilers
             return false;
         }
 
-        protected static bool LineIsEmpty(GCodeLine line)
+        protected virtual bool LineIsEmpty(GCodeLine line)
         {
             return line == null || line.Type == LineType.Blank;
         }
 
-        protected static bool LineIsNewLayerComment(GCodeLine line)
+        // Matches variations of new layer lines:
+        //  - "layer 1, Z = 0.3"  
+        //  - "layer 1: 0.3"  
+        protected virtual Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+)(,\s?Z\s?=\s?|:\s?)(?<LayerHeight>\d+(\.\d+)?)");
+
+        protected virtual bool LineIsNewLayerComment(GCodeLine line, out int index, out double height)
         {
-            return line.Comment != null && line.Comment.Contains("layer") && !line.Comment.Contains("feature");
+            index = 0;
+            height = 0;
+
+            var input = string.IsNullOrWhiteSpace(line.Comment) ? line.OriginalString : line.Comment;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            var match = newLayerPattern.Match(input);
+
+            if (match.Success)
+            {
+                index = int.Parse(match.Groups["LayerIndex"].Value);
+                height = double.Parse(match.Groups["LayerHeight"].Value);
+                return true;
+            }
+            return false;
         }
 
         public void End()

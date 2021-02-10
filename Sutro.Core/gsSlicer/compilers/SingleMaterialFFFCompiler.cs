@@ -1,5 +1,7 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
@@ -22,7 +24,7 @@ namespace gs
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, SingleMaterialFFFSettings pathSettings);
+        void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings);
 
         void AppendComment(string comment);
 
@@ -30,14 +32,14 @@ namespace gs
 
         void AppendBlankLine();
 
-        IEnumerable<string> GenerateTotalExtrusionReport(SingleMaterialFFFSettings settings);
+        IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings);
     }
 
     public class SingleMaterialFFFCompiler : IThreeAxisPrinterCompiler
     {
-        private SingleMaterialFFFSettings Settings;
+        private IPrintProfileFFF Settings;
         private GCodeBuilder Builder;
-        protected BaseDepositionAssembler Assembler;
+        protected IDepositionAssembler Assembler;
 
         protected AssemblerFactoryF AssemblerF;
 
@@ -46,7 +48,7 @@ namespace gs
         /// </summary>
         public virtual Action<string> EmitMessageF { get; set; }
 
-        public SingleMaterialFFFCompiler(GCodeBuilder builder, SingleMaterialFFFSettings settings, AssemblerFactoryF AssemblerF)
+        public SingleMaterialFFFCompiler(GCodeBuilder builder, IPrintProfileFFF settings, AssemblerFactoryF AssemblerF)
         {
             Builder = builder;
             Settings = settings;
@@ -89,14 +91,14 @@ namespace gs
             Assembler.AppendFooter();
         }
 
-        public virtual void HandleDepositionPath(LinearToolpath path, SingleMaterialFFFSettings useSettings)
+        public virtual void HandleDepositionPath(LinearToolpath path, IPrintProfileFFF useSettings)
         {
             // end travel / retract if we are in that state
             if (Assembler.InTravel)
             {
                 if (Assembler.InRetract)
                 {
-                    Assembler.EndRetract(path[0].Position, useSettings.RetractSpeed, path[0].Extrusion.x);
+                    Assembler.EndRetract(path[0].Position, useSettings.Part.RetractSpeed, path[0].Extrusion.x);
                 }
                 Assembler.EndTravel();
                 Assembler.EnableFan();
@@ -106,7 +108,7 @@ namespace gs
             AppendDimensions(path.Start.Dimensions);
         }
 
-        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, SingleMaterialFFFSettings useSettings)
+        public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, IPrintProfileFFF settings)
         {
             if (Assembler.InTravel == false)
             {
@@ -117,7 +119,7 @@ namespace gs
                 {
                     if (Assembler.InRetract)
                         throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + pathIndex + ": already in retract!");
-                    Assembler.BeginRetract(path[0].Position, useSettings.RetractSpeed, path[0].Extrusion.x);
+                    Assembler.BeginRetract(path[0].Position, settings.Part.RetractSpeed, path[0].Extrusion.x);
                 }
                 Assembler.BeginTravel();
             }
@@ -131,11 +133,11 @@ namespace gs
         /// Compile this set of toolpaths and pass to assembler.
         /// Settings are optional, pass null to ignore
         /// </summary>
-		public virtual void AppendPaths(ToolpathSet toolpathSet, SingleMaterialFFFSettings pathSettings)
+		public virtual void AppendPaths(ToolpathSet toolpathSet, IPrintProfileFFF profile)
         {
             Assembler.FlushQueues();
 
-            SingleMaterialFFFSettings useSettings = (pathSettings == null) ? Settings : pathSettings;
+            IPrintProfileFFF useSettings = (profile == null) ? Settings : profile;
 
             var paths = toolpathSet.GetPaths<PrintVertex>();
             var calc = new CalculateExtrusion<PrintVertex>(paths, useSettings);
@@ -219,12 +221,12 @@ namespace gs
 
         protected virtual void AppendDimensions(Vector2d dimensions)
         {
-            if (Settings.GCodeAppendBeadDimensions)
+            if (Settings.Part.GCodeAppendBeadDimensions)
             {
                 if (dimensions.x == GCodeUtil.UnspecifiedDimensions.x)
                     dimensions.x = Settings.Machine.NozzleDiamMM;
                 if (dimensions.y == GCodeUtil.UnspecifiedDimensions.y)
-                    dimensions.y = Settings.LayerHeightMM;
+                    dimensions.y = Settings.Part.LayerHeightMM;
                 Assembler.AppendComment(" tool H" + dimensions.y + " W" + dimensions.x);
             }
         }
@@ -273,7 +275,7 @@ namespace gs
                 EmitMessageF(string.Format(text, args));
         }
 
-        public IEnumerable<string> GenerateTotalExtrusionReport(SingleMaterialFFFSettings settings)
+        public IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings)
         {
             return Assembler.GenerateTotalExtrusionReport(settings);
         }

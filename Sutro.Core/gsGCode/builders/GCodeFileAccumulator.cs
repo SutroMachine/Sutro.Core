@@ -6,14 +6,19 @@ namespace gs
     {
         public GCodeFile File;
 
-        public GCodeFileAccumulator(GCodeFile useFile = null)
+        public GCodeFileAccumulator()
         {
-            File = (useFile != null) ? useFile : new GCodeFile();
+            Reset();
         }
 
         public virtual void AddLine(GCodeLine line)
         {
             File.AppendLine(line);
+        }
+
+        public void Reset()
+        {
+            File = new GCodeFile();
         }
     }
 }

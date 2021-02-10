@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>Sutro.Core</PackageId>
-    <Version>1.0.11</Version>
+    <Version>2.2.0</Version>
     <PackageDescription>Library for additive manufacturing.</PackageDescription>
     <RepositoryUrl>https://github.com/SutroMachine/Sutro.Core</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <RootNamespace>gs</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Sutro.Core</RootNamespace>
     <Authors>Ryan Schmidt</Authors>
     <Company>gradientspace</Company>
     <Copyright>Copyright © Ryan Schmidt/gradientspace 2017</Copyright>
@@ -31,9 +31,8 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="ReportGenerator" Version="4.5.0" />
-    <PackageReference Include="Sutro.Clipper" Version="1.1.1" />
-    <PackageReference Include="Sutro.Core.Models" Version="1.0.3" />
+    <PackageReference Include="Sutro.Clipper" Version="1.1.3" />
+    <PackageReference Include="Sutro.Core.Models" Version="2.0.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="4.7.0" />
   </ItemGroup>
 
@@ -43,6 +42,13 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+	  <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
   </ItemGroup>
 
 </Project>

@@ -1,17 +1,27 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core;
+using Sutro.Core.Logging;
+using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Models.Profiles;
+using Sutro.Core.Settings;
+using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 namespace gs
 {
+
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
-            where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
-            where TPrintSettings : SettingsPrototype, IPlanarAdditiveSettings, new()
+        where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
+        where TPrintSettings : class, IPrintProfileFFF, new()
     {
+
+        public delegate ISettingsBuilder<TPrintSettings> SettingsBuilderF(TPrintSettings settings, ILogger logger);
+
         private readonly ILogger logger;
         private ISettingsBuilder<TPrintSettings> settingsBuilder;
 
@@ -34,62 +44,67 @@ namespace gs
         public GCodeParserBase Parser { get; set; } = new GenericGCodeParser();
         public GCodeWriterBase Writer { get; set; } = new StandardGCodeWriter();
 
-        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true)
+        protected static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
+
+        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true, 
+            SettingsBuilderF settingsBuilderF = null)
         {
             AcceptsParts = acceptsParts;
 
             Id = id;
             Description = description;
 
-            settingsBuilder = new SettingsBuilder<TPrintSettings>(settings, logger);
             this.logger = logger ?? new NullLogger();
+
+            settingsBuilder = (settingsBuilderF ?? DefaultSettingsBuilderF).Invoke(settings, logger);
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out IEnumerable<string> generationReport)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh,
+            CancellationToken? cancellationToken = null)
         {
-            return GCodeFromMesh(mesh, out generationReport, null);
+            return GCodeFromMesh(mesh, null, cancellationToken);
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out IEnumerable<string> generationReport, TPrintSettings settings = null)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
-            return GCodeFromMeshes(new DMesh3[] { mesh }, out generationReport, settings);
+            return GCodeFromMeshes(new DMesh3[] { mesh }, settings, cancellationToken);
         }
 
-        public GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out IEnumerable<string> generationReport, TPrintSettings settings = null)
+        public virtual GenerationResult GCodeFromMeshes(IEnumerable<DMesh3> meshes, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
             var printMeshAssembly = PrintMeshAssemblyFromMeshes(meshes);
-            return GCodeFromPrintMeshAssembly(printMeshAssembly, out generationReport, settings);
+            return GCodeFromPrintMeshAssembly(printMeshAssembly, settings);
         }
 
-        public GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out IEnumerable<string> generationReport, TPrintSettings settings = null)
+        public virtual GenerationResult GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
             PlanarSliceStack slices = null;
 
-            if (AcceptsParts)
-            {
-                SliceMesh(printMeshAssembly, out slices);
-            }
-
             var globalSettings = settings ?? settingsBuilder.Settings;
 
+            if (AcceptsParts)
+            {                
+                var success = SliceMesh(printMeshAssembly, out slices);
+                if (!success)
+                {
+                    var generationResult = new GenerationResult();
+                    generationResult.AddLog(LoggingLevel.Error, "Mesh slicing failed");
+                }                    
+            }
+
             // Run the print generator
-            logger.WriteLine("Running print generator...");
+            logger.LogMessage("Running print generator...");
             var printGenerator = new TPrintGenerator();
-            AssemblerFactoryF overrideAssemblerF = globalSettings.AssemblerType();
+            AssemblerFactoryF overrideAssemblerF = (globalSettings.MachineProfile as MachineProfileBase).AssemblerFactory();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
 
-            if (printGenerator.Generate())
-            {
-                generationReport = printGenerator.GenerationReport;
-                return printGenerator.Result;
-            }
-            else
-            {
-                throw new Exception("PrintGenerator failed to generate gcode!");
-            }
+            return printGenerator.Generate(cancellationToken);
         }
 
-        private PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)
+        protected virtual PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)
         {
             if (AcceptsParts)
             {
@@ -100,18 +115,34 @@ namespace gs
             return null;
         }
 
-        private void SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
+        public Func<TPrintSettings, MeshPlanarSlicerBase> GetSlicerF { get; set; } = 
+            (settings) => new MeshSlicerHorizontalPlanes()
         {
-            logger?.WriteLine("Slicing...");
+            LayerHeightMM = settings.Part.LayerHeightMM
+        };
 
-            // Do slicing
-            MeshPlanarSlicer slicer = new MeshPlanarSlicer()
+
+
+        private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
+        {
+            logger?.LogMessage("Slicing...");
+
+            try
             {
-                LayerHeightMM = Settings.LayerHeightMM
-            };
+                var slicer = GetSlicerF(Settings);
 
-            slicer.Add(meshes);
-            slices = slicer.Compute();
+                slicer.Add(meshes);
+                slices = slicer.Compute();
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger?.LogError(e.Message);
+                if (Config.Debug)
+                    throw;
+                slices = null;
+                return false;
+            }
         }
 
         public virtual GCodeFile LoadGCode(TextReader input)

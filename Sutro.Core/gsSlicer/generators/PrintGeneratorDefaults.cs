@@ -1,4 +1,6 @@
-﻿namespace gs
+﻿using Sutro.Core.Settings;
+
+namespace gs
 {
     /// <summary>
     /// Default implementations of "pluggable" ThreeAxisPrintGenerator functions
@@ -9,8 +11,8 @@
          * Compiler Post-Processors
          */
 
-        public static void AppendPrintStatistics(
-            IThreeAxisPrinterCompiler compiler, ThreeAxisPrintGenerator printgen)
+        public static void AppendPrintStatistics<T>(
+            IThreeAxisPrinterCompiler compiler, ThreeAxisPrintGenerator<T> printgen) where T : IPrintProfileFFF
         {
             compiler.AppendComment("".PadRight(79, '-'));
             foreach (string line in printgen.TotalPrintTimeStatistics.ToStringList())

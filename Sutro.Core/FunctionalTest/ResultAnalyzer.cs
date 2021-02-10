@@ -2,6 +2,7 @@ using gs;
 using gs.FillTypes;
 using gs.utility;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using System.Collections.Generic;
 using System.IO;
@@ -32,7 +33,7 @@ namespace Sutro.Core.FunctionalTest
 
             for (int layerIndex = 0; layerIndex < actual.Count; layerIndex++)
             {
-                logger.WriteLine($"Checking layer {layerIndex}");
+                logger.LogMessage($"Checking layer {layerIndex}");
                 actual[layerIndex].AssertEqualsExpected(expected[layerIndex]);
             }
         }

@@ -16,6 +16,8 @@ namespace gs
         public double Z = 0;
         public Interval1d LayerZSpan;
 
+        public Frame3f? PlaneBasis { get; set; }
+
         public double EmbeddedPathWidth = 0;
 
         /*

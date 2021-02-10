@@ -4,6 +4,7 @@ namespace gs
 {
     public interface IGCodeAccumulator
     {
+        void Reset();
         void AddLine(GCodeLine line);
     }
 }

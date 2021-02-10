@@ -14,5 +14,10 @@ namespace gsGCode.Tests.Mocks
         {
             Lines.Add(line);
         }
+
+        public void Reset()
+        {
+            Lines.Clear();
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using gs;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.Logging;
 using System.Collections.Generic;
 
 namespace Sutro.Core.FunctionalTest
@@ -28,7 +29,7 @@ namespace Sutro.Core.FunctionalTest
 
             foreach (var fillType in perFeatureInfo.Keys)
             {
-                logger.WriteLine($"\t{fillType}");
+                logger.LogMessage($"\t{fillType}");
                 perFeatureInfo[fillType].AssertEqualsExpected(expected.perFeatureInfo[fillType]);
             }
         }

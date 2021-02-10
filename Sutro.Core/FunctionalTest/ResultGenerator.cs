@@ -1,13 +1,15 @@
 ﻿using g3;
 using gs;
+using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Settings;
 using System.IO;
 
 namespace Sutro.Core.FunctionalTest
 {
     public class ResultGenerator<TGenerator, TSettings> : IResultGenerator
         where TGenerator : IPrintGenerator<TSettings>, new()
-        where TSettings : PlanarAdditiveSettings, new()
+        where TSettings : class, IPrintProfileFFF, new()
     {
         private readonly PrintGeneratorManager<TGenerator, TSettings> generator;
         private readonly ILogger logger;
@@ -20,16 +22,22 @@ namespace Sutro.Core.FunctionalTest
 
         protected void SaveGCode(string path, GCodeFile gcode)
         {
-            logger.WriteLine($"Saving file to {path}");
+            logger.LogMessage($"Saving file to {path}");
             using var streamWriter = new StreamWriter(path);
             generator.SaveGCodeToFile(streamWriter, gcode);
         }
 
-        public void GenerateResultFile(string meshFilePath, string outputFilePath)
+        public GenerationResult GenerateResultFile(string meshFilePath, string outputFilePath)
         {
             var mesh = StandardMeshReader.ReadMesh(meshFilePath);
-            var gcode = generator.GCodeFromMesh(mesh, out _);
-            SaveGCode(outputFilePath, gcode);
+
+            var result = generator.GCodeFromMesh(
+                mesh: mesh, 
+                cancellationToken: null);
+
+            SaveGCode(outputFilePath, result.GCode);
+
+            return result;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using g3;
 using gs.FillTypes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Settings;
 using System;
 
 namespace gs.UnitTests.Fill
@@ -105,7 +106,7 @@ namespace gs.UnitTests.Fill
         public void CloneBare()
         {
             // Arrange
-            var settings = new GenericRepRapSettings();
+            var settings = new PrintProfileFFF();
             var curve = new FillCurve<FillSegment>()
             {
                 FillType = settings.FillTypeFactory.OuterPerimeter(),

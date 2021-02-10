@@ -1,4 +1,5 @@
 ﻿using g3;
+using Sutro.Core.Settings;
 using System;
 
 namespace gs
@@ -16,7 +17,7 @@ namespace gs
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, SingleMaterialFFFSettings pathSettings);
+        void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings);
 
         void AppendComment(string comment);
 
@@ -25,7 +26,7 @@ namespace gs
 
     public class BaseThreeAxisMillingCompiler : IThreeAxisMillingCompiler
     {
-        public SingleMaterialFFFSettings Settings;
+        public IPrintProfileFFF Settings;
         public GCodeBuilder Builder;
         public BaseMillingAssembler Assembler;
 
@@ -36,7 +37,7 @@ namespace gs
         /// </summary>
         public virtual Action<string> EmitMessageF { get; set; }
 
-        public BaseThreeAxisMillingCompiler(GCodeBuilder builder, SingleMaterialFFFSettings settings, MillingAssemblerFactoryF AssemblerF)
+        public BaseThreeAxisMillingCompiler(GCodeBuilder builder, IPrintProfileFFF settings, MillingAssemblerFactoryF AssemblerF)
         {
             Builder = builder;
             Settings = settings;
@@ -76,9 +77,9 @@ namespace gs
         /// Compile this set of toolpaths and pass to assembler.
         /// Settings are optional, pass null to ignore
         /// </summary>
-		public virtual void AppendPaths(ToolpathSet paths, SingleMaterialFFFSettings pathSettings)
+		public virtual void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings)
         {
-            SingleMaterialFFFSettings useSettings = (pathSettings == null) ? Settings : pathSettings;
+            var useSettings = (pathSettings == null) ? Settings : pathSettings;
 
             int path_index = 0;
             foreach (var gpath in paths)
@@ -104,7 +105,7 @@ namespace gs
                     // do retract cycle
                     if (Assembler.InRetract == false)
                     {
-                        Assembler.BeginRetract(useSettings.RetractDistanceMM, useSettings.RetractSpeed, "Retract");
+                        Assembler.BeginRetract(useSettings.Part.RetractDistanceMM, useSettings.Part.RetractSpeed, "Retract");
                     }
                     if (Assembler.InTravel == false)
                     {
@@ -117,7 +118,7 @@ namespace gs
                         Assembler.EndTravel();
 
                     if (Assembler.InRetract)
-                        Assembler.EndRetract(useSettings.RetractSpeed, "End Retract");
+                        Assembler.EndRetract(useSettings.Part.RetractSpeed, "End Retract");
                 }
 
                 i = 1;      // do not need to emit code for first point of path,

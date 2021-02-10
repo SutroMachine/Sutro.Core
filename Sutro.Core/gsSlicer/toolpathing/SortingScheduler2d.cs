@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using System;
 using System.Collections.Generic;
 
 namespace gs
@@ -156,74 +157,35 @@ namespace gs
 
         protected virtual Index3i find_nearest(Index3i from, HashSet<Index2i> remaining)
         {
-            Vector2d pt = get_point(from);
-
-            double nearest_sqr = double.MaxValue;
-            Index3i nearest_idx = Index3i.Max;
-            foreach (Index2i idx in remaining)
-            {
-                if (idx.a == 0)
-                { // loop
-                    PathLoop loop = Loops[idx.b];
-                    double d_sqr = loop.loop.FindClosestElementToPoint(pt, out var location);
-                    if (d_sqr < nearest_sqr)
-                    {
-                        nearest_sqr = d_sqr;
-                        nearest_idx = new Index3i(idx.a, idx.b, location.Index);
-                    }
-                }
-                else
-                {  // span
-                    PathSpan span = Spans[idx.b];
-                    double start_d = span.curve.Entry.DistanceSquared(pt);
-                    if (start_d < nearest_sqr)
-                    {
-                        nearest_sqr = start_d;
-                        nearest_idx = new Index3i(idx.a, idx.b, 0);
-                    }
-                    double end_d = span.curve.Exit.DistanceSquared(pt);
-                    if (end_d < nearest_sqr)
-                    {
-                        nearest_sqr = end_d;
-                        nearest_idx = new Index3i(idx.a, idx.b, 1);
-                    }
-                }
-            }
-
-            return nearest_idx;
+            return find_nearest(get_point(from), remaining);
         }
 
         protected virtual Index3i find_nearest(Vector2d pt, HashSet<Index2i> remaining)
         {
-            double nearest_sqr = double.MaxValue;
+            double nearest = double.MaxValue;
             Index3i nearest_idx = Index3i.Max;
             foreach (Index2i idx in remaining)
             {
-                if (idx.a == 0)
-                { // loop
+                if (idx.a == 0) // loop
+                { 
                     PathLoop loop = Loops[idx.b];
-                    double d_sqr = GetLoopEntryPoint(pt, loop, out var location);
+                    double distance = GetLoopEntryPoint(pt, loop, out var location);
 
-                    if (d_sqr < nearest_sqr)
+                    if (distance < nearest)
                     {
-                        nearest_sqr = d_sqr;
+                        nearest = distance;
                         nearest_idx = new Index3i(idx.a, idx.b, location.Index);
                     }
                 }
-                else
-                {  // span
+                else // span
+                {
                     PathSpan span = Spans[idx.b];
-                    double start_d = span.curve.Entry.DistanceSquared(pt);
-                    if (start_d < nearest_sqr)
+                    double distance = GetSpanEntryPoint(pt, span, out bool flip);
+
+                    if (distance < nearest)
                     {
-                        nearest_sqr = start_d;
-                        nearest_idx = new Index3i(idx.a, idx.b, 0);
-                    }
-                    double end_d = span.curve.Exit.DistanceSquared(pt);
-                    if (end_d < nearest_sqr)
-                    {
-                        nearest_sqr = end_d;
-                        nearest_idx = new Index3i(idx.a, idx.b, 1);
+                        nearest = distance;
+                        nearest_idx = new Index3i(idx.a, idx.b, flip ? 1 : 0);
                     }
                 }
             }
@@ -231,7 +193,32 @@ namespace gs
             return nearest_idx;
         }
 
-        private static double GetLoopEntryPoint(Vector2d startPoint, PathLoop loop,
+        protected virtual double GetSpanEntryPoint(Vector2d pt, PathSpan span, out bool flip)
+        {
+            double distanceToCurveStart = span.curve.Entry.Distance(pt);
+
+            if (span.curve.FillType.IsEntryLocationSpecified())
+            {
+                flip = false;
+                return distanceToCurveStart;
+            }
+
+            double distanceToCurveEnd = span.curve.Exit.Distance(pt);
+
+            if (distanceToCurveStart < distanceToCurveEnd)
+            {
+                flip = false;
+                return distanceToCurveStart;
+            }
+            else
+            {
+                flip = true;
+                return distanceToCurveEnd;
+
+            }
+        }
+
+        protected virtual double GetLoopEntryPoint(Vector2d startPoint, PathLoop loop,
             out ElementLocation location)
         {
             if (loop.loop.FillType.IsEntryLocationSpecified())
