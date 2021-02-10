@@ -1,4 +1,4 @@
-﻿namespace gs
+﻿namespace Sutro.Core.Logging
 {
     public interface ILogger
     {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
+using Sutro.Core.FunctionalTests;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
@@ -7,16 +8,10 @@ using Sutro.Core.Settings.Part;
 namespace gsCore.FunctionalTests
 {
     [TestClass]
-    public class FFF_PrintTests_Matches
+    public class FFF_PrintTests_Matches : TestBase
     {
-        [TestInitialize]
-        public void Initialize()
+        public FFF_PrintTests_Matches() : base()
         {
-#if DEBUG
-            Sutro.Core.Models.Config.Debug = true;
-#else
-            Sutro.Core.Models.Config.Debug = false;
-#endif
         }
 
         [TestMethod]

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gs
+namespace Sutro.Core.Logging
 {
     public class ConsoleLogger : ILogger
     {

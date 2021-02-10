@@ -1,9 +1,10 @@
 using gs;
+using Sutro.Core.Logging;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
-namespace gsSlicer.CLI
+namespace Sutro.Core.CLI
 {
     internal static class Program
     {

@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs;
+using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
 using System.IO;
@@ -26,16 +27,17 @@ namespace Sutro.Core.FunctionalTest
             generator.SaveGCodeToFile(streamWriter, gcode);
         }
 
-        public void GenerateResultFile(string meshFilePath, string outputFilePath)
+        public GenerationResult GenerateResultFile(string meshFilePath, string outputFilePath)
         {
             var mesh = StandardMeshReader.ReadMesh(meshFilePath);
 
-            var gcode = generator.GCodeFromMesh(
+            var result = generator.GCodeFromMesh(
                 mesh: mesh, 
-                details: out _,
                 cancellationToken: null);
 
-            SaveGCode(outputFilePath, gcode);
+            SaveGCode(outputFilePath, result.GCode);
+
+            return result;
         }
     }
 }

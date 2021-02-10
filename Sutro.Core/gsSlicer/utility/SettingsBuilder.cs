@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Sutro.Core.Logging;
 using Sutro.Core.Persistence;
 using Sutro.Core.Settings;
 using System;

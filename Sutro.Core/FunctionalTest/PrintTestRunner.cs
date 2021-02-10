@@ -24,9 +24,9 @@ namespace Sutro.Core.FunctionalTest
                 TestDataPaths.GetResultFilePath(directory));
         }
 
-        public void GenerateFile()
+        public GenerationResult GenerateFile()
         {
-            resultGenerator.GenerateResultFile(
+            return resultGenerator.GenerateResultFile(
                 TestDataPaths.GetMeshFilePath(directory),
                 TestDataPaths.GetResultFilePath(directory));
         }

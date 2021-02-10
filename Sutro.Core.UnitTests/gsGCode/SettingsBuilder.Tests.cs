@@ -1,5 +1,6 @@
 ﻿using gs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Logging;
 using Sutro.Core.Settings.Part;
 using System;
 using System.Collections.Generic;

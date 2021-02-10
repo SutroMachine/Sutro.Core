@@ -1,4 +1,8 @@
 ﻿using g3;
+using gs.FillTypes;
+using Sutro.Core;
+using Sutro.Core.Logging;
+using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
@@ -48,27 +52,27 @@ namespace gs
             this.logger = logger ?? new NullLogger();
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out GCodeGenerationDetails details, CancellationToken? cancellationToken = null)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh,
+            CancellationToken? cancellationToken = null)
         {
-            return GCodeFromMesh(
-                mesh: mesh, 
-                details: out details, 
-                settings: Settings, 
-                cancellationToken: cancellationToken);
+            return GCodeFromMesh(mesh, null, cancellationToken);
         }
 
-        public GCodeFile GCodeFromMesh(DMesh3 mesh, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
-            return GCodeFromMeshes(new DMesh3[] { mesh }, out details, settings, cancellationToken: cancellationToken);
+            return GCodeFromMeshes(new DMesh3[] { mesh }, settings, cancellationToken);
         }
 
-        public virtual GCodeFile GCodeFromMeshes(IEnumerable<DMesh3> meshes, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public virtual GenerationResult GCodeFromMeshes(IEnumerable<DMesh3> meshes, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
             var printMeshAssembly = PrintMeshAssemblyFromMeshes(meshes);
-            return GCodeFromPrintMeshAssembly(printMeshAssembly, out details, settings, cancellationToken: cancellationToken);
+            return GCodeFromPrintMeshAssembly(printMeshAssembly, settings);
         }
 
-        public virtual GCodeFile GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, out GCodeGenerationDetails details, TPrintSettings settings = null, CancellationToken? cancellationToken = null)
+        public virtual GenerationResult GCodeFromPrintMeshAssembly(PrintMeshAssembly printMeshAssembly, TPrintSettings settings = null,
+            CancellationToken? cancellationToken = null)
         {
             PlanarSliceStack slices = null;
 
@@ -85,15 +89,7 @@ namespace gs
             AssemblerFactoryF overrideAssemblerF = (globalSettings.MachineProfile as MachineProfileBase).AssemblerFactory();
             printGenerator.Initialize(printMeshAssembly, slices, globalSettings, overrideAssemblerF);
 
-            if (printGenerator.Generate(cancellationToken))
-            {
-                details = new GCodeGenerationDetails(printGenerator.PrintTimeEstimate, printGenerator.MaterialUsageEstimate, printGenerator.Warnings);
-                return printGenerator.Result;
-            }
-            else
-            {
-                throw new Exception("PrintGenerator failed to generate gcode!");
-            }
+            return printGenerator.Generate(cancellationToken);
         }
 
         protected virtual PrintMeshAssembly PrintMeshAssemblyFromMeshes(IEnumerable<DMesh3> meshes)

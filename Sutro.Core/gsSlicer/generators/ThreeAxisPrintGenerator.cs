@@ -1,9 +1,12 @@
 using g3;
 using gs.FillTypes;
+using Sutro.Core;
+using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
@@ -58,8 +61,7 @@ namespace gs
             PlanarSliceStack slices,
             TPrintSettings settings,
             AssemblerFactoryF overrideAssemblerF);
-
-        bool Generate(CancellationToken? cancellationToken);
+        GenerationResult Generate(CancellationToken? cancellationToken);
 
         GCodeFile Result { get; }
 
@@ -67,6 +69,7 @@ namespace gs
         IReadOnlyList<string> MaterialUsageEstimate { get; }
         IReadOnlyList<string> Warnings { get; }
     }
+
 
     /// <summary>
     /// This is the top-level class that generates a GCodeFile for a stack of slices.
@@ -98,11 +101,13 @@ namespace gs
 
         public ToolpathSet AccumulatedPaths = null;
 
-        public PrintTimeStatistics TotalPrintTimeStatistics { get; private set; } = new PrintTimeStatistics();
+        public GenerationResult generationResult = null;
 
         public virtual IReadOnlyList<string> PrintTimeEstimate => TotalPrintTimeStatistics.ToStringList();
 
         public virtual IReadOnlyList<string> MaterialUsageEstimate => TotalExtrusionReport.ToList();
+
+        public PrintTimeStatistics TotalPrintTimeStatistics { get; private set; } = new PrintTimeStatistics();
 
         /*
 		 * Customizable functions you can use to configure/modify slicer behavior
@@ -111,7 +116,7 @@ namespace gs
         // replace this with your own error message handler
         public Action<string, string> ErrorF = (message, stack_trace) =>
         {
-            System.Console.WriteLine("[EXCEPTION] ThreeAxisPrintGenerator: " + message + "\nSTACK TRACE: " + stack_trace);
+            Console.WriteLine("[EXCEPTION] ThreeAxisPrintGenerator: " + message + "\nSTACK TRACE: " + stack_trace);
         };
 
         // Replace this if you want to customize PrintLayerData type
@@ -211,19 +216,32 @@ namespace gs
                 PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.Machine.NozzleDiamMM; };
         }
 
-        public virtual bool Generate(CancellationToken? cancellationToken)
+        public virtual GenerationResult Generate(CancellationToken? cancellationToken)
         {
+            var result = new GenerationResult();
             try
             {
                 generate_result(cancellationToken);
-                Result = extract_result();
+                result.Status = GenerationResultStatus.Success;
+                result.GCode = extract_result();
+                result.Details = ExtractDetails();
             }
             catch (Exception e) when (!Sutro.Core.Models.Config.Debug)
             {
-                ErrorF(e.Message, e.StackTrace);
-                return false;
+                result.AddLog(Sutro.Core.Logging.LoggingLevel.Error, e.GetType().ToString() + ": " + e.Message);
+                result.Status = GenerationResultStatus.Failure;
+                if (Config.Debug)
+                    throw;
             }
-            return true;
+            return result;
+        }
+
+        protected virtual GCodeGenerationDetails ExtractDetails()
+        {
+            return new GCodeGenerationDetails(
+                PrintTimeEstimate,
+                TotalExtrusionReport,
+                Warnings);
         }
 
         public virtual void GetProgress(out int curProgress, out int maxProgress)
@@ -275,64 +293,20 @@ namespace gs
         /// </summary>
         protected virtual void generate_result(CancellationToken? cancellationToken)
         {
-            this.cancellationToken = cancellationToken;
-
-            if (InputsAreInvalid())
-                return;
-
-            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
-            //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
-            OverhangAllowanceMM = Settings.Part.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
-
-            int NProgressStepsPerLayer = 10;
-            TotalProgress = NProgressStepsPerLayer * (Slices.Count - 1);
-            CurProgress = 0;
-
-            if (AccumulatePathSet == true)
-                AccumulatedPaths = new ToolpathSet();
-
-            // build spatial caches for slice polygons
-            //bool need_slice_spatial = (Settings.PartProfile.GenerateSupport);
-            bool need_slice_spatial = true;  // need this for bridges...
-            if (need_slice_spatial)
-            {
-                Slices.BuildSliceSpatialCaches(true);
-            }
-
+            SetupGeneration();
             if (Cancelled()) return;
 
-            // initialize compiler and get start nozzle position
-            Compiler.Begin();
-
-            // We need N above/below shell paths to do roof/floors, and *all* shells to do support.
-            // Also we can compute shells in parallel. So we just precompute them all here.
-            precompute_shells();
-            if (Cancelled()) return;
-            int nLayers = Slices.Count;
-
-            // compute roofs/floors in parallel based on shells
-            precompute_roofs_floors();
-            if (Cancelled()) return;
-
-            // compute solid/sparse in parallel based on shell interios, roofs & floors
-            precompute_infill_regions();
-            if (Cancelled()) return;
-
-            // [TODO] use floor areas to determine support now?
-
-            precompute_skirt();
-            if (Cancelled()) return;
-
-            precompute_support_areas();
+            PrecomputeGeneration();
             if (Cancelled()) return;
 
             PrintLayerData prevLayerData = null;
 
+            CurStartLayer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
+            CurEndLayer = Math.Min(Slices.Count - 1, Settings.Part.LayerRangeFilter.b);
+
             // Now generate paths for each layer.
             // This could be parallelized to some extent, but we have to pass per-layer paths
             // to Scheduler in layer-order. Probably better to parallelize within-layer computes.
-            CurStartLayer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
-            CurEndLayer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b);
             for (int layer_i = CurStartLayer; layer_i <= CurEndLayer; ++layer_i)
             {
                 if (Cancelled()) return;
@@ -353,117 +327,32 @@ namespace gs
                 layerdata.Scheduler = groupScheduler;
 
                 BeginLayerF(layerdata);
-                Compiler.AppendComment(" ");
-                Compiler.AppendComment("========================");
-                Compiler.AppendComment($"layer {layerdata.layer_i}: {layerdata.Slice.LayerZSpan.b:F3}mm");
+                CompileNewLayerHeader(layerdata);
 
                 layerdata.ShellFills = get_layer_shells(layer_i);
 
                 // make path-accumulator for this layer
                 pathAccum.Initialize(Compiler.NozzlePosition);
+
                 // layer-up (ie z-change)
                 pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
 
-                // do skirt first
-                {
-                    List<IShellsFillPolygon> skirt_layer = get_layer_skirts(layer_i);
-                    if (skirt_layer != null)
-                    {
-                        foreach (var skirt in skirt_layer)
-                        {
-                            List<FillCurveSet2d> curves = skirt.GetFillCurves();
-                            groupScheduler.BeginGroup();
-                            groupScheduler.AppendCurveSets(curves);
-                            groupScheduler.EndGroup();
-                        }
-                    }
-                    if (Cancelled()) return;
-                    count_progress_step();
-                }
+                // Move to current layer Z
+                pathAccum.AppendMoveToZ(layerdata.Slice.LayerZSpan.b, Settings.Part.ZTravelSpeed);
 
-                // get roof and floor regions.
-
-                // do support
-                // this could be done in parallel w/ roof/floor...
-                List<GeneralPolygon2d> support_areas = new List<GeneralPolygon2d>();
-                support_areas = get_layer_support_area(layer_i);
-                if (support_areas != null)
-                {
-                    groupScheduler.BeginGroup();
-                    fill_support_regions(support_areas, groupScheduler, layerdata);
-                    groupScheduler.EndGroup();
-                    layerdata.SupportAreas = support_areas;
-                }
+                ScheduleSkirtBrim(layer_i, groupScheduler);
                 if (Cancelled()) return;
                 count_progress_step();
 
-                /*
+                ScheduleSupport(layer_i, layerdata, groupScheduler);
+                if (Cancelled()) return;
+                count_progress_step();
 
-                // selector determines what order we process shells in
-                ILayerShellsSelector shellSelector = ShellSelectorFactoryF(layerdata);
-
-                // a layer can contain multiple disjoint regions. Process each separately.
-                IShellsFillPolygon shells_gen = shellSelector.Next(groupScheduler.CurrentPosition);
-                while (shells_gen != null)
-                {
-                    // schedule shell paths that we pre-computed
-                    List<FillCurveSet2d> shells_gen_paths = shells_gen.GetFillCurves();
-                    FillCurveSet2d outer_shell = (shells_gen_paths.Count > 0) ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
-					bool do_outer_last = Settings.PartProfile.OuterShellLast && (shells_gen_paths.Count > 1);
-                    groupScheduler.BeginGroup();
-                    if (do_outer_last == false)
-                    {
-                        groupScheduler.AppendCurveSets(shells_gen_paths);
-                    }
-                    else
-                    {
-                        groupScheduler.AppendCurveSets(shells_gen_paths.GetRange(0, shells_gen_paths.Count - 1));
-                    }
-                    groupScheduler.EndGroup();
-                    if (Cancelled()) return;
-                    count_progress_step();
-
-                    // allow client to do configuration (eg change settings for example)
-                    BeginShellF(shells_gen, ShellTags.Get(shells_gen));
-
-                    // retrieve precomputed solid/sparse infill regions
-                    var fill_regions = LayerShellFillRegions[layer_i][shells_gen];
-
-                    if (fill_regions != null) {
-                        // fill solid regions
-                        groupScheduler.BeginGroup();
-                        // [RMS] always call this for now because we may have bridge regions
-                        // [TODO] we can precompute the bridge region calc we are doing here that is quite expensive...
-                        fill_solid_regions(fill_regions.Solid, groupScheduler, layerdata, fill_regions.Sparse.Count > 0);
-                        groupScheduler.EndGroup();
-
-                        // fill infill regions
-                        groupScheduler.BeginGroup();
-                        fill_infill_regions(fill_regions.Sparse, groupScheduler, layerdata);
-                        groupScheduler.EndGroup();
-                        if (Cancelled()) return;
-                        count_progress_step();
-                    }
-
-                    groupScheduler.BeginGroup();
-                    if (do_outer_last && outer_shell != null)
-                    {
-                        groupScheduler.AppendCurveSets(new List<FillCurveSet2d>() { outer_shell });
-                    }
-                    groupScheduler.EndGroup();
-
-                    shells_gen = shellSelector.Next(groupScheduler.CurrentPosition);
-                }
-                */
-
-                schedule_closed_polygons(groupScheduler, layerdata, layer_i);
-
+                ScheduleClosedPolygons(groupScheduler, layerdata, layer_i);
                 if (Cancelled()) return;
 
-                // append open paths
-                groupScheduler.BeginGroup();
-                add_open_paths(layerdata, groupScheduler);
-                groupScheduler.EndGroup();
+                ScheduleOpenCurves(layerdata, groupScheduler);
+                if (Cancelled()) return;
 
                 // discard the group scheduler
                 layerdata.Scheduler = groupScheduler.TargetScheduler;
@@ -474,21 +363,10 @@ namespace gs
                     LayerPostProcessor.Process(layerdata, pathAccum.Paths);
 
                 // change speeds if layer is going to finish too quickly
-                if (Settings.Part.MinLayerTime > 0)
-                {
-                    CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths);
-                    bool layerModified = layer_time_calc.EnforceMinLayerTime(layerSettings.Part.MinLayerTime, layerSettings.Part.MinExtrudeSpeed);
-                    if (layerModified)
-                    {
-                        layer_time_calc.Calculate();
-                    }
-
-                    TotalPrintTimeStatistics.Add(layer_time_calc.TimeStatistics);
-                }
+                EnforceMinimumLayerTime(layerSettings, pathAccum);
+                if (Cancelled()) return;
 
                 // compile this layer
-                // [TODO] we could do this in a separate thread, in a queue of jobs?
-                if (Cancelled()) return;
                 Compiler.AppendPaths(pathAccum.Paths, layerSettings);
 
                 // add this layer to running pathset
@@ -502,11 +380,140 @@ namespace gs
                 count_progress_step();
             }
 
+            FinishGeneration();
+        }
+
+        private void EnforceMinimumLayerTime(IPrintProfileFFF profile, ToolpathSetBuilder pathAccum)
+        {
+            if (profile.Part.MinLayerTime > 0)
+            {
+                CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths);
+                
+                bool layerModified = layer_time_calc.EnforceMinLayerTime(
+                    profile.Part.MinLayerTime, profile.Part.MinExtrudeSpeed);
+                
+                if (layerModified)
+                {
+                    layer_time_calc.Calculate();
+                }
+
+                TotalPrintTimeStatistics.Add(layer_time_calc.TimeStatistics);
+            }
+        }
+
+        private void ScheduleOpenCurves(PrintLayerData layerdata, GroupScheduler2d groupScheduler)
+        {
+            // append open paths
+            groupScheduler.BeginGroup();
+            add_open_paths(layerdata, groupScheduler);
+            groupScheduler.EndGroup();
+        }
+
+        private void ScheduleSupport(int layer_i, PrintLayerData layerdata, GroupScheduler2d groupScheduler)
+        {
+            // do support
+            // this could be done in parallel w/ roof/floor...
+            var support_areas = get_layer_support_area(layer_i);
+            if (support_areas != null)
+            {
+                groupScheduler.BeginGroup();
+                fill_support_regions(support_areas, groupScheduler, layerdata);
+                groupScheduler.EndGroup();
+                layerdata.SupportAreas = support_areas;
+            }
+        }
+
+        private void ScheduleSkirtBrim(int layer_i, GroupScheduler2d groupScheduler)
+        {
+            // do skirt first
+            List<IShellsFillPolygon> skirt_layer = get_layer_skirts(layer_i);
+            if (skirt_layer != null)
+            {
+                foreach (var skirt in skirt_layer)
+                {
+                    List<FillCurveSet2d> curves = skirt.GetFillCurves();
+                    groupScheduler.BeginGroup();
+                    groupScheduler.AppendCurveSets(curves);
+                    groupScheduler.EndGroup();
+                }
+            }
+        }
+
+        private void CompileNewLayerHeader(PrintLayerData layerdata)
+        {
+            Compiler.AppendComment(" ");
+            Compiler.AppendComment("========================");
+            Compiler.AppendComment($"layer {layerdata.layer_i}: {layerdata.Slice.LayerZSpan.b:F3}mm");
+        }
+
+        /// <summary>
+        /// Processing that happens before layer-by-layer generation. Includes
+        /// parallel processing steps that can be done independently for multiple 
+        /// layers independently. Override to add additional precompute steps.
+        /// </summary>
+        protected virtual void PrecomputeGeneration()
+        {
+            // We need N above/below shell paths to do roof/floors, and *all* shells to do support.
+            // Also we can compute shells in parallel. So we just precompute them all here.
+            precompute_shells();
+            if (Cancelled()) return;
+
+            // compute roofs/floors in parallel based on shells
+            precompute_roofs_floors();
+            if (Cancelled()) return;
+
+            // compute solid/sparse in parallel based on shell interios, roofs & floors
+            precompute_infill_regions();
+            if (Cancelled()) return;
+
+            // [TODO] use floor areas to determine support now?
+
+            precompute_skirt();
+            if (Cancelled()) return;
+
+            precompute_support_areas();
+            if (Cancelled()) return;
+        }
+
+        /// <summary>
+        /// Final steps of print generation. Called after all layers are 
+        /// processed; override to add additional tear down.
+        /// </summary>
+        protected virtual void FinishGeneration()
+        {
             Compiler.End();
-
             PostProcessCompilerF(Compiler, this);
+        }
 
-            // TODO: May need to force Build.EndLine() somehow if losing the end
+        /// <summary>
+        /// Initial setup of print generation. Called before beginning the precompute steps;
+        /// you can override it to add additional setup or processing.
+        /// </summary>
+        protected virtual void SetupGeneration()
+        {
+            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
+            //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
+            OverhangAllowanceMM = Settings.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
+
+            int NProgressStepsPerLayer = 10;
+            TotalProgress = NProgressStepsPerLayer * (Slices.Count - 1);
+            CurProgress = 0;
+
+            if (AccumulatePathSet == true)
+                AccumulatedPaths = new ToolpathSet();
+
+            // build spatial caches for slice polygons
+            //bool need_slice_spatial = (Settings.GenerateSupport);
+            bool need_slice_spatial = true;  // need this for bridges...
+            if (need_slice_spatial)
+            {
+                Slices.BuildSliceSpatialCaches(true);
+            }
+
+            if (Cancelled()) return;
+
+            // initialize compiler and get start nozzle position
+            Compiler.Begin();
         }
 
         protected bool InputsAreInvalid()
@@ -529,7 +536,7 @@ namespace gs
             return layerSettings;
         }
 
-        protected virtual void schedule_closed_polygons(GroupScheduler2d groupScheduler, PrintLayerData layerdata, int layer_i)
+        protected virtual void ScheduleClosedPolygons(GroupScheduler2d groupScheduler, PrintLayerData layerdata, int layer_i)
         {
             // selector determines what order we process shells in
             ILayerShellsSelector shellSelector = ShellSelectorFactoryF(layerdata);

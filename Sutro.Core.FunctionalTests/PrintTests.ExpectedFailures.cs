@@ -1,15 +1,21 @@
 ﻿using gs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
+using Sutro.Core.FunctionalTests;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.Logging;
 using Sutro.Core.Settings;
 using System;
 
 namespace gsCore.FunctionalTests
 {
     [TestClass]
-    public class FFF_PrintTests_ExpectedFailures
+    public class FFF_PrintTests_ExpectedFailures : TestBase
     {
+        public FFF_PrintTests_ExpectedFailures() : base()
+        {
+        }
+
         private const string CaseName = "Cube.Failures";
 
         [ClassInitialize]
@@ -65,7 +71,7 @@ namespace gsCore.FunctionalTests
             var print = new PrintTestRunner(CaseName, resultGenerator, resultAnalyzer);
 
             // Act
-            print.GenerateFile();
+            var result = print.GenerateFile();
 
             // Assert
             Assert.ThrowsException<ExceptionType>(() =>

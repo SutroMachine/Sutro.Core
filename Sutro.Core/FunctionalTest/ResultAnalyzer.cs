@@ -2,6 +2,7 @@ using gs;
 using gs.FillTypes;
 using gs.utility;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using System.Collections.Generic;
 using System.IO;
