@@ -1,11 +1,9 @@
 ﻿using g3;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace gs
 {
-
     // Just a utility class we can subclass to create custom "marker" paths
     // in the path stream.
     public class SentinelToolpath : IToolpath

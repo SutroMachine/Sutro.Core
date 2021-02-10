@@ -76,7 +76,6 @@ namespace Sutro.Core.Decompilers
                 toolpath.UpdateVertex(0, modifiedFirstVertex);
             }
             toolpath.AppendVertex(vertex, TPVertexFlags.None);
-
         }
 
         private void CloseToolpathAndAddTravel(PrintVertex previousVertex, PrintVertex currentVertex)

@@ -1,6 +1,5 @@
 ﻿using g3;
 using gs.FillTypes;
-using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;

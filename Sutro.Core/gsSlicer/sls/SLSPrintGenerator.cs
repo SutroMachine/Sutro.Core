@@ -1,5 +1,4 @@
 ﻿using g3;
-using gs.FillTypes;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
@@ -17,8 +16,8 @@ namespace gs
         protected PlanarSliceStack Slices;
         protected IThreeAxisLaserCompiler Compiler;
         public PrintProfileFFF Settings;      // public because you could modify
-                                                        // this during process, ie in BeginLayerF
-                                                        // to implement per-layer settings
+                                              // this during process, ie in BeginLayerF
+                                              // to implement per-layer settings
 
         // available after calling Generate()
         public ToolpathSet Result;
@@ -235,7 +234,7 @@ namespace gs
 
                 foreach (GeneralPolygon2d shape in solids)
                 {
-                    ShellsFillPolygon shells_gen = new ShellsFillPolygon(shape, 
+                    ShellsFillPolygon shells_gen = new ShellsFillPolygon(shape,
                         Settings.FillTypeFactory.InnerPerimeter(),
                         Settings.FillTypeFactory.OuterPerimeter());
 

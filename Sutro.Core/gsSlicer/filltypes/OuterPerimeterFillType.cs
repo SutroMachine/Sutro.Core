@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace gs.FillTypes
+﻿namespace gs.FillTypes
 {
     public class OuterPerimeterFillType : BaseFillType
     {

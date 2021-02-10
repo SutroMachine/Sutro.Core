@@ -29,7 +29,6 @@ namespace Sutro.Core.UnitTests
 
             // Act
             var json = JsonConvert.SerializeObject(settings);
-
         }
     }
 }

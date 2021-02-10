@@ -1,9 +1,9 @@
 ﻿using g3;
+using gs.FillTypes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Settings;
 using System.Collections.Generic;
 using System.Linq;
-using gs.FillTypes;
-using Sutro.Core.Settings;
 
 namespace gs.UnitTests.Fill
 {

@@ -1,8 +1,6 @@
 ﻿using gs;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings;
-using Sutro.Core.Settings.Machine;
-using Sutro.Core.Settings.Part;
 
 namespace Sutro.Core.FunctionalTest
 {

@@ -3,7 +3,6 @@ using gs.FillTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 
 namespace gs
@@ -32,6 +31,7 @@ namespace gs
 
         // if true, we inset half of tool-width from Polygon
         public bool InsetFromInputPolygon { get; set; } = true;
+
         public double InsetFromInputPolygonX { get; set; } = 0.5;
 
         // if true, we clip fill lines so that we don't have any that are too close (not usually necessary?)
@@ -515,7 +515,7 @@ namespace gs
                         }
                     }
 
-                skip_this_edge:
+                    skip_this_edge:
                     done_edge[eid] = true;
                 }
             }

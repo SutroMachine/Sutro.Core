@@ -12,6 +12,7 @@ namespace gs
 
         // parameters
         public double ToolWidth { get; set; } = 0.4;
+
         public double PathSpacing { get; set; } = 0.4;
         public double AngleDeg { get; set; } = 45.0;
         public double PathShift { get; set; } = 0;

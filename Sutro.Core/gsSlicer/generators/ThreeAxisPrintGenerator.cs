@@ -6,7 +6,6 @@ using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
@@ -61,6 +60,7 @@ namespace gs
             PlanarSliceStack slices,
             TPrintSettings settings,
             AssemblerFactoryF overrideAssemblerF);
+
         GenerationResult Generate(CancellationToken? cancellationToken);
 
         GCodeFile Result { get; }
@@ -69,7 +69,6 @@ namespace gs
         IReadOnlyList<string> MaterialUsageEstimate { get; }
         IReadOnlyList<string> Warnings { get; }
     }
-
 
     /// <summary>
     /// This is the top-level class that generates a GCodeFile for a stack of slices.
@@ -83,12 +82,11 @@ namespace gs
         public PlanarSliceStack Slices { get; protected set; }
         public IThreeAxisPrinterCompiler Compiler { get; protected set; }
         public IPrintProfileFFF Settings;      // public because you could modify
-                                                        // this during process, ie in BeginLayerF
-                                                        // to implement per-layer settings
+                                               // this during process, ie in BeginLayerF
+                                               // to implement per-layer settings
 
         // available after calling Generate()
         public GCodeFile Result { get; protected set; }
-
 
         protected List<string> warnings = new List<string>();
         public IReadOnlyList<string> Warnings => warnings;
@@ -386,7 +384,7 @@ namespace gs
         {
             int i = layerdata.layer_i;
 
-            bool noShells = 
+            bool noShells =
                 LayerShells == null ||
                 LayerShells.Length <= i ||
                 LayerShells[i] == null ||
@@ -398,7 +396,7 @@ namespace gs
                 LayerSupportAreas[i] == null ||
                 LayerSupportAreas[i].Count == 0;
 
-            return noShells && noSupport;       
+            return noShells && noSupport;
         }
 
         protected virtual void MoveToLayerPlane(ToolpathSetBuilder pathAccum, PrintLayerData layer)
@@ -411,10 +409,10 @@ namespace gs
             if (profile.Part.MinLayerTime > 0)
             {
                 CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths);
-                
+
                 bool layerModified = layer_time_calc.EnforceMinLayerTime(
                     profile.Part.MinLayerTime, profile.Part.MinExtrudeSpeed);
-                
+
                 if (layerModified)
                 {
                     layer_time_calc.Calculate();
@@ -471,7 +469,7 @@ namespace gs
 
         /// <summary>
         /// Processing that happens before layer-by-layer generation. Includes
-        /// parallel processing steps that can be done independently for multiple 
+        /// parallel processing steps that can be done independently for multiple
         /// layers independently. Override to add additional precompute steps.
         /// </summary>
         protected virtual void PrecomputeGeneration()
@@ -499,7 +497,7 @@ namespace gs
         }
 
         /// <summary>
-        /// Final steps of print generation. Called after all layers are 
+        /// Final steps of print generation. Called after all layers are
         /// processed; override to add additional tear down.
         /// </summary>
         protected virtual void FinishGeneration()
@@ -1159,7 +1157,7 @@ namespace gs
         /// </summary>
         protected virtual IShellsFillPolygon compute_shells_for_shape(GeneralPolygon2d shape, int layer_i)
         {
-            ShellsFillPolygon shells_gen = new ShellsFillPolygon(shape, 
+            ShellsFillPolygon shells_gen = new ShellsFillPolygon(shape,
                 Settings.FillTypeFactory.InnerPerimeter(),
                 Settings.FillTypeFactory.OuterPerimeter());
 
@@ -1563,7 +1561,7 @@ namespace gs
             Interval1i interval = new Interval1i(0, nLayers - 1);
             for (int layeri = interval.a; layeri < interval.b; ++layeri)
 #else
-			gParallel.ForEach(Interval1i.Range(nLayers - 1), (layeri) =>
+            gParallel.ForEach(Interval1i.Range(nLayers - 1), (layeri) =>
 #endif
             {
                 if (Cancelled()) return;
@@ -1670,7 +1668,7 @@ namespace gs
 #if DEBUG
             }
 #else
-        });
+            });
 #endif
             LayerSupportAreas[nLayers - 1] = new List<GeneralPolygon2d>();
 

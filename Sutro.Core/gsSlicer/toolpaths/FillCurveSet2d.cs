@@ -1,8 +1,8 @@
 ﻿using g3;
+using gs.FillTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using gs.FillTypes;
 
 namespace gs
 {
@@ -13,10 +13,10 @@ namespace gs
     /// </summary>
 	public class FillCurveSet2d
     {
-        public List<FillLoop> Loops = 
+        public List<FillLoop> Loops =
             new List<FillLoop>();
-        
-        public List<FillCurve> Curves = 
+
+        public List<FillCurve> Curves =
             new List<FillCurve>();
 
         public void Append(GeneralPolygon2d poly, IFillType fillType)
@@ -64,9 +64,11 @@ namespace gs
                 case FillLoop loop:
                     Append(loop);
                     break;
+
                 case FillCurve curve:
                     Append(curve);
                     break;
+
                 default:
                     throw new NotImplementedException($"FillCurveSet2d.Append encountered unexpected type {element.GetType()}");
             }

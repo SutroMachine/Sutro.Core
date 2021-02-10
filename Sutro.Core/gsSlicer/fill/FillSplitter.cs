@@ -1,5 +1,4 @@
-﻿using System;
-using g3;
+﻿using g3;
 using System.Collections.Generic;
 
 namespace gs
@@ -53,7 +52,7 @@ namespace gs
                     // Create normalized split distance (0,1)
                     double splitDistance = splitsQueue.Dequeue() - cumulativeDistance;
 
-                    currentElement.SplitElement(splitDistance / nextDistance, out var splitElementFront, out currentElement); 
+                    currentElement.SplitElement(splitDistance / nextDistance, out var splitElementFront, out currentElement);
 
                     splitElements.Add(splitElementFront);
                     result.Add(splitElements);

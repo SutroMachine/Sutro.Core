@@ -2,7 +2,6 @@
 
 namespace Sutro.Core.Settings.Material
 {
-
     public class MaterialProfileFFF : MaterialProfileBase
     {
         // Identifiers

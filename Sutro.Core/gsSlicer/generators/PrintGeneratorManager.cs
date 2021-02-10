@@ -3,7 +3,6 @@ using Sutro.Core;
 using Sutro.Core.Logging;
 using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
-using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using System;
@@ -14,12 +13,10 @@ using System.Threading;
 
 namespace gs
 {
-
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
         where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()
         where TPrintSettings : class, IPrintProfileFFF, new()
     {
-
         public delegate ISettingsBuilder<TPrintSettings> SettingsBuilderF(TPrintSettings settings, ILogger logger);
 
         private readonly ILogger logger;
@@ -46,7 +43,7 @@ namespace gs
 
         protected static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
 
-        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true, 
+        public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true,
             SettingsBuilderF settingsBuilderF = null)
         {
             AcceptsParts = acceptsParts;
@@ -86,13 +83,13 @@ namespace gs
             var globalSettings = settings ?? settingsBuilder.Settings;
 
             if (AcceptsParts)
-            {                
+            {
                 var success = SliceMesh(printMeshAssembly, out slices);
                 if (!success)
                 {
                     var generationResult = new GenerationResult();
                     generationResult.AddLog(LoggingLevel.Error, "Mesh slicing failed");
-                }                    
+                }
             }
 
             // Run the print generator
@@ -115,13 +112,11 @@ namespace gs
             return null;
         }
 
-        public Func<TPrintSettings, MeshPlanarSlicerBase> GetSlicerF { get; set; } = 
+        public Func<TPrintSettings, MeshPlanarSlicerBase> GetSlicerF { get; set; } =
             (settings) => new MeshSlicerHorizontalPlanes()
-        {
-            LayerHeightMM = settings.Part.LayerHeightMM
-        };
-
-
+            {
+                LayerHeightMM = settings.Part.LayerHeightMM
+            };
 
         private bool SliceMesh(PrintMeshAssembly meshes, out PlanarSliceStack slices)
         {

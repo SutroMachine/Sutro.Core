@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace gs.UnitTests.Fill
 {
@@ -9,7 +9,7 @@ namespace gs.UnitTests.Fill
         [TestMethod]
         public void ParameterizedDistance_Set_Valid()
         {
-            var location = new ElementLocation(0,0);
+            var location = new ElementLocation(0, 0);
             location.ParameterizedDistance = 0;
             location.ParameterizedDistance = 0.5;
             location.ParameterizedDistance = 1;

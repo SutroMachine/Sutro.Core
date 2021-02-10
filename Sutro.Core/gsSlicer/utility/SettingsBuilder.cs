@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Sutro.Core.Logging;
 using Sutro.Core.Persistence;
-using Sutro.Core.Settings;
-using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace gs
@@ -35,7 +32,6 @@ namespace gs
             {
                 MissingMemberHandling = MissingMemberHandling.Error,
                 ContractResolver = contractResolver,
-                
             };
         }
 

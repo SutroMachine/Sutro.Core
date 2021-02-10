@@ -32,7 +32,7 @@ namespace Sutro.Core.FunctionalTest
             var mesh = StandardMeshReader.ReadMesh(meshFilePath);
 
             var result = generator.GCodeFromMesh(
-                mesh: mesh, 
+                mesh: mesh,
                 cancellationToken: null);
 
             SaveGCode(outputFilePath, result.GCode);

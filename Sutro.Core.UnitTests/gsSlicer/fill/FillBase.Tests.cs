@@ -1,7 +1,6 @@
 ﻿using g3;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Linq;
 
 namespace gs.UnitTests.Fill
 {
@@ -35,7 +34,7 @@ namespace gs.UnitTests.Fill
         [TestMethod]
         public void FindClosestElementToPoint_Case1()
         {
-            // Arrange 
+            // Arrange
             var loop = FillFactory.CreateTriangleCCW();
             var point = new Vector2d(5, 2);
 
@@ -51,7 +50,7 @@ namespace gs.UnitTests.Fill
         [TestMethod]
         public void FindClosestElementToPoint_Case2()
         {
-            // Arrange 
+            // Arrange
             var loop = FillFactory.CreateTriangleCCW();
             var point = new Vector2d(5, -1);
 

@@ -1,6 +1,5 @@
 ﻿using g3;
 using gs.FillTypes;
-using System;
 using System.Collections.Generic;
 
 namespace gs
@@ -167,7 +166,7 @@ namespace gs
             foreach (Index2i idx in remaining)
             {
                 if (idx.a == 0) // loop
-                { 
+                {
                     PathLoop loop = Loops[idx.b];
                     double distance = GetLoopEntryPoint(pt, loop, out var location);
 
@@ -214,7 +213,6 @@ namespace gs
             {
                 flip = true;
                 return distanceToCurveEnd;
-
             }
         }
 
@@ -226,7 +224,7 @@ namespace gs
                 location = new ElementLocation(0, 0);
                 return loop.loop.Entry.Distance(startPoint);
             }
-            
+
             return loop.loop.FindClosestElementToPoint(startPoint, out location);
         }
 

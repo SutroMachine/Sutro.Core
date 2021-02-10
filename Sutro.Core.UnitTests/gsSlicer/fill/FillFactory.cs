@@ -21,6 +21,5 @@ namespace gs.UnitTests.Fill
                 new Vector2d(0, 0),
             });
         }
-
     }
 }

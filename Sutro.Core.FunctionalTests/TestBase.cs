@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Sutro.Core.FunctionalTests
+﻿namespace Sutro.Core.FunctionalTests
 {
     public abstract class TestBase
     {
@@ -15,7 +11,6 @@ namespace Sutro.Core.FunctionalTests
             Models.Config.Parallel = true;
             Models.Config.Debug = false;
 #endif
-
         }
     }
 }

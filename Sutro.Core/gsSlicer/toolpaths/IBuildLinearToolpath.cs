@@ -1,11 +1,5 @@
-﻿using g3;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace gs
+﻿namespace gs
 {
-
     public interface IBuildLinearToolpath<T> : ILinearToolpath<T>
     {
         void ChangeType(ToolpathTypes type);

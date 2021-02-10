@@ -7,12 +7,19 @@ namespace gs
     public abstract class FillCurve : FillBase
     {
         public abstract List<FillCurve> SplitAtDistances(IEnumerable<double> splitDistances);
+
         public abstract FillCurve Reversed();
+
         public abstract FillCurve TrimFront(double trimDistance);
+
         public abstract FillCurve TrimBack(double trimDistance);
+
         public abstract FillCurve TrimFrontAndBack(double trimDistanceFront, double? trimDistanceBack = null);
+
         public abstract IEnumerable<Vector2d> Vertices();
+
         public abstract IEnumerable<Vector3d> Vertices3d();
+
         public abstract void Extend(FillCurve other, double vertexComparisonTolerance = 1e-6);
     }
 
@@ -23,7 +30,7 @@ namespace gs
         where TSegmentInfo : IFillSegment, new()
     {
         public override Vector2d Entry => elementsList.Elements[0].NodeStart.xy;
-        public override Vector2d Exit => elementsList.Elements [^1].NodeEnd.xy;
+        public override Vector2d Exit => elementsList.Elements[^1].NodeEnd.xy;
         public override int ElementCount => elementsList.Elements.Count;
 
         private readonly FillElementList<TSegmentInfo> elementsList = new FillElementList<TSegmentInfo>();
@@ -192,7 +199,7 @@ namespace gs
         public override FillCurve TrimFront(double trimDistance)
         {
             ValidateTrimDistance(trimDistance, TotalLength());
-            return SplitAtDistances(new double[] {trimDistance})[1];
+            return SplitAtDistances(new double[] { trimDistance })[1];
         }
 
         public override FillCurve TrimBack(double trimDistance)

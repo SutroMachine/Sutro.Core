@@ -1,5 +1,5 @@
-﻿using System;
-using g3;
+﻿using g3;
+using System;
 
 namespace gs
 {
@@ -45,7 +45,7 @@ namespace gs
         {
             var splitVertex = Vector3d.Lerp(NodeStart, NodeEnd, splitDistanceParameterized);
             var splitSegmentData = Edge.Split(splitDistanceParameterized);
-            front = new FillElement<TEdge>(NodeStart, splitVertex, (TEdge) splitSegmentData.Item1);
+            front = new FillElement<TEdge>(NodeStart, splitVertex, (TEdge)splitSegmentData.Item1);
             back = new FillElement<TEdge>(splitVertex, NodeEnd, (TEdge)splitSegmentData.Item2);
         }
     }

@@ -4,7 +4,6 @@ namespace Sutro.Core.Settings.Material
 {
     public abstract class MaterialProfileBase : IMaterialProfile
     {
-
         // Identifiers
         public string Name { get; set; } = "Generic Material";
 

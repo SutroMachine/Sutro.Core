@@ -2,10 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings.Part;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Sutro.Core.UnitTests
 {
@@ -72,7 +69,6 @@ namespace Sutro.Core.UnitTests
             // Arrange
             var settingsBuilder = CreateSettingsBuilder();
             settingsBuilder.Settings.LayerRangeFilter = new g3.Interval1i(9, 99);
-
 
             // Act
             settingsBuilder.ApplyJSONSnippet("LayerRangeFilter.Max:999");

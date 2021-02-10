@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Sutro.Core.Utility
 {
-    public static class Parallel 
+    public static class Parallel
     {
         public static void ForEach<T>(IEnumerable<T> source, Action<T, long> action)
         {

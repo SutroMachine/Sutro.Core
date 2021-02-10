@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Sutro.Core.Settings;
-using System.Collections.Generic;
 
 namespace gsCore.UnitTests
 {
@@ -16,7 +15,7 @@ namespace gsCore.UnitTests
 
             var converter = new Interval1iConverter();
             var serializerSettings = new JsonSerializerSettings() { Converters = new JsonConverter[] { converter } };
-            
+
             var json = JsonConvert.SerializeObject(interval, serializerSettings);
 
             var result = JsonConvert.DeserializeObject<Interval1i>(json, serializerSettings);
@@ -24,6 +23,5 @@ namespace gsCore.UnitTests
             Assert.AreEqual(interval.a, result.a);
             Assert.AreEqual(interval.b, result.b);
         }
-
     }
 }

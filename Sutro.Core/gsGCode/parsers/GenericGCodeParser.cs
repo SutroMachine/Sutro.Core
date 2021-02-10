@@ -1,7 +1,5 @@
 ﻿using Sutro.Core.Models.GCode;
 using System;
-using System.IO;
-using System.Linq;
 
 namespace gs
 {
@@ -251,9 +249,11 @@ namespace gs
                 case GCodeUtil.NumberType.Integer:
                     param = GCodeParam.Integer(int.Parse(value), identifier);
                     break;
+
                 case GCodeUtil.NumberType.Decimal:
                     param = GCodeParam.Double(double.Parse(value), identifier);
                     break;
+
                 default:
                 case GCodeUtil.NumberType.NotANumber:
                     param = GCodeParam.Text(value, identifier);

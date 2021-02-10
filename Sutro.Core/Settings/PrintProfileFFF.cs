@@ -1,10 +1,8 @@
 ﻿using gs;
-using Sutro.Core.FunctionalTest;
 using Sutro.Core.Models.Profiles;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Material;
 using Sutro.Core.Settings.Part;
-using System;
 
 namespace Sutro.Core.Settings
 {
@@ -33,7 +31,6 @@ namespace Sutro.Core.Settings
 
         public FillTypeFactory FillTypeFactory { get; }
     }
-
 
     public static class PrintProfileFFFExtensions
     {

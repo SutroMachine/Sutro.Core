@@ -1,5 +1,4 @@
 ﻿using g3;
-using gs;
 using Sutro.Core.Models;
 using System;
 using System.Collections.Concurrent;
@@ -16,6 +15,7 @@ namespace gs
         protected List<SliceMesh> Meshes = new List<SliceMesh>();
 
         public Func<bool> CancelF { get; set; } = () => { return false; };
+
         /// <summary>
         /// How should open paths be handled. Is overridden by
         /// OpenPathsModes for specific meshes
@@ -43,6 +43,7 @@ namespace gs
         public double LayerHeightMM { get; set; } = 0.2;
 
         public int MaxLayerCount { get; set; } = 10000;
+
         /// <summary>
         /// Often desirable to support a Z-minima tip several layers "up" around it.
         /// This is how many layers.
@@ -76,6 +77,7 @@ namespace gs
 
         // These can be used for progress tracking
         protected int progress = 0;
+
         public int Progress => progress;
         public int TotalCompute { get; set; } = 0;
 

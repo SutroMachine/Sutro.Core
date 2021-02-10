@@ -1,11 +1,7 @@
-﻿using g3;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 
 namespace gs
 {
-
     public class AssemblerCommandsToolpath : SentinelToolpath
     {
         public override ToolpathTypes Type

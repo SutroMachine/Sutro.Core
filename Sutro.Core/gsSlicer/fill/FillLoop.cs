@@ -1,17 +1,21 @@
 ﻿using g3;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace gs
 {
     public abstract class FillLoop : FillBase
     {
         public abstract FillLoop RollToVertex(int index);
+
         public abstract FillLoop RollBetweenVertices(ElementLocation location, double tolerance = 0.001);
+
         public abstract FillLoop Reversed();
+
         public abstract bool IsClockwise();
+
         public abstract IEnumerable<Vector2d> Vertices(bool repeatFirst = false);
+
         public abstract List<FillCurve> SplitAtDistances(IEnumerable<double> splitDistances, bool joinEnds);
     }
 
@@ -111,7 +115,7 @@ namespace gs
             rolledElements.Add(new FillElement<TSegmentInfo>(
                 interpolatedVertex,
                 elementToSplit.NodeEnd,
-                (TSegmentInfo) splitSegmentData.Item2));
+                (TSegmentInfo)splitSegmentData.Item2));
 
             // Add all elements after the split element
             for (int i = elementIndex + 1; i < elementsList.Elements.Count; ++i)
@@ -125,14 +129,14 @@ namespace gs
             rolledElements.Add(new FillElement<TSegmentInfo>(
                 elementToSplit.NodeStart,
                 interpolatedVertex,
-                (TSegmentInfo) splitSegmentData.Item1));
+                (TSegmentInfo)splitSegmentData.Item1));
             return rolledElements;
         }
 
         private static Tuple<IFillSegment, IFillSegment> SplitSegment(double parameterizedDistance, FillElement<TSegmentInfo> element)
         {
             return element.Edge == null
-                ? Tuple.Create((IFillSegment) new TSegmentInfo(), (IFillSegment) new TSegmentInfo())
+                ? Tuple.Create((IFillSegment)new TSegmentInfo(), (IFillSegment)new TSegmentInfo())
                 : element.Edge.Split(parameterizedDistance);
         }
 

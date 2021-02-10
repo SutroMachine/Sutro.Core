@@ -14,10 +14,9 @@ namespace Sutro.Core.Settings.Part
             return SettingsPrototype.CloneAs<PartProfileFFF, PartProfileFFF>(this);
         }
 
-
         #region Basic
 
-       public virtual int RoofLayers { get; set; } = 2;
+        public virtual int RoofLayers { get; set; } = 2;
         public virtual int FloorLayers { get; set; } = 2;
 
         #endregion Basic

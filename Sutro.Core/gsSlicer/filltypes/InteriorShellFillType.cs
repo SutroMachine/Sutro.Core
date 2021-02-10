@@ -1,6 +1,5 @@
 ﻿namespace gs.FillTypes
 {
-
     public class InteriorShellFillType : BaseFillType
     {
         public static string Label => DefaultFillType.Label;

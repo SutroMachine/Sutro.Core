@@ -15,7 +15,6 @@ namespace gs
         SpeedHint SpeedHint { get; set; }
 
         Vector2d CurrentPosition { get; }
-
     }
 
     // dumbest possible scheduler...
@@ -52,12 +51,12 @@ namespace gs
                     AppendFillCurve(curve);
 
                 foreach (var loop in curveSet.Loops)
-                    AppendFillLoop (loop);
+                    AppendFillLoop(loop);
             }
         }
 
         // [TODO] no reason we couldn't start on edge midpoint??
-        public virtual void AppendFillLoop(FillLoop loop) 
+        public virtual void AppendFillLoop(FillLoop loop)
         {
             AssertValidLoop(loop);
 
@@ -214,7 +213,6 @@ namespace gs
 
             return flags;
         }
-
 
         // 1) If we have "careful" speed hint set, use CarefulExtrudeSpeed
         //       (currently this is only set on first layer)

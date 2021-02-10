@@ -3,7 +3,6 @@ using gs.FillTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace gs
 {
@@ -99,6 +98,7 @@ namespace gs
 
         // remaining interior polygons (to fill w/ other strategy, etc)
         public List<GeneralPolygon2d> InnerPolygons { get; set; }
+
         public List<GeneralPolygon2d> GetInnerPolygons()
         {
             return InnerPolygons;
@@ -351,9 +351,11 @@ namespace gs
                 foreach (var polygon in solids.Polygons)
                 {
                     polygon.EnforceCounterClockwise();
-                    paths.Append(new FillLoop<FillSegment>(polygon.Outer.Vertices) { 
-                        FillType = currentFillType, 
-                        PerimeterOrder = nShell });
+                    paths.Append(new FillLoop<FillSegment>(polygon.Outer.Vertices)
+                    {
+                        FillType = currentFillType,
+                        PerimeterOrder = nShell
+                    });
                     foreach (var hole in polygon.Holes)
                     {
                         paths.Append(new FillLoop<FillSegment>(hole.Vertices)

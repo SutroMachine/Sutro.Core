@@ -1,5 +1,4 @@
-﻿using Sutro.Core.Models.Profiles;
-using Sutro.Core.Settings;
+﻿using Sutro.Core.Settings;
 
 namespace gs
 {

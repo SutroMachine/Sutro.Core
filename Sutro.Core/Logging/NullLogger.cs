@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Sutro.Core.Logging
+﻿namespace Sutro.Core.Logging
 {
     public class NullLogger : ILogger
     {

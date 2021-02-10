@@ -1,8 +1,7 @@
-﻿using gs;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTests;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.FunctionalTests;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings;
 using System;

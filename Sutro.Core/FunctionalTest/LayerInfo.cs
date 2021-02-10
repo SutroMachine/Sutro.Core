@@ -1,5 +1,4 @@
-﻿using gs;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+﻿using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
 using Sutro.Core.Logging;
 using System.Collections.Generic;
 

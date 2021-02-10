@@ -29,7 +29,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Frustum.RepRap", new PrintProfileFFF()
             {
-                Machine = machine, Part = part
+                Machine = machine,
+                Part = part
             });
 
             // Act
@@ -53,7 +54,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Cube.Prusa", new PrintProfileFFF()
             {
-                Machine = machine, Part = part
+                Machine = machine,
+                Part = part
             });
 
             // Act
@@ -94,7 +96,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Bunny.Printrbot", new PrintProfileFFF()
             {
-                Machine = machine, Part = part,
+                Machine = machine,
+                Part = part,
             });
 
             // Act
@@ -112,13 +115,14 @@ namespace gsCore.FunctionalTests
             var part = new PartProfileFFF()
             {
                 GenerateSupport = false,
-            }; 
+            };
             PartProfileFactoryFFF.ApplyMaxMachineSpeeds(part, machine);
             part.CarefulExtrudeSpeed = 20 * 60;
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Benchy.Monoprice", new PrintProfileFFF()
             {
-                Part = part, Machine = machine
+                Part = part,
+                Machine = machine
             });
 
             // Act

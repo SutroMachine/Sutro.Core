@@ -25,7 +25,7 @@ namespace Sutro.Core.Settings.Machine
                 profile.Firmware = FirmwareOptions.Monoprice;
                 profile.ManufacturerName = "Monoprice";
             }
-          
+
             private static void ConfigureSelectMiniV2(MachineProfileFFF profile)
             {
                 profile.Name = "Monoprice Select Mini V2";

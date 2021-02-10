@@ -1,7 +1,4 @@
-﻿using Sutro.Core.Models.Profiles;
-using Sutro.Core.Settings.Machine;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Sutro.Core.Settings.Machine
 {
@@ -51,7 +48,6 @@ namespace Sutro.Core.Settings.Machine
 
                 profile.HasAutoBedLeveling = true;
                 profile.EnableAutoBedLeveling = true;
-
             }
         }
     }

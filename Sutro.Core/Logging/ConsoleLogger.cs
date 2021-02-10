@@ -16,7 +16,6 @@ namespace Sutro.Core.Logging
 
             Console.ForegroundColor = previousForeground;
             Console.BackgroundColor = previousBackground;
-
         }
 
         private void WriteLine(string s, ConsoleColor? color = null)

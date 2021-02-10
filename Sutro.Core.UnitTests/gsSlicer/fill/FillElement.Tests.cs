@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using g3;
+﻿using g3;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace gs.UnitTests.Fill

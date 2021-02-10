@@ -1,7 +1,6 @@
-﻿using System;
+﻿using g3;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using g3;
 
 namespace gs
 {
@@ -86,10 +85,10 @@ namespace gs
         {
             if (index < elements.Count)
                 return elements[index].NodeStart;
-            
+
             if (index == elements.Count)
                 return elements[^1].NodeEnd;
-            
+
             throw new IndexOutOfRangeException();
         }
     }
