@@ -1,6 +1,5 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
-using System;
 
 namespace Sutro.Core.Parsers
 {

@@ -1,6 +1,4 @@
-﻿using Sutro.Core.FillTypes;
-
-namespace gs.FillTypes
+﻿namespace Sutro.Core.FillTypes
 {
     public class InteriorShellFillType : BaseFillType
     {

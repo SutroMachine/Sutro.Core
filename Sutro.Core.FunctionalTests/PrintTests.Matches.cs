@@ -1,8 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sutro.Core.FunctionalTest;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
+using Sutro.Core.Test;
 
 namespace Sutro.Core.FunctionalTests
 {
