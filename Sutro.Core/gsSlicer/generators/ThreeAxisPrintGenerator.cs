@@ -14,63 +14,6 @@ namespace gs
     using ShellFillRegionDict = Dictionary<IShellsFillPolygon, FillRegions>;
 
     /// <summary>
-    /// PrintLayerData is set of information for a single print layer
-    /// </summary>
-    public class PrintLayerData
-    {
-        public int layer_i;
-        public PlanarSlice Slice;
-        public IPrintProfileFFF Settings;
-
-        public PrintLayerData PreviousLayer;
-
-        public ToolpathSetBuilder PathAccum;
-        public IFillPathScheduler2d Scheduler;
-
-        public List<IShellsFillPolygon> ShellFills;
-        public List<GeneralPolygon2d> SupportAreas;
-
-        public TemporalPathHash Spatial;
-
-        public PrintLayerData(int layer_i, PlanarSlice slice, IPrintProfileFFF settings)
-        {
-            this.layer_i = layer_i;
-            Slice = slice;
-            Settings = settings;
-            Spatial = new TemporalPathHash();
-        }
-    }
-
-    public class FillRegions
-    {
-        public readonly List<GeneralPolygon2d> Solid;
-        public readonly List<GeneralPolygon2d> Sparse;
-
-        public FillRegions(List<GeneralPolygon2d> solid, List<GeneralPolygon2d> sparse)
-        {
-            Solid = solid;
-            Sparse = sparse;
-        }
-    }
-
-    public interface IPrintGenerator<TPrintSettings>
-    {
-        void Initialize(
-            PrintMeshAssembly meshes,
-            PlanarSliceStack slices,
-            TPrintSettings settings,
-            AssemblerFactoryF overrideAssemblerF);
-
-        GenerationResult Generate(CancellationToken? cancellationToken);
-
-        GCodeFile Result { get; }
-
-        IReadOnlyList<string> PrintTimeEstimate { get; }
-        IReadOnlyList<string> MaterialUsageEstimate { get; }
-        IReadOnlyList<string> Warnings { get; }
-    }
-
-    /// <summary>
     /// This is the top-level class that generates a GCodeFile for a stack of slices.
     /// Currently must subclass to provide resulting GCodeFile.
     /// </summary>

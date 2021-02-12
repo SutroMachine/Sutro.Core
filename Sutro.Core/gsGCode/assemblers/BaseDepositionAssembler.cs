@@ -6,10 +6,6 @@ using System.Collections.Generic;
 
 namespace gs
 {
-    public interface IGCodeAssembler
-    {
-    }
-
     public delegate IDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
     /// <summary>

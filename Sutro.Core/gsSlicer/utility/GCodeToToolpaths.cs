@@ -5,12 +5,6 @@ namespace gs
 {
     using LinearToolpath = LinearToolpath3<PrintVertex>;
 
-    // we will insert these in PathSet when we are
-    // instructed to reset extruder stepper
-    public class ResetExtruderPathHack : SentinelToolpath
-    {
-    }
-
     /// <summary>
     /// Convert a GCodeFile to a single huge ToolpathSet
     /// </summary>

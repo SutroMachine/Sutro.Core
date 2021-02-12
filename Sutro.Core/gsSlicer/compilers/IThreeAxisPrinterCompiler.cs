@@ -1,15 +1,15 @@
 ﻿using g3;
 using Sutro.Core.Settings;
 using System;
+using System.Collections.Generic;
 
 namespace gs
 {
     // [TODO] be able to not hardcode this type?
-
-    public interface IThreeAxisMillingCompiler : ICNCCompiler
+    public interface IThreeAxisPrinterCompiler : ICNCCompiler
     {
-        // current tool position
-        Vector3d ToolPosition { get; }
+        // current nozzle position
+        Vector3d NozzlePosition { get; }
 
         // compiler will call this to emit status messages / etc
         Action<string> EmitMessageF { get; set; }
@@ -21,5 +21,9 @@ namespace gs
         void AppendComment(string comment);
 
         void End();
+
+        void AppendBlankLine();
+
+        IEnumerable<string> GenerateTotalExtrusionReport(IPrintProfileFFF settings);
     }
 }

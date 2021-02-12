@@ -5,11 +5,6 @@ using System.Collections.Generic;
 
 namespace gs
 {
-    [Obsolete("Use the MeshSlicerHorizontalPlanes class intead")]
-    public class MeshPlanarSlicer : MeshSlicerHorizontalPlanes
-    {
-    }
-
     /// <summary>
     /// Computes a PlanarSliceStack from a set of input meshes, by horizonally
     /// slicing them at regular Z-intervals. This is where we need to sort out

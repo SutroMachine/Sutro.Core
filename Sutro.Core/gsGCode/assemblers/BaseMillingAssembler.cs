@@ -5,10 +5,6 @@ using System;
 
 namespace gs
 {
-    public interface IMillingAssembler : IGCodeAssembler
-    {
-    }
-
     public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
     /// <summary>

@@ -8,15 +8,6 @@ using System.Linq;
 
 namespace gs
 {
-    public interface IFillPathScheduler2d
-    {
-        void AppendCurveSets(List<FillCurveSet2d> paths);
-
-        SpeedHint SpeedHint { get; set; }
-
-        Vector2d CurrentPosition { get; }
-    }
-
     // dumbest possible scheduler...
     public class SequentialScheduler2d : IFillPathScheduler2d
     {

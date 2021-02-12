@@ -2,15 +2,6 @@
 
 namespace gs
 {
-    public interface IThreeAxisLaserCompiler
-    {
-        void Begin();
-
-        void AppendPaths(ToolpathSet paths);
-
-        void End();
-    }
-
     public class SLSCompiler : IThreeAxisLaserCompiler
     {
         private PrintProfileFFF Settings;
