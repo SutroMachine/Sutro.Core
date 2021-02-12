@@ -1,10 +1,6 @@
-﻿using g3;
-using gs;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Decompilers;
 using Sutro.Core.Models.GCode;
-using Sutro.Core.Settings;
 
 namespace Sutro.Core.UnitTests.Decompilers
 {

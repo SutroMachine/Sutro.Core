@@ -1,7 +1,7 @@
 ﻿using g3;
-using gs;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -152,8 +152,8 @@ namespace Sutro.Core.Decompilers
         }
 
         // Matches variations of new layer lines:
-        //  - "layer 1, Z = 0.3"  
-        //  - "layer 1: 0.3"  
+        //  - "layer 1, Z = 0.3"
+        //  - "layer 1: 0.3"
         protected virtual Regex newLayerPattern => new Regex(@"layer (?<LayerIndex>\d+)(,\s?Z\s?=\s?|:\s?)(?<LayerHeight>\d+(\.\d+)?)");
 
         protected virtual bool LineIsNewLayerComment(GCodeLine line, out int index, out double height)

@@ -1,4 +1,4 @@
-using gs;
+using Sutro.Core.Generators;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings;
 using System;
@@ -13,7 +13,7 @@ namespace Sutro.Core.CLI
         {
             var logger = new ConsoleLogger();
 
-            var cli = new CommandLineInterface(
+            var cli = new CommandLine.Interface(
                 logger: logger,
                 printGenerators: new List<IPrintGeneratorManager> {
                     new PrintGeneratorManager<SingleMaterialFFFPrintGenerator, PrintProfileFFF>(

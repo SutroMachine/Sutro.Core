@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<NDepend AppName="Sutro.Core" Platform="DotNet" FileWrittenByProductVersion="2020.1.0.9404">
+<NDepend AppName="Sutro.Core" Platform="DotNet" FileWrittenByProductVersion="2021.1.0.9500">
   <OutputDir KeepXmlFiles="False">.\NDependOut</OutputDir>
   <IDEFiles>
-    <IDEFile FilePath=".\Sutro.Core.sln" Filters="-test -gsSlicer.CLI" Configuration="DEBUG|AnyCPU" />
+    <IDEFile FilePath=".\Sutro.Core.sln" Filters="-test -cli" Configuration="DEBUG|AnyCPU">
+      <RootDirResolvingInfo Enabled="False" Hints="Debug|bin|.bin|AnyCPU|x64|x86|v*.*|net*" TimeOut="10">
+        <RootDir>.</RootDir>
+      </RootDirResolvingInfo>
+    </IDEFile>
   </IDEFiles>
   <Assemblies />
   <FrameworkAssemblies>
-    <Name>netstandard</Name>
-    <Name>geometry3Sharp</Name>
-    <Name>clipper_library</Name>
-    <Name>Newtonsoft.Json</Name>
-    <Name>CommandLine</Name>
-    <Name>Sutro.Core.Models</Name>
     <Name>System.Runtime</Name>
+    <Name>System.Diagnostics.Debug</Name>
+    <Name>geometry3Sharp</Name>
+    <Name>Sutro.Core.Models</Name>
+    <Name>System.Runtime.Extensions</Name>
     <Name>System.Collections</Name>
-    <Name>mscorlib</Name>
+    <Name>System.Threading.Tasks.Parallel</Name>
+    <Name>Newtonsoft.Json</Name>
+    <Name>System.Diagnostics.StackTrace</Name>
+    <Name>System.IO.FileSystem</Name>
+    <Name>System.Text.RegularExpressions</Name>
+    <Name>System.Threading</Name>
+    <Name>System.Collections.Concurrent</Name>
+    <Name>System.Console</Name>
+    <Name>CommandLine</Name>
+    <Name>System.Threading.Thread</Name>
+    <Name>System.Linq</Name>
+    <Name>Clipper</Name>
   </FrameworkAssemblies>
   <Dirs>
-    <Dir>C:\windows\Microsoft.NET\Framework\v4.0.30319</Dir>
-    <Dir>C:\windows\Microsoft.NET\Framework\v4.0.30319\WPF</Dir>
+    <Dir>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319</Dir>
+    <Dir>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\WPF</Dir>
     <Dir>C:\Users\grego\.nuget\packages</Dir>
   </Dirs>
   <MergeCodeGeneratedByCompiler>True</MergeCodeGeneratedByCompiler>
@@ -27,9 +40,9 @@
   <BuildComparisonSetting ProjectMode="CurrentProject" BuildMode="NDaysAgoAnalysisResult" ProjectFileToCompareWith="" BuildFileToCompareWith="" NDaysAgo="30" />
   <BaselineInUISetting ProjectMode="CurrentProject" BuildMode="NDaysAgoAnalysisResult" ProjectFileToCompareWith="" BuildFileToCompareWith="" NDaysAgo="30" />
   <CoverageFiles CoverageDir="" UncoverableAttribute="">
-    <CoverageFile>.\coverage\Coverage.coveragexml</CoverageFile>
+    <CoverageFile>.\coverage\Coverage.xml</CoverageFile>
   </CoverageFiles>
-  <TrendMetrics UseCustomLog="False" LogRecurrence="3" LogLabel="2" UseCustomDir="False" CustomDir="">
+  <TrendMetrics UseCustomLog="True" LogRecurrence="3" LogLabel="0" UseCustomDir="False" CustomDir="">
     <Chart Name="Size" ShowInReport="True">
       <Serie MetricName="# Lines of Code" MetricUnit="Loc" Color="#FF00BFFF" ChartType="Line" ScaleExp="0" />
       <Serie MetricName="# Lines of Code Covered" MetricUnit="Loc" Color="#FF32CD32" ChartType="Area" ScaleExp="0" />

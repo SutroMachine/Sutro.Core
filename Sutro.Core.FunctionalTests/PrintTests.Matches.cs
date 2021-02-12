@@ -1,11 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTests;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
+using Sutro.Core.Test;
 
-namespace gsCore.FunctionalTests
+namespace Sutro.Core.FunctionalTests
 {
     [TestClass]
     public class FFF_PrintTests_Matches : TestBase
@@ -29,7 +28,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Frustum.RepRap", new PrintProfileFFF()
             {
-                Machine = machine, Part = part
+                Machine = machine,
+                Part = part
             });
 
             // Act
@@ -53,7 +53,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Cube.Prusa", new PrintProfileFFF()
             {
-                Machine = machine, Part = part
+                Machine = machine,
+                Part = part
             });
 
             // Act
@@ -94,7 +95,8 @@ namespace gsCore.FunctionalTests
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Bunny.Printrbot", new PrintProfileFFF()
             {
-                Machine = machine, Part = part,
+                Machine = machine,
+                Part = part,
             });
 
             // Act
@@ -112,13 +114,14 @@ namespace gsCore.FunctionalTests
             var part = new PartProfileFFF()
             {
                 GenerateSupport = false,
-            }; 
+            };
             PartProfileFactoryFFF.ApplyMaxMachineSpeeds(part, machine);
             part.CarefulExtrudeSpeed = 20 * 60;
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Benchy.Monoprice", new PrintProfileFFF()
             {
-                Part = part, Machine = machine
+                Part = part,
+                Machine = machine
             });
 
             // Act

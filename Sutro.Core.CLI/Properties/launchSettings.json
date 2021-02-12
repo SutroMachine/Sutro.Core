@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Sutro.Core.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "fff Cube.gcode Cube.stl -o Part.LayerHeightMM:1",
+      "workingDirectory": "C:\\Users\\grego\\3D Objects\\Demo"
+    }
+  }
+}

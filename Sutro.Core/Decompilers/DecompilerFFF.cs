@@ -1,7 +1,7 @@
 ﻿using g3;
-using gs;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Toolpaths;
 using System.Collections.Generic;
 
 namespace Sutro.Core.Decompilers
@@ -76,7 +76,6 @@ namespace Sutro.Core.Decompilers
                 toolpath.UpdateVertex(0, modifiedFirstVertex);
             }
             toolpath.AppendVertex(vertex, TPVertexFlags.None);
-
         }
 
         private void CloseToolpathAndAddTravel(PrintVertex previousVertex, PrintVertex currentVertex)

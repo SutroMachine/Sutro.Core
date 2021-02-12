@@ -1,4 +1,4 @@
-﻿using gs;
+﻿using Sutro.Core.Assemblers;
 using Sutro.Core.Models.Profiles;
 
 namespace Sutro.Core.Settings.Machine

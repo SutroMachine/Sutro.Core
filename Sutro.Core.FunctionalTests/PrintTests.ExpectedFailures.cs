@@ -1,13 +1,11 @@
-﻿using gs;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTests;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings;
+using Sutro.Core.Test;
+using Sutro.Core.Test.Exceptions;
 using System;
 
-namespace gsCore.FunctionalTests
+namespace Sutro.Core.FunctionalTests
 {
     [TestClass]
     public class FFF_PrintTests_ExpectedFailures : TestBase
