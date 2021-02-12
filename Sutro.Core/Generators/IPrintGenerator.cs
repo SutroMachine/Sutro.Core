@@ -1,9 +1,10 @@
-﻿using Sutro.Core;
+﻿using Sutro.Core.Assemblers;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Slicing;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public interface IPrintGenerator<TPrintSettings>
     {

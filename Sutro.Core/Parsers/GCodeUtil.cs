@@ -2,7 +2,7 @@
 using Sutro.Core.Models.GCode;
 using System;
 
-namespace gs
+namespace Sutro.Core.Parsers
 {
     static public class GCodeUtil
     {
@@ -78,7 +78,7 @@ namespace gs
                         return NumberType.NotANumber;
                     saw_dot = true;
                 }
-                else if (Char.IsDigit(c))
+                else if (char.IsDigit(c))
                 {
                     saw_digit = true;
                 }
@@ -89,7 +89,7 @@ namespace gs
             }
             if (!saw_digit)
                 return NumberType.NotANumber;
-            return (saw_dot) ? NumberType.Decimal : NumberType.Integer;
+            return saw_dot ? NumberType.Decimal : NumberType.Integer;
         }
     }
 }

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Fill
 {
     public abstract class FillCurve : FillBase
     {
@@ -161,7 +161,7 @@ namespace gs
         public override void Extend(FillCurve other, double vertexComparisonTolerance)
         {
             if (!(other is FillCurve<TSegmentInfo> o))
-                throw new ArgumentException($"Cannot merge FillCurves with different segment types: {this.GetType()} and {other.GetType()}");
+                throw new ArgumentException($"Cannot merge FillCurves with different segment types: {GetType()} and {other.GetType()}");
             Extend(o.Elements);
         }
 

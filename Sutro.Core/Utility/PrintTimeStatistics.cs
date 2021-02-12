@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     public class PrintTimeStatistics
     {

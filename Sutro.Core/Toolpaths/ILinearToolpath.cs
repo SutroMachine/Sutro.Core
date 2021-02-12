@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     public interface ILinearToolpath<T> : IToolpath, IEnumerable<T>
     {

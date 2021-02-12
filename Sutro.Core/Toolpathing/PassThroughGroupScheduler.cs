@@ -1,7 +1,8 @@
 ﻿using g3;
+using Sutro.Core.Toolpaths;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     /// <summary>
     /// This is for testing / debugging

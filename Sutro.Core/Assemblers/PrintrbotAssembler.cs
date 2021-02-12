@@ -1,6 +1,7 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.GCodeBuilders;
+using Sutro.Core.Settings;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public static class PrintrbotAssembler
     {

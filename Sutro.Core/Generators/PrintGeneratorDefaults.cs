@@ -1,6 +1,7 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.Compilers;
+using Sutro.Core.Settings;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     /// <summary>
     /// Default implementations of "pluggable" ThreeAxisPrintGenerator functions

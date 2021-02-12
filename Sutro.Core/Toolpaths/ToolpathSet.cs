@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     public class ToolpathSet : IToolpathSet
     {
@@ -132,7 +132,7 @@ namespace gs
             {
                 if (ipath is LinearToolpath3<IToolpathVertex>)
                 {
-                    foreach (var v in (ipath as LinearToolpath3<IToolpathVertex>))
+                    foreach (var v in ipath as LinearToolpath3<IToolpathVertex>)
                     {
                         Zs.Add(v.Position.z);
                     }

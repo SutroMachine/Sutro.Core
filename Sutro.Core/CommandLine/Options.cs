@@ -1,9 +1,9 @@
 ﻿using CommandLine;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.CommandLine
 {
-    public class CommandLineOptions
+    public class Options
     {
         [Value(0, MetaName = "generator", Required = true, HelpText = "Generator to use.")]
         public string Generator { get; set; }

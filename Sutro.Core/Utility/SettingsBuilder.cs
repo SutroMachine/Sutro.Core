@@ -3,7 +3,7 @@ using Sutro.Core.Logging;
 using Sutro.Core.Persistence;
 using System.IO;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     public class SettingsBuilder<TSettings> : ISettingsBuilder<TSettings> where TSettings : new()
     {

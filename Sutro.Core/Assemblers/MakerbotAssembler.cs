@@ -1,7 +1,8 @@
 ﻿using g3;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Settings;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public class MakerbotAssembler : BaseDepositionAssembler
     {

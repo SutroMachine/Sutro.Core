@@ -1,7 +1,7 @@
 ﻿using g3;
 using System.IO;
 
-namespace gs
+namespace Sutro.Core.Logging
 {
     public class GraphLoggerSVG : IGraphLogger
     {

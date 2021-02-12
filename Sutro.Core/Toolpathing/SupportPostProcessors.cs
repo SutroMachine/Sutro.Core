@@ -1,8 +1,11 @@
 ﻿using g3;
+using gs;
+using Sutro.Core.Generators;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     // [TODO] find a way to not hardcode this??
     using LinearToolpath = LinearToolpath3<PrintVertex>;

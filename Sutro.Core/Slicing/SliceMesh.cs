@@ -1,7 +1,7 @@
 ﻿using g3;
 using Sutro.Core.Models;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     public class SliceMesh
     {

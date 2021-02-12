@@ -1,7 +1,8 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
 
-namespace gs
+namespace Sutro.Core.Interpreters
 {
     /// <summary>
     /// GCodeInterpreter passes this to GCodeListener for each G1 line

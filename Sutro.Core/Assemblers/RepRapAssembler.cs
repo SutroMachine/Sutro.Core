@@ -1,8 +1,9 @@
 ﻿using g3;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Settings;
 using System;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public class RepRapAssembler : BaseDepositionAssembler
     {

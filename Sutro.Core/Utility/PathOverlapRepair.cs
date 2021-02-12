@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     /// <summary>
     /// Attempt to remove self-overlaps in a set of 2D polygons
@@ -181,7 +181,7 @@ namespace gs
                     continue;
                 remaining_v.Add(new Vector2d(vid, open_angle));
             }
-            remaining_v.Sort((a, b) => { return (a.y < b.y) ? -1 : (a.y > b.y ? 1 : 0); });
+            remaining_v.Sort((a, b) => { return a.y < b.y ? -1 : a.y > b.y ? 1 : 0; });
             return remaining_v;
         }
 
@@ -215,7 +215,7 @@ namespace gs
                     continue;
                 int e0 = Graph.GetVtxEdges(vid)[0];
                 Index2i ev = Graph.GetEdgeV(e0);
-                int otherv = (ev.a == vid) ? ev.b : ev.a;
+                int otherv = ev.a == vid ? ev.b : ev.a;
                 Vector2d newpos = Graph.GetVertex(vid);  //0.5 * (Graph.GetVertex(vid) + Graph.GetVertex(otherv));
                 Graph.RemoveEdge(e0, false);
                 int newvid = Graph.AppendVertex(newpos);
@@ -304,7 +304,7 @@ namespace gs
                 (eid) => { return ignore_edges.Contains(eid); }
             );
 
-            return (result.Key == -1) ? double.MaxValue : Math.Sqrt(result.Value);
+            return result.Key == -1 ? double.MaxValue : Math.Sqrt(result.Value);
         }
 
         /// <summary>
@@ -324,7 +324,7 @@ namespace gs
                     return Segment2d.FastDistanceSquared(ref a, ref b, ref pos);
                 }
             );
-            return (result.Key == -1) ? double.MaxValue : Math.Sqrt(result.Value);
+            return result.Key == -1 ? double.MaxValue : Math.Sqrt(result.Value);
         }
 
         /// <summary>

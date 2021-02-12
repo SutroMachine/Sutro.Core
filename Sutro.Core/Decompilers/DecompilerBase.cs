@@ -1,7 +1,7 @@
 ﻿using g3;
-using gs;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;

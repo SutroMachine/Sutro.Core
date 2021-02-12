@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Sutro.Core.Toolpaths;
+using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     public interface ICurvesFillPolygon : IFillPolygon
     {

@@ -1,11 +1,13 @@
 ﻿using g3;
+using gs;
+using Sutro.Core.Generators;
 using Sutro.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     /// <summary>
     /// Computes a PlanarSliceStack from a set of input meshes, by horizonally
@@ -178,8 +180,8 @@ namespace gs
             layer_i = 0;
             for (int i = 0; i < clearingZLayers.Count; ++i)
             {
-                double layer_height = (i == clearingZLayers.Count - 1) ?
-                    (result.TopZ - clearingZLayers[i]) : (clearingZLayers[i + 1] - clearingZLayers[i]);
+                double layer_height = i == clearingZLayers.Count - 1 ?
+                    result.TopZ - clearingZLayers[i] : clearingZLayers[i + 1] - clearingZLayers[i];
                 double z = clearingZLayers[i];
                 Interval1d zspan = new Interval1d(z, z + layer_height);
 
@@ -198,7 +200,7 @@ namespace gs
             PlanarSlice[] clearing_slices = clearing_slice_list.ToArray();
 
             // assume Resolve() takes 2x as long as meshes...
-            TotalCompute = (Meshes.Count * NH) + (2 * NH);
+            TotalCompute = Meshes.Count * NH + 2 * NH;
             Progress = 0;
 
             // compute slices separately for each mesh
@@ -217,8 +219,8 @@ namespace gs
                 bool is_cavity = mesh_options.IsCavity;
                 bool is_crop = mesh_options.IsCropRegion;
                 bool is_support = mesh_options.IsSupport;
-                bool is_closed = (mesh_options.IsOpen) ? false : mesh.IsClosed();
-                var useOpenMode = (mesh_options.OpenPathMode == OpenPathsModes.Default) ?
+                bool is_closed = mesh_options.IsOpen ? false : mesh.IsClosed();
+                var useOpenMode = mesh_options.OpenPathMode == OpenPathsModes.Default ?
                     DefaultOpenPathMode : mesh_options.OpenPathMode;
 
                 if (is_crop || is_support)
@@ -432,8 +434,8 @@ namespace gs
                 bool is_cavity = mesh_options.IsCavity;
                 bool is_crop = mesh_options.IsCropRegion;
                 bool is_support = mesh_options.IsSupport;
-                bool is_closed = (mesh_options.IsOpen) ? false : mesh.IsClosed();
-                var useOpenMode = (mesh_options.OpenPathMode == OpenPathsModes.Default) ?
+                bool is_closed = mesh_options.IsOpen ? false : mesh.IsClosed();
+                var useOpenMode = mesh_options.OpenPathMode == OpenPathsModes.Default ?
                     DefaultOpenPathMode : mesh_options.OpenPathMode;
                 if (is_crop || is_support)
                     throw new Exception("Not supported!");
@@ -474,7 +476,7 @@ namespace gs
 
         protected virtual double get_layer_height(int layer_i)
         {
-            return (LayerHeightF != null) ? LayerHeightF(layer_i) : LayerHeightMM;
+            return LayerHeightF != null ? LayerHeightF(layer_i) : LayerHeightMM;
         }
 
         protected virtual void add_cavity_polygons(PlanarSlice slice, List<GeneralPolygon2d> polygons, PrintMeshOptions options)

@@ -1,8 +1,8 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Settings;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     /// <summary>
     /// configure dense-fill for sparse infill

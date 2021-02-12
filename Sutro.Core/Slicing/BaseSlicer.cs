@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     public class BaseSlicer
     {
@@ -127,13 +127,13 @@ namespace gs
 
             public PlaneIntersectionTraversal(DMesh3 mesh, double z)
             {
-                this.Mesh = mesh;
-                this.Z = z;
-                this.NextBoxF = (box, depth) =>
+                Mesh = mesh;
+                Z = z;
+                NextBoxF = (box, depth) =>
                 {
-                    return (Z >= box.Min.z && Z <= box.Max.z);
+                    return Z >= box.Min.z && Z <= box.Max.z;
                 };
-                this.NextTriangleF = (tID) =>
+                NextTriangleF = (tID) =>
                 {
                     AxisAlignedBox3d box = Mesh.GetTriBounds(tID);
                     if (Z >= box.Min.z && z <= box.Max.z)

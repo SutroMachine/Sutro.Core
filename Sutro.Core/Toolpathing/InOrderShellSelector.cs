@@ -1,7 +1,7 @@
 ﻿using g3;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     public class InOrderShellSelector : ILayerShellsSelector
     {

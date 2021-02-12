@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     public class StringUtil
     {
@@ -17,7 +17,7 @@ namespace gs
             // Surround value with quotes if first character is letter
             // This is required to make enumerations work
             string result = pathValue[1];
-            if (Char.IsLetter(result[0]) &&
+            if (char.IsLetter(result[0]) &&
                 !(result == "true" || result == "false"))
             {
                 result = "\"" + result + "\"";

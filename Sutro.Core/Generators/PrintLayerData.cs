@@ -1,8 +1,12 @@
 ﻿using g3;
 using Sutro.Core.Settings;
+using Sutro.Core.Slicing;
+using Sutro.Core.Toolpathing;
+using Sutro.Core.Toolpaths;
+using Sutro.Core.Utility;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     /// <summary>
     /// PrintLayerData is set of information for a single print layer

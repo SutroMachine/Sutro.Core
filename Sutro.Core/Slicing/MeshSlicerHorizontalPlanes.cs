@@ -1,9 +1,10 @@
 ﻿using g3;
+using Sutro.Core.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     /// <summary>
     /// Computes a PlanarSliceStack from a set of input meshes, by horizonally

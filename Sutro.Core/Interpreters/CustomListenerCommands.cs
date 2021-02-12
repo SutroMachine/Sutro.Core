@@ -1,4 +1,4 @@
-﻿namespace gs
+﻿namespace Sutro.Core.Interpreters
 {
     // codes to pass to IGCodeListener.CustomCommand
     // this is basically just slightly better than complete hacks

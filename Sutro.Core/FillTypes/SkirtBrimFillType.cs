@@ -1,4 +1,6 @@
-﻿namespace gs.FillTypes
+﻿using Sutro.Core.FillTypes;
+
+namespace gs.FillTypes
 {
     public class SkirtBrimFillType : BaseFillType
     {

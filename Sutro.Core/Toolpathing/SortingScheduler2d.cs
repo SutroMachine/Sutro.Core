@@ -1,8 +1,10 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Toolpaths;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     /// <summary>
     /// SortingScheduler is a 2d path scheduler that collects up a set of
@@ -242,7 +244,7 @@ namespace gs
                 // [GDM] Reversed this logic 2019.10.23; by my thinking:
                 // - if the curve ISN'T reversed, the exit point should be the end
                 // - if the curve IS reversed, the exit point should be the start
-                return (idx.c == 0) ? span.curve.Entry : span.curve.Exit;
+                return idx.c == 0 ? span.curve.Entry : span.curve.Exit;
             }
         }
 

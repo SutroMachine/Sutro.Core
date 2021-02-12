@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Sutro.Core.Generators;
+using System.IO;
 
 namespace Sutro.Core.FunctionalTest
 {

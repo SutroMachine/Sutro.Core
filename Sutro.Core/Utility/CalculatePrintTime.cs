@@ -1,7 +1,8 @@
 ﻿using g3;
+using Sutro.Core.Toolpaths;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     /// <summary>
     /// This class calculates the extrusion and travel times for a path set.
@@ -51,14 +52,14 @@ namespace gs
             for (int pi = 0; pi < N; ++pi)
             {
                 LinearToolpath3<PrintVertex> path = allPaths[pi] as LinearToolpath3<PrintVertex>;
-                if (path == null || (path.Type != ToolpathTypes.Deposition && path.Type != ToolpathTypes.Travel))
+                if (path == null || path.Type != ToolpathTypes.Deposition && path.Type != ToolpathTypes.Travel)
                     continue;
 
                 double path_time = 0;
                 Vector3d curPos = path[0].Position;
                 for (int i = 1; i < path.VertexCount; ++i)
                 {
-                    bool last_vtx = (i == path.VertexCount - 1);
+                    bool last_vtx = i == path.VertexCount - 1;
 
                     Vector3d newPos = path[i].Position;
                     double newRate = path[i].FeedRate;

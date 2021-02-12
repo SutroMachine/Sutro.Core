@@ -1,6 +1,6 @@
-﻿using gs;
-using gsGCode.Tests.Mocks;
+﻿using gsGCode.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Models.GCode;
 using System;
 

@@ -1,9 +1,10 @@
 ﻿using g3;
+using gs;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     /// <summary>
     /// Geometry of a 2D slice at given .Z height

@@ -1,5 +1,5 @@
 ﻿using g3;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.FunctionalTest.Exceptions;
 
 namespace Sutro.Core.FunctionalTest
 {

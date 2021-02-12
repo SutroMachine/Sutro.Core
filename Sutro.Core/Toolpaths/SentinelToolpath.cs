@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     // Just a utility class we can subclass to create custom "marker" paths
     // in the path stream.

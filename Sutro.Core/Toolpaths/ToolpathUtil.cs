@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     public static class ToolpathUtil
     {
@@ -19,7 +19,7 @@ namespace gs
 
         public static void ApplyToLeafPaths(IToolpathSet root, Action<IToolpath> LeafF)
         {
-            foreach (var ipath in (root as IToolpathSet))
+            foreach (var ipath in root as IToolpathSet)
                 ApplyToLeafPaths(ipath, LeafF);
         }
 

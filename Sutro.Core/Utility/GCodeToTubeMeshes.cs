@@ -1,9 +1,11 @@
 ﻿using g3;
+using Sutro.Core.Interpreters;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     /// <summary>
     /// Convert a GCodeFile to a set of per-layer 3D tubes
@@ -136,7 +138,7 @@ namespace gs
             // if we are doing a Z-move, convert to 3D path
             if (InterpretZChangeAsLayerChange)
             {
-                bool bZMove = (ActivePath.VertexCount > 0 && ActivePath.End.z != move.position.z);
+                bool bZMove = ActivePath.VertexCount > 0 && ActivePath.End.z != move.position.z;
                 if (bZMove)
                     ActivePathType = ToolpathTypes.PlaneChange;
             }

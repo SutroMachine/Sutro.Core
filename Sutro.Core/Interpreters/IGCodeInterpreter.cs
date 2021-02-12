@@ -1,6 +1,6 @@
 ﻿using Sutro.Core.Models.GCode;
 
-namespace gs
+namespace Sutro.Core.Interpreters
 {
     public interface IGCodeInterpreter
     {

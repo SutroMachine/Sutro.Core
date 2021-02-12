@@ -1,9 +1,13 @@
 ﻿using g3;
+using Sutro.Core.Generators;
 using Sutro.Core.Settings;
+using Sutro.Core.Slicing;
+using Sutro.Core.Toolpathing;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.SLS
 {
     /// <summary>
 
@@ -25,7 +29,7 @@ namespace gs
         // replace this with your own error message handler
         public Action<string, string> ErrorF = (message, stack_trace) =>
         {
-            System.Console.WriteLine("[EXCEPTION] SLSPrintGenerator: " + message + "\nSTACK TRACE: " + stack_trace);
+            Console.WriteLine("[EXCEPTION] SLSPrintGenerator: " + message + "\nSTACK TRACE: " + stack_trace);
         };
 
         // This is called at the beginning of each layer, you can replace to
@@ -91,7 +95,7 @@ namespace gs
 
         protected virtual double LayerFillAngleF(int layer_i)
         {
-            return (layer_i % 2 == 0) ? 0 : 90;
+            return layer_i % 2 == 0 ? 0 : 90;
         }
 
         /// <summary>
@@ -123,7 +127,7 @@ namespace gs
 
                 // TODO FIX
                 //paths.Initialize(Compiler.NozzlePosition);
-                paths.Initialize((double)(layer_i) * Settings.LayerHeightMM * Vector3d.AxisZ);
+                paths.Initialize(layer_i * Settings.LayerHeightMM * Vector3d.AxisZ);
 
                 // layer-up (ie z-change)
                 paths.AppendZChange(Settings.LayerHeightMM, Settings.Part.ZTravelSpeed);
@@ -204,7 +208,7 @@ namespace gs
                 };
                 tiled_fill.TileFillGeneratorF = (tilePoly, index) =>
                 {
-                    int odd = ((index.x + index.y) % 2 == 0) ? 1 : 0;
+                    int odd = (index.x + index.y) % 2 == 0 ? 1 : 0;
                     RasterFillPolygon solid_gen = new RasterFillPolygon(tilePoly, Settings.FillTypeFactory.Solid())
                     {
                         InsetFromInputPolygon = false,

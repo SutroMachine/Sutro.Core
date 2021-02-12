@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public struct GCodeGenerationDetails
     {

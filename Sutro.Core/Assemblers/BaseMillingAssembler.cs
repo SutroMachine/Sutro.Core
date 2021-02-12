@@ -1,9 +1,10 @@
 ﻿using g3;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using System;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public delegate BaseMillingAssembler MillingAssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
@@ -221,7 +222,7 @@ namespace gs
 
         public virtual void AppendDwell(int milliseconds, string comment = null)
         {
-            Builder.BeginGLine(4, (comment != null) ? comment : "dwell")
+            Builder.BeginGLine(4, comment != null ? comment : "dwell")
                 .AppendI("P", milliseconds);
         }
 

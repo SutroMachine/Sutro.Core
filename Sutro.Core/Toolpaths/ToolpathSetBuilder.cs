@@ -1,9 +1,11 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.Assemblers;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Parsers;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     // [TODO] find a way to not hardcode this??
     using LinearToolpath = LinearToolpath3<PrintVertex>;
@@ -36,7 +38,7 @@ namespace gs
 
         public ToolpathSetBuilder(ToolpathSet paths = null)
         {
-            Paths = (paths == null) ? new ToolpathSet() : paths;
+            Paths = paths == null ? new ToolpathSet() : paths;
         }
 
         public void Initialize(Vector3d startPos)
@@ -93,7 +95,7 @@ namespace gs
             {
                 Vector2d pos2 = toPoints[k];
                 Vector3d pos = new Vector3d(pos2.x, pos2.y, currentPos.z);
-                TPVertexFlags flag = (k == toPoints.Count - 1) ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
+                TPVertexFlags flag = k == toPoints.Count - 1 ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
                 travel.AppendVertex(new PrintVertex(pos, fSpeed, NO_DIM), flag);
             }
             if (travel.Length > MathUtil.Epsilonf)
@@ -108,7 +110,7 @@ namespace gs
             for (int k = 0; k < toPoints.Count; ++k)
             {
                 Vector3d pos = toPoints[k];
-                TPVertexFlags flag = (k == toPoints.Count - 1) ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
+                TPVertexFlags flag = k == toPoints.Count - 1 ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
                 travel.AppendVertex(new PrintVertex(pos, fSpeed, NO_DIM), flag);
             }
             if (travel.Length > MathUtil.Epsilonf)
@@ -164,7 +166,7 @@ namespace gs
             for (int k = 1; k < toPoints.Count; ++k)
             {
                 Vector3d pos = new Vector3d(toPoints[k].x, toPoints[k].y, currentPos.z);
-                TPVertexFlags flag = (k == toPoints.Count - 1) ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
+                TPVertexFlags flag = k == toPoints.Count - 1 ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
                 extrusion.AppendVertex(new PrintVertex(pos, fSpeed, useDims), flag);
             }
             if (perVertexFlags != null)
@@ -188,7 +190,7 @@ namespace gs
             extrusion.AppendVertex(new PrintVertex(currentPos, NO_RATE, currentDims), TPVertexFlags.IsPathStart);
             for (int k = 0; k < toPoints.Count; ++k)
             {
-                TPVertexFlags flag = (k == toPoints.Count - 1) ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
+                TPVertexFlags flag = k == toPoints.Count - 1 ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
                 extrusion.AppendVertex(new PrintVertex(toPoints[k], fSpeed, currentDims), flag);
             }
             if (perVertexFlags != null)

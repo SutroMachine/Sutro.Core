@@ -1,6 +1,6 @@
 ﻿using g3;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     public interface IFillPolygon
     {

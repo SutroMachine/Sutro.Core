@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     public class PlanarSliceStack
     {
@@ -146,7 +146,7 @@ namespace gs
                 for (int pi = 0; pi < nPolys; pi++)
                 {
                     string[] stringValues = reader.ReadLine().Split(splitchars, StringSplitOptions.RemoveEmptyEntries);
-                    double[] values = Array.ConvertAll(stringValues, Double.Parse);
+                    double[] values = Array.ConvertAll(stringValues, double.Parse);
                     Polygon2d poly = new Polygon2d(values);
                     if (poly.VertexCount < 3)
                         continue;

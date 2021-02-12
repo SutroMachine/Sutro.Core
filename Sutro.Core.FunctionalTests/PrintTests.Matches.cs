@@ -1,11 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTests;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
 
-namespace gsCore.FunctionalTests
+namespace Sutro.Core.FunctionalTests
 {
     [TestClass]
     public class FFF_PrintTests_Matches : TestBase

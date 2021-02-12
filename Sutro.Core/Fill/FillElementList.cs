@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Fill
 {
     public class FillElementList<TSegmentInfo> where TSegmentInfo : IFillSegment, new()
     {

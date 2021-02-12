@@ -1,8 +1,10 @@
 ﻿using g3;
+using Sutro.Core.Parsers;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     public class LayersDetector
     {
@@ -56,9 +58,9 @@ namespace gs
             double high = LayerZ[iLayer] + EstimatedLayerHeight * 0.45f;
             if (bUseEstimatedHeight == false)
             {
-                low = (iLayer <= 0) ? LayerZ[iLayer] :
+                low = iLayer <= 0 ? LayerZ[iLayer] :
                     (LayerZ[iLayer] + LayerZ[iLayer - 1]) * 0.5;
-                high = (iLayer == Layers - 1) ? LayerZ[iLayer] :
+                high = iLayer == Layers - 1 ? LayerZ[iLayer] :
                     (LayerZ[iLayer] + LayerZ[iLayer + 1]) * 0.5;
             }
 

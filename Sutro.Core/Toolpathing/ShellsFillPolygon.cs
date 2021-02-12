@@ -1,10 +1,14 @@
 ﻿using g3;
-using gs.FillTypes;
+using gs;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Toolpaths;
+using Sutro.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     /// <summary>
     /// Fill the input GPolygon with N offset shells. Generates list of 2d paths (.Shells) and
@@ -164,8 +168,8 @@ namespace gs
                     List<GeneralPolygon2d> filtered = new List<GeneralPolygon2d>();
                     foreach (var v in offsets)
                     {
-                        bool bTooSmall = (v.Perimeter < DiscardTinyPerimeterLengthMM ||
-                                          v.Area < DiscardTinyPolygonAreaMM2);
+                        bool bTooSmall = v.Perimeter < DiscardTinyPerimeterLengthMM ||
+                                          v.Area < DiscardTinyPolygonAreaMM2;
                         if (bTooSmall)
                             continue;
 

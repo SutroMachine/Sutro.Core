@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     /// <summary>
     /// Utility class for filament extrusion calculations

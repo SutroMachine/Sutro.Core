@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Sutro.Core.Settings;
 
-namespace gsCore.UnitTests
+namespace Sutro.Core.UnitTests
 {
     [TestClass()]
     public class ConvertersTests

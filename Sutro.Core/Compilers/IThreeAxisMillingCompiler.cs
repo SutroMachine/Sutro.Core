@@ -1,8 +1,9 @@
 ﻿using g3;
 using Sutro.Core.Settings;
+using Sutro.Core.Toolpaths;
 using System;
 
-namespace gs
+namespace Sutro.Core.Compilers
 {
     // [TODO] be able to not hardcode this type?
 

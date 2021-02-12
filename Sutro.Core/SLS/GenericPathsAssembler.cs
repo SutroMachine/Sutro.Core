@@ -1,4 +1,6 @@
-﻿namespace gs
+﻿using Sutro.Core.Toolpaths;
+
+namespace Sutro.Core.SLS
 {
     public class GenericPathsAssembler : IPathsAssembler
     {

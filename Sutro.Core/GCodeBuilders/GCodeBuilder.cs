@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.GCodeBuilders
 {
     public class GCodeBuilder
     {

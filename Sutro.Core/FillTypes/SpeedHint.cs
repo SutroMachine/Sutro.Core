@@ -1,4 +1,4 @@
-﻿namespace gs.FillTypes
+﻿namespace Sutro.Core.FillTypes
 {
     public enum SpeedHint
     {

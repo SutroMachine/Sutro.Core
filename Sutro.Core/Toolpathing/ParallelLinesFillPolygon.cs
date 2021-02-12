@@ -1,11 +1,15 @@
 ﻿using g3;
-using gs.FillTypes;
+using gs;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Toolpaths;
+using Sutro.Core.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     public class ParallelLinesFillPolygon : ICurvesFillPolygon
     {
@@ -142,7 +146,7 @@ namespace gs
                 int vid = start_vid;
                 int eid = pathGraph.GetVtxEdges(vid)[0];
 
-                var path = new FillCurve<FillSegment>() { FillType = this.FillType };
+                var path = new FillCurve<FillSegment>() { FillType = FillType };
 
                 path.BeginCurve(pathGraph.GetVertex(vid));
                 while (true)
@@ -234,7 +238,7 @@ namespace gs
                     simp.SimplifyDeviationThreshold = ToolWidth; break;
             }
             simp.Simplify();
-            path = new FillCurve<FillSegment>(simp.Result.ToArray()) { FillType = this.FillType };
+            path = new FillCurve<FillSegment>(simp.Result.ToArray()) { FillType = FillType };
             return path;
         }
 
@@ -349,7 +353,7 @@ namespace gs
 
                     // find the vertex at end of connector
                     Index3i conn_evg = minGraph.GetEdge(connector_e);
-                    int old_conn_v = (conn_evg.a == old_prev) ? conn_evg.b : conn_evg.a;
+                    int old_conn_v = conn_evg.a == old_prev ? conn_evg.b : conn_evg.a;
 
                     // can never look at prev vertex again, or any edges connected to it
                     // [TODO] are we sure none of these edges are unused spans?!?
@@ -371,7 +375,7 @@ namespace gs
 
                     // find vertex at far end of span
                     Index3i span_evg = minGraph.GetEdge(span_e);
-                    int old_span_v = (span_evg.a == old_conn_v) ? span_evg.b : span_evg.a;
+                    int old_span_v = span_evg.a == old_conn_v ? span_evg.b : span_evg.a;
 
                     // ok we want to insert the connectr to the path graph, however the
                     // connector might actually have come from a more complex path in the input graph.
@@ -463,7 +467,7 @@ namespace gs
                         continue;
 
                     Index2i ev = input.GetEdgeV(eid);
-                    int b = (ev.a == a) ? ev.b : ev.a;
+                    int b = ev.a == a ? ev.b : ev.a;
 
                     if (input.IsJunctionVertex(b))
                     {
@@ -561,7 +565,7 @@ namespace gs
             // But if we are doing a sparse fill, then we want layers to stack.
             // So in that case, snap the interval to increments of the spacing
             //  (does this work?)
-            bool bIsSparse = (PathSpacing > ToolWidth * 2);
+            bool bIsSparse = PathSpacing > ToolWidth * 2;
             if (bIsSparse)
             {
                 // snap axisInterval.a to grid so that layers are aligned
@@ -580,7 +584,7 @@ namespace gs
             if (bIsSparse == false && AdjustSpacingToMaximizeFill)
             {
                 int nn = (int)(range / use_spacing);
-                use_spacing = range / (double)nn;
+                use_spacing = range / nn;
                 N = (int)(range / use_spacing) + 1;
             }
 
@@ -592,7 +596,7 @@ namespace gs
             // insert sequential rays
             for (int ti = 0; ti <= N; ++ti)
             {
-                Vector2d o = startCorner + (double)ti * use_spacing * axis;
+                Vector2d o = startCorner + ti * use_spacing * axis;
                 Line2d ray = new Line2d(o, dir);
                 splitter.InsertLine(ray, ti);
             }

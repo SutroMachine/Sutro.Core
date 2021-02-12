@@ -1,11 +1,11 @@
 ﻿using g3;
-using Sutro.Core;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Utility;
 using System;
 using System.IO;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public interface IPrintGeneratorManager
     {

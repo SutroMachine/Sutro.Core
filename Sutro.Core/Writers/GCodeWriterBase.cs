@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Writers
 {
     public abstract class GCodeWriterBase
     {

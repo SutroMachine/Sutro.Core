@@ -1,4 +1,4 @@
-﻿namespace Sutro.Core
+﻿namespace Sutro.Core.Generators
 {
     public enum GenerationResultStatus
     {

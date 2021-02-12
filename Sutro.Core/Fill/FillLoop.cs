@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Fill
 {
     public abstract class FillLoop : FillBase
     {
@@ -157,7 +157,7 @@ namespace gs
         private static bool ElementShouldSplit(double parameterizedSplitDistance, double tolerance, double segmentLength)
         {
             double toleranceParameterized = tolerance / segmentLength;
-            return parameterizedSplitDistance > toleranceParameterized && parameterizedSplitDistance < (1 - toleranceParameterized);
+            return parameterizedSplitDistance > toleranceParameterized && parameterizedSplitDistance < 1 - toleranceParameterized;
         }
 
         public List<FillCurve<TSegmentInfo>> SplitAtDistances(double[] splitDistances, bool joinFirstAndLast = false)

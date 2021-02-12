@@ -3,7 +3,7 @@ using Sutro.Core.Models;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     /// <summary>
     /// Represents set of print meshes and per-mesh options

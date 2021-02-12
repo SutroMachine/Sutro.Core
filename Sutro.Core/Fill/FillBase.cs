@@ -1,7 +1,7 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 
-namespace gs
+namespace Sutro.Core.Fill
 {
     public abstract class FillBase
     {

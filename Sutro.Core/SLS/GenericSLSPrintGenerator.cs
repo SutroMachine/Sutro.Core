@@ -1,6 +1,10 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.GCodeBuilders;
+using Sutro.Core.Generators;
+using Sutro.Core.Settings;
+using Sutro.Core.Slicing;
+using Sutro.Core.Toolpaths;
 
-namespace gs
+namespace Sutro.Core.SLS
 {
     public class GenericSLSPrintGenerator : SLSPrintGenerator
     {
@@ -18,7 +22,7 @@ namespace gs
             //compiler = new SLSCompiler(builder, settings);
             compiler = new SLSCompiler(settings);
 
-            base.Initialize(meshes, slices, settings, compiler);
+            Initialize(meshes, slices, settings, compiler);
         }
 
         protected override ToolpathSet extract_result()

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     /// <summary>
     /// Compute offset curves+skeleton from an input polygon-with-holes.
@@ -107,7 +107,7 @@ namespace gs
             foreach (int vid in graph.VertexIndices())
                 graph_cache.InsertPoint(vid, graph.GetVertex(vid));
 
-            LocalProfiler p = (_enable_profiling) ? new LocalProfiler() : null;
+            LocalProfiler p = _enable_profiling ? new LocalProfiler() : null;
             if (_enable_profiling) { p.Start("All"); }
 
             // run a bunch of steps. The last few are tuning steps where we use half-steps,
@@ -154,7 +154,7 @@ namespace gs
                     if (last_step_size[vid] == 0)
                         last_step_size[vid] = actual_step_dist;
                     else
-                        last_step_size[vid] = (0.75) * last_step_size[vid] + (0.25) * actual_step_dist;
+                        last_step_size[vid] = 0.75 * last_step_size[vid] + 0.25 * actual_step_dist;
 
                     // update point in hashtable and graph
                     graph_cache.UpdatePoint(vid, cur_pos, new_pos);
@@ -196,8 +196,8 @@ namespace gs
             if (_enable_profiling)
             {
                 p.Stop("All");
-                System.Console.WriteLine("All: " + p.Elapsed("All"));
-                System.Console.WriteLine(p.AllAccumulatedTimes());
+                Console.WriteLine("All: " + p.Elapsed("All"));
+                Console.WriteLine(p.AllAccumulatedTimes());
             }
 
             // get rid of junction vertices, if requested
@@ -271,7 +271,7 @@ namespace gs
                     if (n >= 2)
                     {
                         c /= n;
-                        Vector2d dv = (smooth_alpha) * (c - v);
+                        Vector2d dv = smooth_alpha * (c - v);
                         if (dv.LengthSquared > max_move_sqr)
                         {
                             /*double d = */
@@ -337,7 +337,7 @@ namespace gs
                     double distsqr = va.DistanceSquared(graph.GetVertex(b));
                     if (distsqr < mergeSqr && distsqr < nearDistSqr)
                     {
-                        if (graph.FindEdge(a, b) == DGraph2.InvalidID)
+                        if (graph.FindEdge(a, b) == DGraph.InvalidID)
                         {
                             nearDistSqr = distsqr;
                             bNearest = b;
@@ -363,7 +363,7 @@ namespace gs
 
                 /*int eid = */
                 graph.AppendEdge(a, bNearest);
-                DGraph2.EdgeCollapseInfo collapseInfo;
+                DGraph.EdgeCollapseInfo collapseInfo;
                 graph.CollapseEdge(bNearest, a, out collapseInfo);
                 graph_cache.RemovePointUnsafe(a, pos_a);
                 last_step_size[a] = 0;
@@ -393,7 +393,7 @@ namespace gs
                 KeyValuePair<int, double> found =
                     graph_cache.FindNearestInRadius(va, mergeSqr,
                         (b) => { return va.DistanceSquared(graph.GetVertex(b)); },
-                        (b) => { return b <= a || (graph.FindEdge(a, b) != DGraph2.InvalidID); });
+                        (b) => { return b <= a || graph.FindEdge(a, b) != DGraph.InvalidID; });
 
                 if (found.Key != -1)
                 {
@@ -418,7 +418,7 @@ namespace gs
 
                 /*int eid = */
                 graph.AppendEdge(a, bNearest);
-                DGraph2.EdgeCollapseInfo collapseInfo;
+                DGraph.EdgeCollapseInfo collapseInfo;
                 graph.CollapseEdge(bNearest, a, out collapseInfo);
 
                 graph_cache.RemovePointUnsafe(a, pos_a);
@@ -490,7 +490,7 @@ namespace gs
                                 vtx_idx = 1;
                         }
 
-                        Vector2d newPos = (vtx_idx == -1) ? 0.5 * (va + vb) : ((vtx_idx == 0) ? va : vb);
+                        Vector2d newPos = vtx_idx == -1 ? 0.5 * (va + vb) : vtx_idx == 0 ? va : vb;
 
                         int keep = ev.a, remove = ev.b;
                         if (vtx_idx == 1)
@@ -501,7 +501,7 @@ namespace gs
                         Vector2d remove_pos = graph.GetVertex(remove);
                         Vector2d keep_pos = graph.GetVertex(keep);
 
-                        DGraph2.EdgeCollapseInfo collapseInfo;
+                        DGraph.EdgeCollapseInfo collapseInfo;
                         if (graph.CollapseEdge(keep, remove, out collapseInfo) == MeshResult.Ok)
                         {
                             graph_cache.RemovePointUnsafe(collapseInfo.vRemoved, remove_pos);
@@ -530,7 +530,7 @@ namespace gs
                 double dist = graph.GetVertex(ev.a).Distance(graph.GetVertex(ev.b));
                 if (dist > fMaxLen)
                 {
-                    DGraph2.EdgeSplitInfo splitInfo;
+                    DGraph.EdgeSplitInfo splitInfo;
                     if (graph.SplitEdge(eid, out splitInfo) == MeshResult.Ok)
                     {
                         if (graph_cache != null)
@@ -553,7 +553,7 @@ namespace gs
                 double dist = graph.GetVertex(ev.a).Distance(graph.GetVertex(ev.b));
                 if (dist > fMaxLen)
                 {
-                    DGraph2.EdgeSplitInfo splitInfo;
+                    DGraph.EdgeSplitInfo splitInfo;
                     if (graph.SplitEdge(eid, out splitInfo) == MeshResult.Ok)
                     {
                         if (graph_cache != null)

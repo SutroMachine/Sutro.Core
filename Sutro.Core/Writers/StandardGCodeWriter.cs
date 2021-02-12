@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace gs
+namespace Sutro.Core.Writers
 {
     public class StandardGCodeWriter : GCodeWriterBase
     {
@@ -16,7 +16,7 @@ namespace gs
             set
             {
                 float_precision = value;
-                float_format = "{0:0." + new String('#', float_precision) + "}";
+                float_format = "{0:0." + new string('#', float_precision) + "}";
             }
         }
 

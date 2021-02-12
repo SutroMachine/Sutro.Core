@@ -1,10 +1,14 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.Assemblers;
+using Sutro.Core.FillTypes;
+using Sutro.Core.GCodeBuilders;
+using Sutro.Core.Parsers;
 using Sutro.Core.Settings;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Compilers
 {
     // [TODO] be able to not hardcode this type?
     using LinearToolpath = LinearToolpath3<PrintVertex>;
@@ -111,7 +115,7 @@ namespace gs
         {
             Assembler.FlushQueues();
 
-            IPrintProfileFFF useSettings = (profile == null) ? Settings : profile;
+            IPrintProfileFFF useSettings = profile == null ? Settings : profile;
 
             var paths = toolpathSet.GetPaths<PrintVertex>();
             var calc = new CalculateExtrusion<PrintVertex>(paths, useSettings);

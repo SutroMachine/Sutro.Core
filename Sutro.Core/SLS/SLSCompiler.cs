@@ -1,6 +1,7 @@
 ﻿using Sutro.Core.Settings;
+using Sutro.Core.Toolpaths;
 
-namespace gs
+namespace Sutro.Core.SLS
 {
     public class SLSCompiler : IThreeAxisLaserCompiler
     {

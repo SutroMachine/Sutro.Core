@@ -1,7 +1,10 @@
 ﻿using g3;
+using Sutro.Core.Interpreters;
+using Sutro.Core.Parsers;
+using Sutro.Core.Toolpaths;
 using System;
 
-namespace gs
+namespace Sutro.Core.Utility
 {
     using LinearToolpath = LinearToolpath3<PrintVertex>;
 
@@ -85,7 +88,7 @@ namespace gs
                 throw new Exception("GCodeToLayerPaths.LinearMoveToAbsolute3D: ActivePath is null!");
 
             // if we are doing a Z-move, convert to 3D path
-            bool bZMove = (ActivePath.VertexCount > 0 && ActivePath.End.Position.z != move.position.z);
+            bool bZMove = ActivePath.VertexCount > 0 && ActivePath.End.Position.z != move.position.z;
             if (bZMove)
                 ActivePath.ChangeType(ToolpathTypes.PlaneChange);
 

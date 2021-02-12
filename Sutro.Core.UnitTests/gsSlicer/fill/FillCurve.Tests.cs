@@ -1,6 +1,7 @@
 ﻿using g3;
-using gs.FillTypes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Settings;
 using System;
 

@@ -1,9 +1,10 @@
 using gs;
-using gs.FillTypes;
-using gs.utility;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.FillTypes;
+using Sutro.Core.FunctionalTest.Exceptions;
 using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
+using Sutro.Core.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;

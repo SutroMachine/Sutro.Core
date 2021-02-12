@@ -1,10 +1,11 @@
 ﻿using g3;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public delegate IDepositionAssembler AssemblerFactoryF(GCodeBuilder builder, IPrintProfileFFF settings);
 
@@ -228,7 +229,7 @@ namespace gs
                 newp.toPos = Vector3d.Lerp(a.toPos, b.toPos, t);
                 newp.feedRate = Math.Max(a.feedRate, b.feedRate);
                 newp.extruderA = MathUtil.Lerp(a.extruderA, b.extruderA, t);
-                newp.comment = (a.comment == null) ? a.comment : b.comment;
+                newp.comment = a.comment == null ? a.comment : b.comment;
                 return newp;
             }
         }
@@ -375,7 +376,7 @@ namespace gs
         // push point onto queue and update accumulated length
         protected virtual void append_to_queue(QueuedExtrude p)
         {
-            double dt = (next_queue_index == 0) ?
+            double dt = next_queue_index == 0 ?
                 currentPos.xy.Distance(p.toPos.xy) : extrude_queue[next_queue_index - 1].toPos.xy.Distance(p.toPos.xy);
             extrude_queue_len += dt;
 
@@ -478,7 +479,7 @@ namespace gs
             }
             else
             {
-                queue_extrude_to(pos, feedRate, extrudeDist, (comment == null) ? "Retract" : comment, true);
+                queue_extrude_to(pos, feedRate, extrudeDist, comment == null ? "Retract" : comment, true);
             }
             in_retract = true;
         }
@@ -498,7 +499,7 @@ namespace gs
             }
             else
             {
-                queue_extrude_to(pos, feedRate, extrudeDist, (comment == null) ? "End Retract" : comment, true);
+                queue_extrude_to(pos, feedRate, extrudeDist, comment == null ? "End Retract" : comment, true);
             }
             in_retract = false;
         }
@@ -531,7 +532,7 @@ namespace gs
         {
             flush_extrude_queue();
 
-            Builder.BeginGLine(4, (comment != null) ? comment : "dwell")
+            Builder.BeginGLine(4, comment != null ? comment : "dwell")
                 .AppendI("P", milliseconds);
         }
 

@@ -1,12 +1,15 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Parsers;
 using Sutro.Core.Settings;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     // dumbest possible scheduler...
     public class SequentialScheduler2d : IFillPathScheduler2d

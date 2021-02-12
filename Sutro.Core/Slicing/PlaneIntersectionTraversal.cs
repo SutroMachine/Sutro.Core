@@ -1,7 +1,7 @@
 ﻿using g3;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     public class PlaneIntersectionTraversal : DMeshAABBTree3.TreeTraversal
     {
@@ -16,7 +16,7 @@ namespace gs
 
             NextBoxF = (box, depth) =>
             {
-                return (PlaneZHeight >= box.Min.z && PlaneZHeight <= box.Max.z);
+                return PlaneZHeight >= box.Min.z && PlaneZHeight <= box.Max.z;
             };
 
             NextTriangleF = (triangleIndex) =>

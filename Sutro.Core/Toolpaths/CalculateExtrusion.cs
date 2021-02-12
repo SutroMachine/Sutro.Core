@@ -1,9 +1,11 @@
 ﻿using g3;
+using Sutro.Core.Parsers;
 using Sutro.Core.Settings;
+using Sutro.Core.Utility;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     /// <summary>
     /// This class implements calculation of the filament extrusion distance/volume along
@@ -89,10 +91,10 @@ namespace gs
                 if (path.Type == ToolpathTypes.Travel && path.Length < MinRetractTravelLength)
                 {
                     bool prev_is_model_deposition =
-                        (prev_path != null) && (prev_path.Type == ToolpathTypes.Deposition) && prev_path.FillType.IsPart();
-                    var next_path = (pi < N - 1) ? (allPaths[pi + 1] as LinearToolpath3<T>) : null;
+                        prev_path != null && prev_path.Type == ToolpathTypes.Deposition && prev_path.FillType.IsPart();
+                    var next_path = pi < N - 1 ? allPaths[pi + 1] as LinearToolpath3<T> : null;
                     bool next_is_model_deposition =
-                        (next_path != null) && (next_path.Type == ToolpathTypes.Deposition) && next_path.FillType.IsPart();
+                        next_path != null && next_path.Type == ToolpathTypes.Deposition && next_path.FillType.IsPart();
                     skip_retract = prev_is_model_deposition && next_is_model_deposition;
                 }
                 if (EnableRetraction == false)
@@ -104,7 +106,7 @@ namespace gs
 
                 for (int i = 0; i < path.VertexCount; ++i)
                 {
-                    bool last_vtx = (i == path.VertexCount - 1);
+                    bool last_vtx = i == path.VertexCount - 1;
 
                     Vector3d newPos = path[i].Position;
                     double newRate = path[i].FeedRate;
@@ -154,10 +156,10 @@ namespace gs
                             curPos = newPos;
                             curRate = newRate;
 
-                            double segment_width = (path[i].Dimensions.x != GCodeUtil.UnspecifiedValue) ?
+                            double segment_width = path[i].Dimensions.x != GCodeUtil.UnspecifiedValue ?
                                 path[i].Dimensions.x : path_width;
 
-                            double segment_height = (path[i].Dimensions.y != GCodeUtil.UnspecifiedValue) ?
+                            double segment_height = path[i].Dimensions.y != GCodeUtil.UnspecifiedValue ?
                                 path[i].Dimensions.y : path_height;
 
                             double feed = ExtrusionMath.PathLengthToFilamentLength(

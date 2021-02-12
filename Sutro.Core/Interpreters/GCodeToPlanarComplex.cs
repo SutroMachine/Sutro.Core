@@ -2,7 +2,7 @@ using g3;
 using System;
 using System.Diagnostics;
 
-namespace gs
+namespace Sutro.Core.Interpreters
 {
     public class GCodeToPlanarComplex : IGCodeListener
     {

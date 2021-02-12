@@ -1,6 +1,7 @@
 ﻿using g3;
-using gs;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
+using Sutro.Core.Toolpaths;
 using System.Collections.Generic;
 
 namespace Sutro.Core.FunctionalTest

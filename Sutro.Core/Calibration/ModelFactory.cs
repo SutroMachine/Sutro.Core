@@ -1,11 +1,11 @@
 ﻿using g3;
 
-namespace gs
+namespace Sutro.Core.Calibration
 {
     /// <summary>
     /// Generate models for printer calibration
     /// </summary>
-    public static class CalibrationModelGenerator
+    public static class ModelFactory
     {
         /// <summary>
         /// Generates a row of cylinders tessellated w/ different chord lengths
@@ -22,9 +22,9 @@ namespace gs
             double cur_x = -cx + cylDiam / 2;
             for (int k = 0; k < nSteps; ++k)
             {
-                double t = (double)k / (double)(nSteps - 1);
-                double chord_len = (1.0 - t) * lowStep + (t) * highStep;
-                int slices = (int)((MathUtil.TwoPI * r) / chord_len);
+                double t = k / (double)(nSteps - 1);
+                double chord_len = (1.0 - t) * lowStep + t * highStep;
+                int slices = (int)(MathUtil.TwoPI * r / chord_len);
 
                 CappedCylinderGenerator cylgen = new CappedCylinderGenerator()
                 {

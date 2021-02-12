@@ -1,4 +1,7 @@
-﻿namespace gs
+﻿using Sutro.Core.Generators;
+using Sutro.Core.Toolpaths;
+
+namespace Sutro.Core.Toolpathing
 {
     public interface ILayerPathsPostProcessor
     {

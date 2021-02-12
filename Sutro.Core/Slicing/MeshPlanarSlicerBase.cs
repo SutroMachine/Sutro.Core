@@ -1,4 +1,7 @@
 ﻿using g3;
+using gs;
+using Sutro.Core.Generators;
+using Sutro.Core.Logging;
 using Sutro.Core.Models;
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Slicing
 {
     public abstract class MeshPlanarSlicerBase
     {
@@ -142,7 +145,7 @@ namespace gs
             }
 
             // assume Resolve() takes 2x as long as meshes...
-            TotalCompute = (Meshes.Count * planarSlices.Count) + (2 * planarSlices.Count);
+            TotalCompute = Meshes.Count * planarSlices.Count + 2 * planarSlices.Count;
             progress = 0;
 
             // compute slices separately for each mesh
@@ -163,7 +166,7 @@ namespace gs
         protected virtual void ResolveSlices(ConcurrentDictionary<int, PlanarSlice> planarSlices, bool cropMeshesExist)
         {
             // resolve planar intersections, etc
-            Sutro.Core.Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
+            Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
             {
                 if (Cancelled())
                     return;
@@ -355,7 +358,7 @@ namespace gs
 
         protected virtual double GetLayerHeight(int layer_i)
         {
-            return (LayerHeightF != null) ? LayerHeightF(layer_i) : LayerHeightMM;
+            return LayerHeightF != null ? LayerHeightF(layer_i) : LayerHeightMM;
         }
 
         protected abstract Plane3d GetSlicePlane(PlanarSlice slice);
@@ -366,7 +369,7 @@ namespace gs
 
         protected bool NoIntersectionsFound(bool meshIsClosed, DGraph2Util.Curves curves)
         {
-            return (meshIsClosed && curves.Loops.Count == 0) || (meshIsClosed == false && curves.Loops.Count == 0 && curves.Paths.Count == 0);
+            return meshIsClosed && curves.Loops.Count == 0 || meshIsClosed == false && curves.Loops.Count == 0 && curves.Paths.Count == 0;
         }
 
         protected abstract double PlaneF(Vector3d v, Plane3d plane);
@@ -379,10 +382,10 @@ namespace gs
             DMeshAABBTree3 spatial = new DMeshAABBTree3(sliceMesh.Mesh, true);
             AxisAlignedBox3d bounds = sliceMesh.Bounds;
 
-            bool isOpenMesh = (mesh_options.IsOpen) ? false : sliceMesh.Mesh.IsClosed();
+            bool isOpenMesh = mesh_options.IsOpen ? false : sliceMesh.Mesh.IsClosed();
 
             // each layer is independent so we can do in parallel
-            Sutro.Core.Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
+            Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
             {
                 if (Cancelled())
                     return;
@@ -448,7 +451,7 @@ namespace gs
 
         private OpenPathsModes GetOpenMeshMode(PrintMeshOptions meshOptions)
         {
-            return (meshOptions.OpenPathMode == OpenPathsModes.Default) ?
+            return meshOptions.OpenPathMode == OpenPathsModes.Default ?
                 DefaultOpenPathMode : meshOptions.OpenPathMode;
         }
     }

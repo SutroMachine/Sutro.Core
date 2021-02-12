@@ -1,7 +1,11 @@
-﻿using Sutro.Core.Models.GCode;
+﻿using Sutro.Core.Assemblers;
+using Sutro.Core.Compilers;
+using Sutro.Core.GCodeBuilders;
+using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
+using Sutro.Core.Slicing;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public class SingleMaterialFFFPrintGenerator : ThreeAxisPrintGenerator<PrintProfileFFF>
     {

@@ -1,17 +1,22 @@
 ﻿using g3;
-using Sutro.Core;
+using gs;
+using Sutro.Core.Assemblers;
 using Sutro.Core.Logging;
 using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
+using Sutro.Core.Slicing;
+using Sutro.Core.Utility;
+using Sutro.Core.Writers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public class PrintGeneratorManager<TPrintGenerator, TPrintSettings> : IPrintGeneratorManager
         where TPrintGenerator : IPrintGenerator<TPrintSettings>, new()

@@ -1,4 +1,4 @@
-﻿namespace gs
+﻿namespace Sutro.Core.Slicing
 {
     public enum SliceLocations
     {

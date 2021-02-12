@@ -1,7 +1,7 @@
 ﻿using g3;
 using System;
 
-namespace gs
+namespace Sutro.Core.Fill
 {
     public readonly struct FillElement<TEdge> where TEdge : IFillSegment
     {

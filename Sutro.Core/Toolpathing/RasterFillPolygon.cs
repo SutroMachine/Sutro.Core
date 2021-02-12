@@ -1,9 +1,12 @@
 ﻿using g3;
-using gs.FillTypes;
+using gs;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     public class RasterFillPolygon : ICurvesFillPolygon
     {
@@ -153,8 +156,8 @@ namespace gs
 
             for (int ti = 0; ti <= N; ++ti)
             {
-                double t = (double)ti / (double)N;
-                Vector2d o = startCorner + (t * range) * axis;
+                double t = ti / (double)N;
+                Vector2d o = startCorner + t * range * axis;
                 Segment2d ray = new Segment2d(o, o + extent * dir);
 
                 List<Segment2d> spans = compute_polygon_ray_spans(poly, ray, startCorner, axis, t, polyCache);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using Sutro.Core.FunctionalTest.Exceptions;
 using Sutro.Core.FunctionalTests;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings;

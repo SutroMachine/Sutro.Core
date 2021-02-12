@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     /// <summary>
     /// Utility functions for gcode assemblers

@@ -1,7 +1,7 @@
 ﻿using g3;
 using System;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     public class TPVertexData
     {

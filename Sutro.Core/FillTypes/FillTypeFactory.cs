@@ -1,7 +1,6 @@
-﻿using gs.FillTypes;
-using Sutro.Core.Settings;
+﻿using Sutro.Core.Settings;
 
-namespace gs
+namespace Sutro.Core.FillTypes
 {
     public class FillTypeFactory
     {

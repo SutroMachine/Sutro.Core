@@ -1,7 +1,8 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using g3;
-using Sutro.Core;
+using gs;
+using Sutro.Core.Generators;
 using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using System;
@@ -9,16 +10,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.CommandLine
 {
-    public class CommandLineInterface
+    public class Interface
     {
         protected readonly ILogger logger;
         protected readonly Dictionary<string, IPrintGeneratorManager> printGeneratorDict;
 
         protected IPrintGeneratorManager printGeneratorManager;
 
-        public CommandLineInterface(ILogger logger, IEnumerable<IPrintGeneratorManager> printGenerators)
+        public Interface(ILogger logger, IEnumerable<IPrintGeneratorManager> printGenerators)
         {
             this.logger = logger;
             printGeneratorDict = new Dictionary<string, IPrintGeneratorManager>();
@@ -30,14 +31,14 @@ namespace gs
         {
             var parser = new Parser(with => with.HelpWriter = null);
 
-            var parserResult = parser.ParseArguments<CommandLineOptions>(args);
+            var parserResult = parser.ParseArguments<Options>(args);
 
             parserResult.WithParsed(ParsingSuccessful);
 
             parserResult.WithNotParsed((err) => ParsingUnsuccessful(err, parserResult));
         }
 
-        protected bool OutputFilePathIsValid(CommandLineOptions o)
+        protected bool OutputFilePathIsValid(Options o)
         {
             if (o.GCodeFilePath is null || !Directory.Exists(Directory.GetParent(o.GCodeFilePath).ToString()))
             {
@@ -57,7 +58,7 @@ namespace gs
             logger.LogMessage("".PadRight(79, '-'));
         }
 
-        protected virtual bool ConstructSettings(CommandLineOptions o)
+        protected virtual bool ConstructSettings(Options o)
         {
             foreach (var file in o.SettingsFiles)
             {
@@ -68,7 +69,7 @@ namespace gs
                 catch (Exception e)
                 {
                     logger.LogError(e.Message);
-                    if (Sutro.Core.Models.Config.Debug) throw;
+                    if (Models.Config.Debug) throw;
                     return false;
                 }
             }
@@ -82,7 +83,7 @@ namespace gs
                 catch (Exception e)
                 {
                     logger.LogError(e.Message);
-                    if (Sutro.Core.Models.Config.Debug) throw;
+                    if (Models.Config.Debug) throw;
                     return false;
                 }
             }
@@ -102,7 +103,7 @@ namespace gs
             return printGeneratorManager.GCodeFromMesh(mesh, null);
         }
 
-        protected virtual void LoadMesh(CommandLineOptions o, out DMesh3 mesh)
+        protected virtual void LoadMesh(Options o, out DMesh3 mesh)
         {
             if (printGeneratorManager.AcceptsParts)
             {
@@ -130,7 +131,7 @@ namespace gs
             }
         }
 
-        protected virtual bool MeshFilePathIsValid(CommandLineOptions o)
+        protected virtual bool MeshFilePathIsValid(Options o)
         {
             if (printGeneratorManager.AcceptsParts && (o.MeshFilePath is null || !File.Exists(o.MeshFilePath)))
             {
@@ -210,7 +211,7 @@ namespace gs
             logger.LogMessage(string.Empty);
         }
 
-        protected void ParsingSuccessful(CommandLineOptions o)
+        protected void ParsingSuccessful(Options o)
         {
             if (!printGeneratorDict.TryGetValue(o.Generator, out printGeneratorManager))
             {
@@ -275,7 +276,7 @@ namespace gs
             }
         }
 
-        protected virtual void ParsingUnsuccessful(IEnumerable<Error> errs, ParserResult<CommandLineOptions> parserResult)
+        protected virtual void ParsingUnsuccessful(IEnumerable<Error> errs, ParserResult<Options> parserResult)
         {
             logger.LogMessage("ERRORS:");
             foreach (var err in errs)

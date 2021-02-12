@@ -1,5 +1,5 @@
 ﻿using g3;
-using gs;
+using Sutro.Core.Generators;
 using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;

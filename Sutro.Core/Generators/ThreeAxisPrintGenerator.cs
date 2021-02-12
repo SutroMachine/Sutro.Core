@@ -1,15 +1,22 @@
 using g3;
-using gs.FillTypes;
-using Sutro.Core;
+using gs;
+using Sutro.Core.Assemblers;
+using Sutro.Core.Compilers;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
 using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
+using Sutro.Core.Slicing;
+using Sutro.Core.Toolpathing;
+using Sutro.Core.Toolpaths;
+using Sutro.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     using ShellFillRegionDict = Dictionary<IShellsFillPolygon, FillRegions>;
 
@@ -167,9 +174,9 @@ namespace gs
                 result.GCode = extract_result();
                 result.Details = ExtractDetails();
             }
-            catch (Exception e) when (!Sutro.Core.Models.Config.Debug)
+            catch (Exception e) when (!Config.Debug)
             {
-                result.AddLog(Sutro.Core.Logging.LoggingLevel.Error, e.GetType().ToString() + ": " + e.Message);
+                result.AddLog(Logging.LoggingLevel.Error, e.GetType().ToString() + ": " + e.Message);
                 result.Status = GenerationResultStatus.Failure;
                 if (Config.Debug)
                     throw;
@@ -220,7 +227,7 @@ namespace gs
             }
             else
             {
-                return (layer_i % 2 == 0) ? -45 : 45;
+                return layer_i % 2 == 0 ? -45 : 45;
             }
         }
 
@@ -511,8 +518,8 @@ namespace gs
             {
                 // schedule shell paths that we pre-computed
                 List<FillCurveSet2d> shells_gen_paths = shells_gen.GetFillCurves();
-                FillCurveSet2d outer_shell = (shells_gen_paths.Count > 0) ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
-                bool do_outer_last = Settings.Part.OuterShellLast && (shells_gen_paths.Count > 1);
+                FillCurveSet2d outer_shell = shells_gen_paths.Count > 0 ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
+                bool do_outer_last = Settings.Part.OuterShellLast && shells_gen_paths.Count > 1;
                 groupScheduler.BeginGroup();
                 if (do_outer_last == false)
                 {
@@ -630,7 +637,7 @@ namespace gs
             // so that they are more loosely bonded
             // [TODO] we should only do this if we are directly below model. Otherwise this
             // branch is hit on any thin tube supports, that we could be printing empty
-            int nShells = (Settings.Part.EnableSupportShell) ? 1 : 0;
+            int nShells = Settings.Part.EnableSupportShell ? 1 : 0;
             double support_spacing = Settings.Part.SupportSpacingStepX * Settings.Machine.NozzleDiamMM;
             double shell_spacing = Settings.Machine.NozzleDiamMM;
             if (bounds.MaxDim < support_spacing)
@@ -678,7 +685,7 @@ namespace gs
             {
                 SupportLinesFillPolygon infill_gen = new SupportLinesFillPolygon(poly, Settings)
                 {
-                    InsetFromInputPolygon = (Settings.Part.EnableSupportShell == false),
+                    InsetFromInputPolygon = Settings.Part.EnableSupportShell == false,
                     PathSpacing = support_spacing,
                     ToolWidth = Settings.Machine.NozzleDiamMM,
                     AngleDeg = 0,
@@ -816,7 +823,7 @@ namespace gs
 
             // fit bbox to try to find fill angle that has shortest spans
             Box2d box = poly.Outer.MinimalBoundingBox(0.00001);
-            Vector2d axis = (box.Extent.x > box.Extent.y) ? box.AxisY : box.AxisX;
+            Vector2d axis = box.Extent.x > box.Extent.y ? box.AxisY : box.AxisX;
             double angle = Math.Atan2(axis.y, axis.x) * MathUtil.Rad2Deg;
 
             // [RMS] should we do something like this?
@@ -850,7 +857,7 @@ namespace gs
             foreach (Polygon2d polypart in polys)
             {
                 Box2d box = polypart.MinimalBoundingBox(0.00001);
-                Vector2d axis = (box.Extent.x > box.Extent.y) ? box.AxisY : box.AxisX;
+                Vector2d axis = box.Extent.x > box.Extent.y ? box.AxisY : box.AxisX;
                 double angle = Math.Atan2(axis.y, axis.x) * MathUtil.Rad2Deg;
 
                 GeneralPolygon2d gp = new GeneralPolygon2d(polypart);
@@ -1223,7 +1230,7 @@ namespace gs
 #endif
             {
                 if (Cancelled()) return;
-                bool is_infill = (layer_i >= Settings.Part.FloorLayers && layer_i < nLayers - Settings.Part.RoofLayers);
+                bool is_infill = layer_i >= Settings.Part.FloorLayers && layer_i < nLayers - Settings.Part.RoofLayers;
 
                 if (is_infill)
                 {
@@ -1262,7 +1269,7 @@ namespace gs
         // The FillRegions are stored in a dictionary with a ShellsFillPolygon as the key
         // so the correct ones for each individual shell can be retrieved, rather than getting
         // all of them for a layer.
-        protected List<Dictionary<IShellsFillPolygon, FillRegions>> LayerShellFillRegions;
+        protected List<ShellFillRegionDict> LayerShellFillRegions;
 
         /// <summary>
         /// compute all the solid/sparse areas for the entire stack, in parallel
@@ -1295,7 +1302,7 @@ namespace gs
 
         protected virtual void compute_infill_regions(int layer_i)
         {
-            bool is_infill = (layer_i >= Settings.Part.FloorLayers && layer_i < Slices.Count - Settings.Part.RoofLayers);
+            bool is_infill = layer_i >= Settings.Part.FloorLayers && layer_i < Slices.Count - Settings.Part.RoofLayers;
 
             List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
             List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
@@ -1420,7 +1427,7 @@ namespace gs
                     });
                 }
 
-                LayerBridgeAreas[layeri] = (bridgePolys != null)
+                LayerBridgeAreas[layeri] = bridgePolys != null
                     ? bridgePolys : new List<GeneralPolygon2d>();
             });
             LayerBridgeAreas[nLayers - 1] = new List<GeneralPolygon2d>();
@@ -1583,12 +1590,12 @@ namespace gs
                         // If not, we add a minimal support polygon.
                         double d = 1.25 * fSupportMinDist; double dsqr = d * d;
                         Vector2d dx = d * Vector2d.AxisX, dy = d * Vector2d.AxisY;
-                        int sleft = (slice.DistanceSquared(bounds.Center - dx, 2 * d) < dsqr) ? 1 : 0;
-                        int sright = (slice.DistanceSquared(bounds.Center + dx, 2 * d) < dsqr) ? 1 : 0;
+                        int sleft = slice.DistanceSquared(bounds.Center - dx, 2 * d) < dsqr ? 1 : 0;
+                        int sright = slice.DistanceSquared(bounds.Center + dx, 2 * d) < dsqr ? 1 : 0;
                         if (sleft + sright == 2)
                             continue;
-                        int sfwd = (slice.DistanceSquared(bounds.Center + dy, 2 * d) < dsqr) ? 1 : 0;
-                        int sback = (slice.DistanceSquared(bounds.Center - dy, 2 * d) < dsqr) ? 1 : 0;
+                        int sfwd = slice.DistanceSquared(bounds.Center + dy, 2 * d) < dsqr ? 1 : 0;
+                        int sback = slice.DistanceSquared(bounds.Center - dy, 2 * d) < dsqr ? 1 : 0;
                         if (sfwd + sback == 2)
                             continue;
 
@@ -1645,7 +1652,7 @@ namespace gs
                     // have holes we intersect with that poly, inset by a printwidth.
                     // [TODO] do we really need this? if hole expands, it will still be
                     // clipped against model.
-                    List<GeneralPolygon2d> outer_clip = (solid.Holes.Count == 0) ? null : ClipperUtil.MiterOffset(copy, -fPrintWidth);
+                    List<GeneralPolygon2d> outer_clip = solid.Holes.Count == 0 ? null : ClipperUtil.MiterOffset(copy, -fPrintWidth);
                     foreach (Polygon2d hole in solid.Holes)
                     {
                         if (hole.Bounds.MaxDim < DiscardHoleSizeMM || Math.Abs(hole.SignedArea) < DiscardHoleArea)
@@ -1858,7 +1865,7 @@ namespace gs
 
         protected virtual SpeedHint GetSchedulerSpeedHint(PrintLayerData layer_data)
         {
-            return (layer_data.layer_i == CurStartLayer) ?
+            return layer_data.layer_i == CurStartLayer ?
                             SpeedHint.Careful : SpeedHint.Rapid;
         }
 

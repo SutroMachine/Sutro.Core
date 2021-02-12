@@ -1,9 +1,10 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
+using Sutro.Core.Toolpaths;
 using System;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpathing
 {
     /// <summary>
     /// GroupScheduler collects up paths and then optimizes their scheduling.
@@ -76,7 +77,7 @@ namespace gs
             }
             else
             {
-                CurrentSorter.SpeedHint = this.SpeedHint;
+                CurrentSorter.SpeedHint = SpeedHint;
                 CurrentSorter.AppendCurveSets(paths);
             }
         }

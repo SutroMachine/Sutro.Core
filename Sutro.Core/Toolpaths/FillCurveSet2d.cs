@@ -1,10 +1,11 @@
 ﻿using g3;
-using gs.FillTypes;
+using Sutro.Core.Fill;
+using Sutro.Core.FillTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     /// <summary>
     /// Collection of loop and curve centerlines of fill curves

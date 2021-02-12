@@ -1,7 +1,7 @@
 ﻿using Sutro.Core.Models.GCode;
 using System.IO;
 
-namespace gs
+namespace Sutro.Core.Parsers
 {
     /// <summary>
     /// Base class to reconstruct a GCodeFile object from text.

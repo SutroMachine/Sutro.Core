@@ -1,9 +1,9 @@
 using g3;
-using gs.FillTypes;
+using Sutro.Core.FillTypes;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     public class LinearToolpath3<T> : IBuildLinearToolpath<T> where T : IToolpathVertex
     {

@@ -1,6 +1,6 @@
 ﻿using Sutro.Core.Models;
 
-namespace gs
+namespace Sutro.Core.Generators
 {
     public static class PrintMeshOptionsFactory
     {

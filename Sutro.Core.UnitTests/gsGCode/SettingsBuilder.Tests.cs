@@ -1,7 +1,7 @@
-﻿using gs;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Logging;
 using Sutro.Core.Settings.Part;
+using Sutro.Core.Utility;
 using System.Linq;
 
 namespace Sutro.Core.UnitTests

@@ -1,6 +1,6 @@
 ﻿using Sutro.Core.Models.GCode;
 
-namespace gs.utility
+namespace Sutro.Core.Utility
 {
     public static class GCodeLineUtil
     {

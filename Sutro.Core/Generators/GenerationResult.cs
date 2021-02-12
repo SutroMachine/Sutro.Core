@@ -1,10 +1,9 @@
-﻿using gs;
-using Sutro.Core.Logging;
+﻿using Sutro.Core.Logging;
 using Sutro.Core.Models.GCode;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Sutro.Core
+namespace Sutro.Core.Generators
 {
     public class GenerationResult
     {

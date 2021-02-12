@@ -1,10 +1,11 @@
 using g3;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace gs
+namespace Sutro.Core.Interpreters
 {
     public class BiesseInterpreter : IGCodeInterpreter
     {
@@ -26,7 +27,7 @@ namespace gs
         public virtual void Interpret(GCodeFile file, InterpretArgs args)
         {
             IEnumerable<GCodeLine> lines_enum =
-                (args.HasTypeFilter) ? file.AllLines() : file.AllLinesOfType(args.eTypeFilter);
+                args.HasTypeFilter ? file.AllLines() : file.AllLinesOfType(args.eTypeFilter);
 
             listener.Begin();
 
@@ -70,7 +71,7 @@ namespace gs
 
             // [RMS] can we have this??
             if (absx || absy)
-                System.Diagnostics.Debug.Assert(false);
+                Debug.Assert(false);
         }
 
         private void emit_cw_arc(GCodeLine line)
@@ -98,7 +99,7 @@ namespace gs
 
             // [RMS] seems like G5 always has negative radius and G4 positive ??
             //   (this will tell us)
-            Debug.Assert((clockwise && r < 0) || (clockwise == false && r > 0));
+            Debug.Assert(clockwise && r < 0 || clockwise == false && r > 0);
             r = Math.Abs(r);
 
             listener.ArcToRelative2d(new Vector2d(dx, dy), r, clockwise);

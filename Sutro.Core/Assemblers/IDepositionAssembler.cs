@@ -2,7 +2,7 @@
 using Sutro.Core.Settings;
 using System.Collections.Generic;
 
-namespace gs
+namespace Sutro.Core.Assemblers
 {
     public interface IDepositionAssembler : IGCodeAssembler
     {

@@ -1,7 +1,7 @@
 ﻿using Sutro.Core.Models.GCode;
 using System;
 
-namespace gs
+namespace Sutro.Core.Parsers
 {
     public class GenericGCodeParser : GCodeParserBase
     {
@@ -270,7 +270,7 @@ namespace gs
             bool contains_number = false;
             for (int i = 0; i < N && contains_number == false; ++i)
             {
-                if (Char.IsDigit(token[i]))
+                if (char.IsDigit(token[i]))
                     contains_number = true;
             }
             if (!contains_number)

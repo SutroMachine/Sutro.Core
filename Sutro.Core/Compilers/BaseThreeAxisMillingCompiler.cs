@@ -1,8 +1,11 @@
 ﻿using g3;
+using Sutro.Core.Assemblers;
+using Sutro.Core.GCodeBuilders;
 using Sutro.Core.Settings;
+using Sutro.Core.Toolpaths;
 using System;
 
-namespace gs
+namespace Sutro.Core.Compilers
 {
     // [TODO] be able to not hardcode this type?
     using LinearToolpath = LinearToolpath3<PrintVertex>;
@@ -62,7 +65,7 @@ namespace gs
         /// </summary>
 		public virtual void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings)
         {
-            var useSettings = (pathSettings == null) ? Settings : pathSettings;
+            var useSettings = pathSettings == null ? Settings : pathSettings;
 
             int path_index = 0;
             foreach (var gpath in paths)

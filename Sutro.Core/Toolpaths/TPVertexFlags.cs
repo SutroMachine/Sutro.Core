@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gs
+namespace Sutro.Core.Toolpaths
 {
     /// <summary>
     /// PathVertex.Flags field is 3 ints that can be used for whatever purpose.

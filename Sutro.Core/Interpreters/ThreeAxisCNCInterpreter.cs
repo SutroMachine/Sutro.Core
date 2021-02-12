@@ -1,10 +1,11 @@
 ﻿using g3;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace gs
+namespace Sutro.Core.Interpreters
 {
     /// <summary>
     /// Basic 3-axis CNC interpreter
@@ -38,7 +39,7 @@ namespace gs
         public virtual void Interpret(GCodeFile file, InterpretArgs args)
         {
             IEnumerable<GCodeLine> lines_enum =
-                (args.HasTypeFilter) ? file.AllLines() : file.AllLinesOfType(args.eTypeFilter);
+                args.HasTypeFilter ? file.AllLines() : file.AllLinesOfType(args.eTypeFilter);
 
             listener.Begin();
 
@@ -65,7 +66,7 @@ namespace gs
         public virtual IEnumerable<bool> InterpretInteractive(GCodeFile file, InterpretArgs args)
         {
             IEnumerable<GCodeLine> lines_enum =
-                (args.HasTypeFilter) ? file.AllLinesOfType(args.eTypeFilter) : file.AllLines();
+                args.HasTypeFilter ? file.AllLinesOfType(args.eTypeFilter) : file.AllLines();
 
             listener.Begin();
 
@@ -99,7 +100,7 @@ namespace gs
             bool found_x = GCodeUtil.TryFindParamNum(line.Parameters, "X", ref x);
             bool found_y = GCodeUtil.TryFindParamNum(line.Parameters, "Y", ref y);
             bool found_z = GCodeUtil.TryFindParamNum(line.Parameters, "Z", ref z);
-            Vector3d newPos = (UseRelativePosition) ? Vector3d.Zero : CurPosition;
+            Vector3d newPos = UseRelativePosition ? Vector3d.Zero : CurPosition;
             if (found_x)
                 newPos.x = x;
             if (found_y)
@@ -117,9 +118,9 @@ namespace gs
 
             LinearMoveData move = new LinearMoveData(
                 newPos,
-                (haveF) ? f : GCodeUtil.UnspecifiedValue);
+                haveF ? f : GCodeUtil.UnspecifiedValue);
 
-            bool is_travel = (line.Code == 0);
+            bool is_travel = line.Code == 0;
 
             if (is_travel)
             {
