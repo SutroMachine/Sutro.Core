@@ -83,8 +83,6 @@ namespace gs
             return false;
         }
 
-        //public static LocalProfiler Profiler = new LocalProfiler();
-
         private SegmentHashGrid2d<int> edge_hash;    // edge hash table used inside FilterSelfOverlaps
         private SegmentHashGrid2d<int> collision_edge_hash;
 
@@ -97,56 +95,40 @@ namespace gs
             // are within a given distance. Then we can use distance-to-segments, with the two adjacent
             // segments filtered out, to measure self-distance
 
-            double dist_thresh = overlapRadius;
-            double sharp_thresh_deg = 45;
-
-            //Profiler.Start("InitialResample");
+            double distanceThreshold = overlapRadius;
+            double sharpCornerThresholdAngleDeg = 45;
 
             // resample graph. the degenerate-edge thing is necessary to
             // filter out tiny segments that are functionally sharp corners,
             // but geometrically are made of multiple angles < threshold
             // (maybe there is a better way to do this?)
-            DGraph2Resampler r = new DGraph2Resampler(Graph);
-            r.CollapseDegenerateEdges(overlapRadius / 10);
-            if (bResample)
-            {
-                r.SplitToMaxEdgeLength(overlapRadius / 2);
-                r.CollapseToMinEdgeLength(overlapRadius / 3);
-            }
-            r.CollapseDegenerateEdges(overlapRadius / 10);
+            var resampler = new DGraph2Resampler(Graph);
+            ResampleGraph(resampler, overlapRadius, bResample);
 
-            //Profiler.StopAndAccumulate("InitialResample");
-            //Profiler.Start("SharpCorners");
+            // Find sharp corners
+            var sharpCorners = FindSharpCorners(sharpCornerThresholdAngleDeg);
 
-            // find sharp corners
-            List<int> sharp_corners = new List<int>();
-            foreach (int vid in Graph.VertexIndices())
-            {
-                if (is_fixed_v(vid))
-                    continue;
-                double open_angle = Graph.OpeningAngle(vid);
-                if (open_angle < sharp_thresh_deg)
-                    sharp_corners.Add(vid);
-            }
+            // Disconnect at sharp corners
+            DisconnectAtSharpCorners(sharpCorners);
 
-            // disconnect at sharp corners
-            foreach (int vid in sharp_corners)
-            {
-                if (Graph.IsVertex(vid) == false)
-                    continue;
-                int e0 = Graph.GetVtxEdges(vid)[0];
-                Index2i ev = Graph.GetEdgeV(e0);
-                int otherv = (ev.a == vid) ? ev.b : ev.a;
-                Vector2d newpos = Graph.GetVertex(vid);  //0.5 * (Graph.GetVertex(vid) + Graph.GetVertex(otherv));
-                Graph.RemoveEdge(e0, false);
-                int newvid = Graph.AppendVertex(newpos);
-                Graph.AppendEdge(newvid, otherv);
-            }
+            // Build edge hash table  (cell size is just a ballpark guess here...)
+            BuildEdgeHashTable(overlapRadius);
 
-            //Profiler.StopAndAccumulate("SharpCorners");
-            //Profiler.Start("HashTable");
+            // Step 1: erode from boundary vertices
+            ErodeFromBoundaryVertices(distanceThreshold);
 
-            // build edge hash table  (cell size is just a ballpark guess here...)
+            // Step 2: find any other possible self-overlaps and erode them.
+            var remainingVertices = ErodeOtherSelfOverlaps();
+
+            // Look for overlap vertices. When we find one, erode on both sides.
+            ErodeFromOverlapVertices(distanceThreshold, remainingVertices);
+
+            // Get rid of extra vertices
+            resampler.CollapseFlatVertices(FinalFlatCollapseAngleThreshDeg);
+        }
+
+        private void BuildEdgeHashTable(double overlapRadius)
+        {
             edge_hash = new SegmentHashGrid2d<int>(3 * overlapRadius, -1);
             foreach (int eid in Graph.EdgeIndices())
             {
@@ -163,37 +145,30 @@ namespace gs
                     collision_edge_hash.InsertSegment(eid, seg.Center, seg.Extent);
                 }
             }
+        }
 
-            //Profiler.StopAndAccumulate("HashTable");
-            //Profiler.Start("Erode1");
-
-            // Step 1: erode from boundary vertices
-            List<int> boundaries = new List<int>();
-            foreach (int vid in Graph.VertexIndices())
+        private void ErodeFromOverlapVertices(double distanceThreshold, List<Vector2d> remainingVertices)
+        {
+            foreach (Vector2d vinfo in remainingVertices)
             {
-                if (Graph.GetVtxEdgeCount(vid) == 1)
-                    boundaries.Add(vid);
-            }
-            foreach (int vid in boundaries)
-            {
+                int vid = (int)vinfo.x;
                 if (Graph.IsVertex(vid) == false)
                     continue;
-                double dist = MinSelfSegDistance(vid, 2 * dist_thresh);
-                double collision_dist = MinCollisionConstraintDistance(vid, CollisionRadius);
-                if (dist < dist_thresh || collision_dist < CollisionRadius)
+                double dist = MinSelfSegDistance(vid, 2 * distanceThreshold);
+                if (dist < distanceThreshold)
                 {
-                    int eid = Graph.GetVtxEdges(vid)[0];
-                    decimate_forward(vid, eid, dist_thresh);
+                    List<int> nbrs = new List<int>(Graph.GetVtxEdges(vid));
+                    foreach (int eid in nbrs)
+                    {
+                        if (Graph.IsEdge(eid))    // may have been decimated!
+                            decimate_forward(vid, eid, distanceThreshold);
+                    }
                 }
             }
+        }
 
-            //Profiler.StopAndAccumulate("Erode1");
-            //Profiler.Start("OpenAngleSort");
-
-            //
-            // Step 2: find any other possible self-overlaps and erode them.
-            //
-
+        private List<Vector2d> ErodeOtherSelfOverlaps()
+        {
             // sort all vertices by opening angle. For any overlap, we can erode
             // on either side. Prefer to erode on side with higher curvature.
             List<Vector2d> remaining_v = new List<Vector2d>(Graph.MaxVertexID);
@@ -207,35 +182,72 @@ namespace gs
                 remaining_v.Add(new Vector2d(vid, open_angle));
             }
             remaining_v.Sort((a, b) => { return (a.y < b.y) ? -1 : (a.y > b.y ? 1 : 0); });
+            return remaining_v;
+        }
 
-            //Profiler.StopAndAccumulate("OpenAngleSort");
-            //Profiler.Start("Erode2");
-
-            // look for overlap vertices. When we find one, erode on both sides.
-            foreach (Vector2d vinfo in remaining_v)
+        private void ErodeFromBoundaryVertices(double distanceThreshold)
+        {
+            List<int> boundaries = new List<int>();
+            foreach (int vid in Graph.VertexIndices())
             {
-                int vid = (int)vinfo.x;
+                if (Graph.GetVtxEdgeCount(vid) == 1)
+                    boundaries.Add(vid);
+            }
+            foreach (int vid in boundaries)
+            {
                 if (Graph.IsVertex(vid) == false)
                     continue;
-                double dist = MinSelfSegDistance(vid, 2 * dist_thresh);
-                if (dist < dist_thresh)
+                double dist = MinSelfSegDistance(vid, 2 * distanceThreshold);
+                double collision_dist = MinCollisionConstraintDistance(vid, CollisionRadius);
+                if (dist < distanceThreshold || collision_dist < CollisionRadius)
                 {
-                    List<int> nbrs = new List<int>(Graph.GetVtxEdges(vid));
-                    foreach (int eid in nbrs)
-                    {
-                        if (Graph.IsEdge(eid))    // may have been decimated!
-                            decimate_forward(vid, eid, dist_thresh);
-                    }
+                    int eid = Graph.GetVtxEdges(vid)[0];
+                    decimate_forward(vid, eid, distanceThreshold);
                 }
             }
+        }
 
-            //Profiler.StopAndAccumulate("Erode2");
-            //Profiler.Start("FlatCollapse");
+        private void DisconnectAtSharpCorners(List<int> sharp_corners)
+        {
+            foreach (int vid in sharp_corners)
+            {
+                if (Graph.IsVertex(vid) == false)
+                    continue;
+                int e0 = Graph.GetVtxEdges(vid)[0];
+                Index2i ev = Graph.GetEdgeV(e0);
+                int otherv = (ev.a == vid) ? ev.b : ev.a;
+                Vector2d newpos = Graph.GetVertex(vid);  //0.5 * (Graph.GetVertex(vid) + Graph.GetVertex(otherv));
+                Graph.RemoveEdge(e0, false);
+                int newvid = Graph.AppendVertex(newpos);
+                Graph.AppendEdge(newvid, otherv);
+            }
+        }
 
-            // get rid of extra vertices
-            r.CollapseFlatVertices(FinalFlatCollapseAngleThreshDeg);
+        private List<int> FindSharpCorners(double sharp_thresh_deg)
+        {
+            List<int> sharp_corners = new List<int>();
+            foreach (int vid in Graph.VertexIndices())
+            {
+                if (is_fixed_v(vid))
+                    continue;
+                double open_angle = Graph.OpeningAngle(vid);
+                if (open_angle < sharp_thresh_deg)
+                    sharp_corners.Add(vid);
+            }
 
-            //Profiler.StopAndAccumulate("FlatCollapse");
+            return sharp_corners;
+        }
+
+        private static void ResampleGraph(DGraph2Resampler resampler, double overlapRadius, bool resample)
+        {
+            resampler.CollapseDegenerateEdges(overlapRadius / 10);
+
+            if (!resample)
+                return;
+
+            resampler.SplitToMaxEdgeLength(overlapRadius / 2);
+            resampler.CollapseToMinEdgeLength(overlapRadius / 3);
+            resampler.CollapseDegenerateEdges(overlapRadius / 10);
         }
 
         /// <summary>
