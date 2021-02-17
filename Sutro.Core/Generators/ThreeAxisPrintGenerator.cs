@@ -6,6 +6,7 @@ using Sutro.Core.Fill;
 using Sutro.Core.FillTypes;
 using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.PartExteriors;
 using Sutro.Core.Settings;
 using Sutro.Core.Slicing;
 using Sutro.Core.Toolpathing;
@@ -97,6 +98,10 @@ namespace Sutro.Core.Generators
         // In default Initialize(), is set to a constant multiple of tool size
         public Func<FillCurve, bool> PathFilterF = null;
 
+        // this is called on polyline paths, return *true* to filter out a path. Useful for things like very short segments, etc
+        // In default Initialize(), is set to a constant multiple of tool size
+        public Func<PlanarSliceStack, IPrintProfileFFF, IPartExterior> PartExteriorF = PrintGeneratorDefaults.PartExteriorFactory;
+
         // Called after we have finished print generation, use this to post-process the paths, etc.
         // By default appends a comment block with print time & material usage statistics
         public Action<IThreeAxisPrinterCompiler, ThreeAxisPrintGenerator<T>> PostProcessCompilerF
@@ -107,6 +112,8 @@ namespace Sutro.Core.Generators
         /// Currently assuming that input PlanarSliceStack has already been clipped at slicer level!
         /// </summary>
         public List<GeneralPolygon2d> PathClipRegions = null;
+
+        public IPartExterior PartExterior { get; protected set; }
 
         protected ThreeAxisPrintGenerator()
         {
@@ -162,6 +169,8 @@ namespace Sutro.Core.Generators
 
             if (PathFilterF == null)
                 PathFilterF = (pline) => { return pline.TotalLength() < 3 * Settings.Machine.NozzleDiamMM; };
+
+            PartExterior = PartExteriorF(Slices, Settings);
         }
 
         public virtual GenerationResult Generate(CancellationToken? cancellationToken)
@@ -205,7 +214,7 @@ namespace Sutro.Core.Generators
          *  Internals
          */
 
-        protected CancellationToken? cancellationToken;
+        protected CancellationToken cancellationToken;
 
         // tags on slice polygons get transferred to shells
         protected IntTagSet<IFillPolygon> ShellTags = new IntTagSet<IFillPolygon>();
@@ -214,9 +223,6 @@ namespace Sutro.Core.Generators
         protected int TotalProgress = 1;
 
         protected int CurProgress = 0;
-
-        // [TODO] these should be moved to settings, or something?
-        protected double OverhangAllowanceMM;
 
         protected virtual double LayerFillAngleF(int layer_i)
         {
@@ -241,6 +247,7 @@ namespace Sutro.Core.Generators
         /// </summary>
         protected virtual void generate_result(CancellationToken? cancellationToken)
         {
+            this.cancellationToken = cancellationToken ?? CancellationToken.None;
             SetupGeneration();
             if (Cancelled()) return;
 
@@ -424,13 +431,11 @@ namespace Sutro.Core.Generators
         /// </summary>
         protected virtual void PrecomputeGeneration()
         {
+            PartExterior.Initialize(cancellationToken);
+
             // We need N above/below shell paths to do roof/floors, and *all* shells to do support.
             // Also we can compute shells in parallel. So we just precompute them all here.
             precompute_shells();
-            if (Cancelled()) return;
-
-            // compute roofs/floors in parallel based on shells
-            precompute_roofs_floors();
             if (Cancelled()) return;
 
             // compute solid/sparse in parallel based on shell interios, roofs & floors
@@ -462,10 +467,6 @@ namespace Sutro.Core.Generators
         /// </summary>
         protected virtual void SetupGeneration()
         {
-            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
-            //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
-            OverhangAllowanceMM = Settings.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
-
             int NProgressStepsPerLayer = 10;
             TotalProgress = NProgressStepsPerLayer * (Slices.Count - 1);
             CurProgress = 0;
@@ -895,22 +896,12 @@ namespace Sutro.Core.Generators
         /// Determine the sparse infill and solid fill regions for a layer, given the input regions that
         /// need to be filled, and the roof/floor areas above/below this layer.
         /// </summary>
-        protected virtual List<GeneralPolygon2d> make_infill_regions(int layer_i,
-                                                             List<GeneralPolygon2d> fillRegions,
-                                                             List<GeneralPolygon2d> roof_cover,
-                                                             List<GeneralPolygon2d> floor_cover,
-                                                             out List<GeneralPolygon2d> solid_regions)
-
+        protected virtual FillRegions MakeFillRegions(int layerIndex,
+            IReadOnlyCollection<GeneralPolygon2d> subject)
         {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
+            double minArea = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
-            List<GeneralPolygon2d> infillPolys = fillRegions;
-
-            List<GeneralPolygon2d> roofPolys = ClipperUtil.Difference(fillRegions, roof_cover, min_area);
-            List<GeneralPolygon2d> floorPolys = ClipperUtil.Difference(fillRegions, floor_cover, min_area);
-            solid_regions = ClipperUtil.Union(roofPolys, floorPolys, min_area);
-            if (solid_regions == null)
-                solid_regions = new List<GeneralPolygon2d>();
+            var solidFillRegions = PartExterior.GetExteriorRegions(layerIndex, subject);
 
             // [TODO] I think maybe we should actually do another set of contours for the
             // solid region. At least one. This gives the solid & infill something to
@@ -919,81 +910,20 @@ namespace Sutro.Core.Generators
             // subtract solid fill from infill regions. However because we *don't*
             // inset fill regions, we need to subtract (solid+offset), so that
             // infill won't overlap solid region
-            if (solid_regions.Count > 0)
+
+            var sparseFillRegions = new List<GeneralPolygon2d>();
+
+            if (solidFillRegions.Count > 0)
             {
-                List<GeneralPolygon2d> solidWithBorder =
-                    ClipperUtil.MiterOffset(solid_regions, Settings.Machine.NozzleDiamMM, min_area);
-                infillPolys = ClipperUtil.Difference(infillPolys, solidWithBorder, min_area);
+                var solidWithBorder = ClipperUtil.MiterOffset(solidFillRegions, Settings.Machine.NozzleDiamMM, minArea);
+                sparseFillRegions.AddRange(ClipperUtil.Difference(subject, solidWithBorder, minArea));
+            }
+            else
+            {
+                sparseFillRegions.AddRange(subject);
             }
 
-            return infillPolys;
-        }
-
-        /// <summary>
-        /// construct region that needs to be solid for "roofs".
-        /// This is the intersection of infill polygons for the next N layers.
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_roof_areas_for_layer(int layer_i)
-        {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> roof_cover = new List<GeneralPolygon2d>();
-
-            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i + 1))
-                roof_cover.AddRange(shells.GetInnerPolygons());
-
-            // If we want > 1 roof layer, we need to look further ahead.
-            // The full area we need to print as "roof" is the infill minus
-            // the intersection of the infill areas above
-            for (int k = 2; k <= Settings.Part.RoofLayers; ++k)
-            {
-                int ri = layer_i + k;
-                if (ri < LayerShells.Length)
-                {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
-                    foreach (IShellsFillPolygon shells in get_layer_shells(ri))
-                        infillN.AddRange(shells.GetInnerPolygons());
-
-                    roof_cover = ClipperUtil.Intersection(roof_cover, infillN, min_area);
-                }
-            }
-
-            // add overhang allowance. Technically any non-vertical surface will result in
-            // non-empty roof regions. However we do not need to explicitly support roofs
-            // until they are "too horizontal".
-            var result = ClipperUtil.MiterOffset(roof_cover, OverhangAllowanceMM, min_area);
-            return result;
-        }
-
-        /// <summary>
-        /// construct region that needs to be solid for "floors"
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_floor_areas_for_layer(int layer_i)
-        {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> floor_cover = new List<GeneralPolygon2d>();
-
-            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i - 1))
-                floor_cover.AddRange(shells.GetInnerPolygons());
-
-            // If we want > 1 floor layer, we need to look further back.
-            for (int k = 2; k <= Settings.Part.FloorLayers; ++k)
-            {
-                int ri = layer_i - k;
-                if (ri >= 0)
-                {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
-                    foreach (IShellsFillPolygon shells in get_layer_shells(ri))
-                        infillN.AddRange(shells.GetInnerPolygons());
-
-                    floor_cover = ClipperUtil.Intersection(floor_cover, infillN, min_area);
-                }
-            }
-
-            // add overhang allowance.
-            var result = ClipperUtil.MiterOffset(floor_cover, OverhangAllowanceMM, min_area);
-            return result;
+            return new FillRegions(solidFillRegions, sparseFillRegions);
         }
 
         /// <summary>
@@ -1191,80 +1121,6 @@ namespace Sutro.Core.Generators
             return skirt_gen;
         }
 
-        protected List<GeneralPolygon2d>[] LayerRoofAreas;
-        protected List<GeneralPolygon2d>[] LayerFloorAreas;
-
-        /// <summary>
-        /// return the set of roof polygons for a layer
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> get_layer_roof_area(int layer_i)
-        {
-            return LayerRoofAreas[layer_i];
-        }
-
-        /// <summary>
-        /// return the set of floor polygons for a layer
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> get_layer_floor_area(int layer_i)
-        {
-            return LayerFloorAreas[layer_i];
-        }
-
-        /// <summary>
-        /// compute all the roof and floor areas for the entire stack, in parallel
-        /// </summary>
-        protected virtual void precompute_roofs_floors()
-        {
-            int nLayers = Slices.Count;
-            LayerRoofAreas = new List<GeneralPolygon2d>[nLayers];
-            LayerFloorAreas = new List<GeneralPolygon2d>[nLayers];
-
-            int start_layer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
-            int end_layer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b);
-            Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
-
-#if DEBUG
-            for (int layer_i = solve_roofs_floors.a; layer_i <= solve_roofs_floors.b; ++layer_i)
-#else
-            gParallel.ForEach(solve_roofs_floors, (layer_i) =>
-#endif
-            {
-                if (Cancelled()) return;
-                bool is_infill = layer_i >= Settings.Part.FloorLayers && layer_i < nLayers - Settings.Part.RoofLayers;
-
-                if (is_infill)
-                {
-                    if (Settings.Part.RoofLayers > 0)
-                    {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i);
-                    }
-                    else
-                    {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i - 1);     // will return "our" layer
-                    }
-                    if (Settings.Part.FloorLayers > 0)
-                    {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i);
-                    }
-                    else
-                    {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i + 1);   // will return "our" layer
-                    }
-                }
-                else
-                {
-                    LayerRoofAreas[layer_i] = new List<GeneralPolygon2d>();
-                    LayerFloorAreas[layer_i] = new List<GeneralPolygon2d>();
-                }
-
-                count_progress_step();
-#if DEBUG
-            }
-#else
-            });
-#endif
-        }
-
         // Each entry in the list has a collection of FillRegion objects for the layer.
         // The FillRegions are stored in a dictionary with a ShellsFillPolygon as the key
         // so the correct ones for each individual shell can be retrieved, rather than getting
@@ -1302,21 +1158,11 @@ namespace Sutro.Core.Generators
 
         protected virtual void compute_infill_regions(int layer_i)
         {
-            bool is_infill = layer_i >= Settings.Part.FloorLayers && layer_i < Slices.Count - Settings.Part.RoofLayers;
-
-            List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
-            List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
-
             var regions = new ShellFillRegionDict();
 
             foreach (var shell in LayerShells[layer_i])
             {
-                List<GeneralPolygon2d> solid_fill_regions = shell.GetInnerPolygons();
-                List<GeneralPolygon2d> infill_regions = new List<GeneralPolygon2d>();
-                if (is_infill)
-                    infill_regions = make_infill_regions(layer_i, solid_fill_regions, roof_cover, floor_cover, out solid_fill_regions);
-
-                regions[shell] = new FillRegions(solid_fill_regions, infill_regions);
+                regions[shell] = MakeFillRegions(layer_i, shell.GetInnerPolygons());
             }
 
             LayerShellFillRegions[layer_i] = regions;
@@ -1876,7 +1722,7 @@ namespace Sutro.Core.Generators
 
         protected virtual bool Cancelled()
         {
-            return cancellationToken?.IsCancellationRequested ?? false;
+            return cancellationToken.IsCancellationRequested;
         }
 
         public IEnumerable<string> TotalExtrusionReport

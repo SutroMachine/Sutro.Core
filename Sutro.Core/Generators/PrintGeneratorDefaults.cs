@@ -1,5 +1,10 @@
-﻿using Sutro.Core.Compilers;
+﻿using g3;
+using Sutro.Core.Compilers;
+using Sutro.Core.PartExteriors;
 using Sutro.Core.Settings;
+using Sutro.Core.Settings.Part;
+using Sutro.Core.Slicing;
+using System;
 
 namespace Sutro.Core.Generators
 {
@@ -26,6 +31,18 @@ namespace Sutro.Core.Generators
                 compiler.AppendComment(" " + line);
             }
             compiler.AppendComment("".PadRight(79, '-'));
+        }
+
+        public static IPartExterior PartExteriorFactory(PlanarSliceStack sliceStack, IPrintProfileFFF profile)
+        {
+            double minArea = Math.Pow(profile.Machine.NozzleDiamMM, 2);
+
+            // TODO: Make configurable
+            double anchorDistance = profile.Machine.NozzleDiamMM * 2;
+
+            return new PartExteriorVerticalProjection(sliceStack,
+                minArea, anchorDistance,
+                profile.Part.FloorLayers, profile.Part.RoofLayers);
         }
     }
 }
