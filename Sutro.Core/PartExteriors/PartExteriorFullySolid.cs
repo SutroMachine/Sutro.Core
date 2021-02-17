@@ -12,7 +12,7 @@ namespace Sutro.Core.PartExteriors
             return new List<GeneralPolygon2d>(subject);
         }
 
-        public void Initialize(CancellationToken? cancel)
+        public void Initialize(CancellationToken cancel)
         { }
     }
 }

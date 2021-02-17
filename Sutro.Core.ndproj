@@ -28,6 +28,7 @@
     <Name>System.Threading.Thread</Name>
     <Name>System.Linq</Name>
     <Name>Clipper</Name>
+    <Name>System.Threading.Tasks</Name>
   </FrameworkAssemblies>
   <Dirs>
     <Dir>C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319</Dir>
@@ -37,8 +38,8 @@
   <MergeCodeGeneratedByCompiler>True</MergeCodeGeneratedByCompiler>
   <ZipSourceFiles>True</ZipSourceFiles>
   <Report Kind="0" SectionsEnabled="110591" XslPath="" Flags="261376" />
-  <BuildComparisonSetting ProjectMode="CurrentProject" BuildMode="NDaysAgoAnalysisResult" ProjectFileToCompareWith="" BuildFileToCompareWith="" NDaysAgo="30" />
-  <BaselineInUISetting ProjectMode="CurrentProject" BuildMode="NDaysAgoAnalysisResult" ProjectFileToCompareWith="" BuildFileToCompareWith="" NDaysAgo="30" />
+  <BuildComparisonSetting ProjectMode="CurrentProject" BuildMode="ParticularAnalysisResult" ProjectFileToCompareWith=".\Sutro.Core.ndproj" BuildFileToCompareWith=".\NDependOut\2021_02\16_18_56\NDependAnalysisResult_Sutro_Core_2021Feb16_18h56.ndar" NDaysAgo="30" />
+  <BaselineInUISetting ProjectMode="CurrentProject" BuildMode="ParticularAnalysisResult" ProjectFileToCompareWith=".\Sutro.Core.ndproj" BuildFileToCompareWith=".\NDependOut\2021_02\16_18_56\NDependAnalysisResult_Sutro_Core_2021Feb16_18h56.ndar" NDaysAgo="30" />
   <CoverageFiles CoverageDir="" UncoverableAttribute="">
     <CoverageFile>.\coverage\Coverage.xml</CoverageFile>
   </CoverageFiles>

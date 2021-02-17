@@ -166,7 +166,7 @@ namespace Sutro.Core.Slicing
         protected virtual void ResolveSlices(ConcurrentDictionary<int, PlanarSlice> planarSlices, bool cropMeshesExist)
         {
             // resolve planar intersections, etc
-            Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
+            Utility.Parallel.ForEach(planarSlices.Keys, new CancellationToken(), (i, _) =>
             {
                 if (Cancelled())
                     return;
@@ -385,7 +385,7 @@ namespace Sutro.Core.Slicing
             bool isOpenMesh = mesh_options.IsOpen ? false : sliceMesh.Mesh.IsClosed();
 
             // each layer is independent so we can do in parallel
-            Utility.Parallel.ForEach(planarSlices.Keys, (i, _) =>
+            Utility.Parallel.ForEach(planarSlices.Keys, new CancellationToken(), (i, _) =>
             {
                 if (Cancelled())
                     return;

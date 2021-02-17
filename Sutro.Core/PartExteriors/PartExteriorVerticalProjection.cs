@@ -2,6 +2,7 @@
 using gs;
 using Sutro.Core.Slicing;
 using Sutro.Core.Utility;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace Sutro.Core.PartExteriors
 {
     public class PartExteriorVerticalProjection : IPartExterior
     {
+        private bool initialized = false;
+
         private readonly int floorLayerCount;
         private readonly int roofLayerCount;
 
@@ -39,10 +42,14 @@ namespace Sutro.Core.PartExteriors
         public List<GeneralPolygon2d> GetExteriorRegions(int layerIndex,
             IReadOnlyCollection<GeneralPolygon2d> subject)
         {
+            if (!initialized)
+                throw new System.InvalidOperationException(
+                    $"{nameof(PartExteriorVerticalProjection)} was not initialized.");
+
             return ClipperUtil.Difference(subject, interiors[layerIndex], minArea);
         }
 
-        public List<GeneralPolygon2d> CreateLayerInterior(int layerIndex)
+        protected List<GeneralPolygon2d> CreateLayerInterior(int layerIndex)
         {
             if (!LayerHasInfill(layerIndex))
                 return new List<GeneralPolygon2d>();
@@ -60,15 +67,21 @@ namespace Sutro.Core.PartExteriors
         /// <summary>
         /// compute all the roof and floor areas for the entire stack, in parallel
         /// </summary>
-        public virtual void Initialize(CancellationToken? cancel)
+        public virtual void Initialize(CancellationToken cancellationToken)
         {
             var solveInterval = new Interval1i(0, slices.Count - 1);
 
-            Parallel.ForEach(solveInterval, (layerIndex, i) =>
+            try
             {
-                if (cancel?.IsCancellationRequested ?? false) return;
-                interiors[layerIndex] = CreateLayerInterior(layerIndex);
-            });
+                Parallel.ForEach(solveInterval, cancellationToken, (layerIndex, i) =>
+                {
+                    interiors[layerIndex] = CreateLayerInterior(layerIndex);
+                });
+                initialized = true;
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private bool LayerHasInfill(int layerIndex)

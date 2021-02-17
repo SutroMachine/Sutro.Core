@@ -214,7 +214,7 @@ namespace Sutro.Core.Generators
          *  Internals
          */
 
-        protected CancellationToken? cancellationToken;
+        protected CancellationToken cancellationToken;
 
         // tags on slice polygons get transferred to shells
         protected IntTagSet<IFillPolygon> ShellTags = new IntTagSet<IFillPolygon>();
@@ -247,6 +247,7 @@ namespace Sutro.Core.Generators
         /// </summary>
         protected virtual void generate_result(CancellationToken? cancellationToken)
         {
+            this.cancellationToken = cancellationToken ?? new CancellationToken();
             SetupGeneration();
             if (Cancelled()) return;
 
@@ -1721,7 +1722,7 @@ namespace Sutro.Core.Generators
 
         protected virtual bool Cancelled()
         {
-            return cancellationToken?.IsCancellationRequested ?? false;
+            return cancellationToken.IsCancellationRequested;
         }
 
         public IEnumerable<string> TotalExtrusionReport
