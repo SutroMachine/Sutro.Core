@@ -247,7 +247,7 @@ namespace Sutro.Core.Generators
         /// </summary>
         protected virtual void generate_result(CancellationToken? cancellationToken)
         {
-            this.cancellationToken = cancellationToken ?? new CancellationToken();
+            this.cancellationToken = cancellationToken ?? CancellationToken.None;
             SetupGeneration();
             if (Cancelled()) return;
 

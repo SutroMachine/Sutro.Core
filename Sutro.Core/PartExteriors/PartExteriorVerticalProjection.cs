@@ -43,7 +43,7 @@ namespace Sutro.Core.PartExteriors
             IReadOnlyCollection<GeneralPolygon2d> subject)
         {
             if (!initialized)
-                throw new System.InvalidOperationException(
+                throw new InvalidOperationException(
                     $"{nameof(PartExteriorVerticalProjection)} was not initialized.");
 
             return ClipperUtil.Difference(subject, interiors[layerIndex], minArea);
