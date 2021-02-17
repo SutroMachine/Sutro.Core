@@ -8,7 +8,6 @@ using Sutro.Core.Models;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.PartExteriors;
 using Sutro.Core.Settings;
-using Sutro.Core.Settings.Part;
 using Sutro.Core.Slicing;
 using Sutro.Core.Toolpathing;
 using Sutro.Core.Toolpaths;

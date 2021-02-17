@@ -36,11 +36,12 @@ namespace Sutro.Core.Generators
         public static IPartExterior PartExteriorFactory(PlanarSliceStack sliceStack, IPrintProfileFFF profile)
         {
             double minArea = Math.Pow(profile.Machine.NozzleDiamMM, 2);
-            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
-            double overhangAllowance = profile.Part.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
+
+            // TODO: Make configurable
+            double anchorDistance = profile.Machine.NozzleDiamMM * 2;
 
             return new PartExteriorVerticalProjection(sliceStack,
-                minArea, overhangAllowance,
+                minArea, anchorDistance,
                 profile.Part.FloorLayers, profile.Part.RoofLayers);
         }
     }

@@ -1,44 +1,60 @@
 ﻿using g3;
 using gs;
 using Sutro.Core.Slicing;
+using Sutro.Core.Utility;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Sutro.Core.PartExteriors
 {
     public class PartExteriorVerticalProjection : IPartExterior
     {
-        protected List<GeneralPolygon2d>[] layerFloorAreas;
-        protected List<GeneralPolygon2d>[] layerRoofAreas;
-        private readonly int floorLayers;
+        private readonly int floorLayerCount;
+        private readonly int roofLayerCount;
+
         private readonly double minArea;
-        private readonly double overhangAllowance;
-        private readonly int roofLayers;
+        private readonly double anchorDistance;
+
         private readonly PlanarSliceStack slices;
+        private readonly ConcurrentDictionary<int, List<GeneralPolygon2d>> interiors;
 
         public PartExteriorVerticalProjection(PlanarSliceStack slices,
-                                              double minArea, double overhangAllowance,
-                                              int floorLayers, int roofLayers)
+                                              double minArea, double anchorDistance,
+                                              int floorLayerCount, int roofLayerCount)
         {
             this.slices = slices;
+
+            this.floorLayerCount = floorLayerCount;
+            this.roofLayerCount = roofLayerCount;
+
             this.minArea = minArea;
-            this.overhangAllowance = overhangAllowance;
-            this.floorLayers = floorLayers;
-            this.roofLayers = roofLayers;
+            this.anchorDistance = anchorDistance;
+
+            // Initialize the concurrent dictionary collection
+            interiors = new ConcurrentDictionary<int, List<GeneralPolygon2d>>();
         }
 
         public List<GeneralPolygon2d> GetExteriorRegions(int layerIndex,
             IReadOnlyCollection<GeneralPolygon2d> subject)
         {
-            var roofPolys = ClipperUtil.Difference(subject, layerRoofAreas[layerIndex], minArea);
-            var floorPolys = ClipperUtil.Difference(subject, layerFloorAreas[layerIndex], minArea);
+            return ClipperUtil.Difference(subject, interiors[layerIndex], minArea);
+        }
 
-            var exteriorRegions = ClipperUtil.Union(roofPolys, floorPolys, minArea);
+        public List<GeneralPolygon2d> CreateLayerInterior(int layerIndex)
+        {
+            if (!LayerHasInfill(layerIndex))
+                return new List<GeneralPolygon2d>();
 
-            if (exteriorRegions == null)
-                exteriorRegions = new List<GeneralPolygon2d>();
+            var intersection = slices[layerIndex].Solids;
 
-            return exteriorRegions;
+            foreach (var adjacentLayer in EnumerateRoofLayers(layerIndex).Concat(EnumerateFloorLayers(layerIndex)))
+            {
+                intersection = ClipperUtil.Intersection(intersection, adjacentLayer, minArea);
+            }
+
+            return SubtractAnchorDistance(intersection) ?? new List<GeneralPolygon2d>();
         }
 
         /// <summary>
@@ -46,119 +62,60 @@ namespace Sutro.Core.PartExteriors
         /// </summary>
         public virtual void Initialize(CancellationToken? cancel)
         {
-            int nLayers = slices.Count;
-            layerRoofAreas = new List<GeneralPolygon2d>[nLayers];
-            layerFloorAreas = new List<GeneralPolygon2d>[nLayers];
+            var solveInterval = new Interval1i(0, slices.Count - 1);
 
-            //int start_layer = Math.Max(0, Settings.Part.LayerRangeFilter.a);
-            //int end_layer = Math.Min(nLayers - 1, Settings.Part.LayerRangeFilter.b);
-            //Interval1i solveInterval = new Interval1i(start_layer, end_layer);
-            var solveInterval = new Interval1i(0, nLayers - 1);
-
-#if DEBUG
-            for (int layerIndex = solveInterval.a; layerIndex <= solveInterval.b; ++layerIndex)
-#else
-            gParallel.ForEach(solveInterval, (layerIndex) =>
-#endif
+            Parallel.ForEach(solveInterval, (layerIndex, i) =>
             {
                 if (cancel?.IsCancellationRequested ?? false) return;
-                bool is_infill = layerIndex >= floorLayers && layerIndex < nLayers - roofLayers;
-
-                if (is_infill)
-                {
-                    if (roofLayers > 0)
-                    {
-                        layerRoofAreas[layerIndex] = FindLayerRoofAreas(layerIndex);
-                    }
-                    else
-                    {
-                        layerRoofAreas[layerIndex] = FindLayerRoofAreas(layerIndex - 1);     // will return "our" layer
-                    }
-                    if (floorLayers > 0)
-                    {
-                        layerFloorAreas[layerIndex] = FindLayerFloorAreas(layerIndex);
-                    }
-                    else
-                    {
-                        layerFloorAreas[layerIndex] = FindLayerFloorAreas(layerIndex + 1);   // will return "our" layer
-                    }
-                }
-                else
-                {
-                    layerRoofAreas[layerIndex] = new List<GeneralPolygon2d>();
-                    layerFloorAreas[layerIndex] = new List<GeneralPolygon2d>();
-                }
-
-                //count_progress_step();
-#if DEBUG
-            }
-#else
+                interiors[layerIndex] = CreateLayerInterior(layerIndex);
             });
-#endif
+        }
+
+        private bool LayerHasInfill(int layerIndex)
+        {
+            return layerIndex >= floorLayerCount && layerIndex < slices.Count - roofLayerCount;
         }
 
         /// <summary>
-        /// construct region that needs to be solid for "floors"
+        /// Construct region that needs to be solid for "floors".
+        /// This is the intersection of solids for the previous N layers.
         /// </summary>
-        protected virtual List<GeneralPolygon2d> FindLayerFloorAreas(int layerIndex)
+        protected virtual IEnumerable<List<GeneralPolygon2d>> EnumerateFloorLayers(int layerIndex)
         {
-            List<GeneralPolygon2d> floorCover = new List<GeneralPolygon2d>();
-
-            // TODO: Shrink?
-            floorCover.AddRange(slices[layerIndex - 1].Solids);
-
             // If we want > 1 floor layer, we need to look further back.
-            for (int k = 2; k <= floorLayers; ++k)
+            for (int floorLayerOffset = 1; floorLayerOffset <= floorLayerCount; ++floorLayerOffset)
             {
-                int ri = layerIndex - k;
-                if (ri >= 0)
-                {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
+                int floorLayerIndex = layerIndex - floorLayerOffset;
 
-                    // TODO: Shrink?
-                    infillN.AddRange(slices[ri].Solids);
-                    floorCover = ClipperUtil.Intersection(floorCover, infillN, minArea);
+                if (floorLayerIndex >= 0)
+                {
+                    yield return slices[floorLayerIndex].Solids;
                 }
             }
+        }
 
-            // add overhang allowance.
-            var result = ClipperUtil.MiterOffset(floorCover, overhangAllowance, minArea);
-            return result;
+        private List<GeneralPolygon2d> SubtractAnchorDistance(List<GeneralPolygon2d> cover)
+        {
+            return ClipperUtil.MiterOffset(cover, -anchorDistance, minArea);
         }
 
         /// <summary>
-        /// construct region that needs to be solid for "roofs".
-        /// This is the intersection of infill polygons for the next N layers.
+        /// Construct region that needs to be solid for "roofs".
+        /// This is the intersection of solids for the next N layers.
         /// </summary>
-        protected virtual List<GeneralPolygon2d> FindLayerRoofAreas(int layerIndex)
+        protected virtual IEnumerable<List<GeneralPolygon2d>> EnumerateRoofLayers(int layerIndex)
         {
-            List<GeneralPolygon2d> roofCover = new List<GeneralPolygon2d>();
-
-            // TODO: Shrink?
-            roofCover.AddRange(slices[layerIndex + 1].Solids);
-
             // If we want > 1 roof layer, we need to look further ahead.
             // The full area we need to print as "roof" is the infill minus
             // the intersection of the infill areas above
-            for (int k = 2; k <= roofLayers; ++k)
+            for (int roofOffset = 1; roofOffset <= roofLayerCount; ++roofOffset)
             {
-                int ri = layerIndex + k;
-                if (ri < slices.Count)
+                int roofLayerIndex = layerIndex + roofOffset;
+                if (roofLayerIndex < slices.Count)
                 {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
-
-                    // TODO: Shrink?
-                    infillN.AddRange(slices[ri].Solids);
-
-                    roofCover = ClipperUtil.Intersection(roofCover, infillN, minArea);
+                    yield return slices[roofLayerIndex].Solids;
                 }
             }
-
-            // add overhang allowance. Technically any non-vertical surface will result in
-            // non-empty roof regions. However we do not need to explicitly support roofs
-            // until they are "too horizontal".
-            var result = ClipperUtil.MiterOffset(roofCover, overhangAllowance, minArea);
-            return result;
         }
     }
 }
