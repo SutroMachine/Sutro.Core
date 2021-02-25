@@ -118,19 +118,16 @@ namespace Sutro.Core.Parsers
         // N### lines
         virtual protected GCodeLine make_N_code_line(string line, string[] tokens, int nLineNum)
         {
+            if (tokens.Length == 1)
+                return MakeNCodeLine(line, tokens[0], nLineNum, LineType.Blank);
+
             LineType eType = LineType.UnknownCode;
             if (tokens[1][0] == 'G')
                 eType = LineType.GCode;
             else if (tokens[1][0] == 'M')
                 eType = LineType.MCode;
 
-            GCodeLine l = new GCodeLine(nLineNum, eType);
-            l.OriginalString = line;
-
-            bool valid = int.TryParse(tokens[0].Substring(1), out l.N);
-
-            // if we can't parse it as a valid N code, treat the entire line as an unknow string
-            if (!valid) return make_string_line(line, nLineNum);
+            var l = MakeNCodeLine(line, tokens[0], nLineNum, eType);
 
             // [TODO] comments
 
@@ -145,8 +142,21 @@ namespace Sutro.Core.Parsers
                 if (tokens.Length > 2)
                     l.Parameters = parse_parameters(tokens, 2);
             }
-
             return l;
+        }
+
+        protected virtual GCodeLine MakeNCodeLine(string line, string nCodeToken, int lineNumber, LineType lineType)
+        {
+            var gcodeLine = new GCodeLine(lineNumber, lineType);
+            gcodeLine.OriginalString = line;
+
+            bool valid = int.TryParse(nCodeToken.Substring(1), out gcodeLine.N);
+
+            // if we can't parse it as a valid N code, treat the entire line as an unknown string
+            if (!valid)
+                return make_string_line(line, lineNumber);
+
+            return gcodeLine;
         }
 
         // any line we can't understand
