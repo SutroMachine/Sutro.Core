@@ -428,7 +428,7 @@ namespace gs
             var options = PlanarComplex.FindSolidsOptions.Default;
             options.WantCurveSolids = false;
             options.SimplifyDeviationTolerance = 0.001;
-            options.TrustOrientations = true;
+            options.TrustOrientations = false;
             options.AllowOverlappingHoles = true;
 
             PlanarComplex.SolidRegionInfo solids = complex.FindSolidRegions(options);
