@@ -47,7 +47,7 @@ namespace gs
             if (InsetFromInputPolygon)
             {
                 //BoundaryPolygonCache = new SegmentSet2d(Polygon);
-                List<GeneralPolygon2d> current = ClipperUtil.ComputeOffsetPolygon(Polygon, -ToolWidth / InsetFromInputPolygonX, true);
+                List<GeneralPolygon2d> current = ClipperUtil.ComputeOffsetPolygon(Polygon, -ToolWidth * InsetFromInputPolygonX, true);
                 foreach (GeneralPolygon2d poly in current)
                 {
                     SegmentSet2d polyCache = new SegmentSet2d(poly);

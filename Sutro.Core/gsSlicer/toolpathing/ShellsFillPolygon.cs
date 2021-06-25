@@ -332,7 +332,7 @@ namespace gs
 
                 repair.Compute();
 
-                DGraph2Util.Curves c = DGraph2Util.ExtractCurves(repair.GetResultGraph());
+                var c = DGraph2Util.ExtractCurves(repair.GetResultGraph());
 
                 #region Borrow nesting calculations from PlanarSlice to enforce winding direction
 
