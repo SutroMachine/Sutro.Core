@@ -34,10 +34,10 @@ namespace Sutro.Core.Slicing
         {
         }
 
-        protected override DGraph2Util.Curves ConvertCurvesToSliceCoordinates(PlanarSlice slice, DGraph3Util.Curves curves3d)
+        protected override CurveCollection ConvertCurvesToSliceCoordinates(PlanarSlice slice, DGraph3Util.Curves curves3d)
         {
-            var curves2d = EmptyCurves();
-            curves2d.Loops = new List<Polygon2d>(curves3d.Loops.Count);
+            var curves2d = new CurveCollection();
+            curves2d.Loops.AddRange(new List<Polygon2d>(curves3d.Loops.Count));
             for (int li = 0; li < curves3d.Loops.Count; ++li)
             {
                 DCurve3 loop = curves3d.Loops[li];
@@ -46,7 +46,7 @@ namespace Sutro.Core.Slicing
                     curves2d.Loops[li].AppendVertex(v.xy);
             }
 
-            curves2d.Paths = new List<PolyLine2d>(curves3d.Paths.Count);
+            curves2d.Paths.AddRange(new List<PolyLine2d>(curves3d.Paths.Count));
             for (int pi = 0; pi < curves3d.Paths.Count; ++pi)
             {
                 DCurve3 span = curves3d.Paths[pi];
@@ -108,7 +108,7 @@ namespace Sutro.Core.Slicing
             return planarSlices;
         }
 
-        protected override DGraph2Util.Curves JitterZ(PlanarSlice planarSlice, SliceMesh sliceMesh, DMeshAABBTree3 spatial, bool meshIsClosed)
+        protected override CurveCollection JitterZ(PlanarSlice planarSlice, SliceMesh sliceMesh, DMeshAABBTree3 spatial, bool meshIsClosed)
         {
             double jitterz = planarSlice.LayerZSpan.Interpolate(0.75);
             planarSlice.Z = jitterz;

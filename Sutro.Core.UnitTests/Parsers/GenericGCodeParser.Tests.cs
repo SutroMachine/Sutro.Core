@@ -1,6 +1,7 @@
 ﻿using gs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Models.GCode;
+using Sutro.Core.Parsers;
 
 namespace Sutro.Core.UnitTests.Parsers
 {

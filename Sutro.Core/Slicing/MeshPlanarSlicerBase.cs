@@ -184,15 +184,6 @@ namespace Sutro.Core.Slicing
             });
         }
 
-        protected static DGraph2Util.Curves EmptyCurves()
-        {
-            return new DGraph2Util.Curves()
-            {
-                Loops = new List<Polygon2d>(),
-                Paths = new List<PolyLine2d>()
-            };
-        }
-
         protected virtual void AddCavityPolygons(PlanarSlice slice, List<GeneralPolygon2d> polygons, PrintMeshOptions options)
         {
             slice.AddCavityPolygons(polygons);
@@ -282,7 +273,7 @@ namespace Sutro.Core.Slicing
             return false;
         }
 
-        protected DGraph2Util.Curves ComputePlaneCurves(
+        protected CurveCollection ComputePlaneCurves(
             DMesh3 mesh, DMeshAABBTree3 spatial, PlanarSlice slice, bool meshIsSolid)
         {
             var plane = GetSlicePlane(slice);
@@ -291,7 +282,7 @@ namespace Sutro.Core.Slicing
 
             if (triangles.Count == 0)
             {
-                return EmptyCurves();
+                return new CurveCollection();
             }
 
             // Compute intersection iso-curves, which produces a 3D graph of undirected edges
@@ -301,7 +292,7 @@ namespace Sutro.Core.Slicing
             DGraph3 graph = iso.Graph;
             if (graph.EdgeCount == 0)
             {
-                return EmptyCurves();
+                return new CurveCollection();
             }
 
             // If this is a closed solid, any open spurs in the graph are errors
@@ -316,7 +307,7 @@ namespace Sutro.Core.Slicing
             return ConvertCurvesToSliceCoordinates(slice, curves3d);
         }
 
-        protected abstract DGraph2Util.Curves ConvertCurvesToSliceCoordinates(PlanarSlice slice, DGraph3Util.Curves curves3d);
+        protected abstract CurveCollection ConvertCurvesToSliceCoordinates(PlanarSlice slice, DGraph3Util.Curves curves3d);
 
         protected DGraph2 ConvertGraphTo2d(DGraph3 graph, Plane3d plane)
         {
@@ -365,9 +356,9 @@ namespace Sutro.Core.Slicing
 
         protected abstract ConcurrentDictionary<int, PlanarSlice> InitializePlanarSlices();
 
-        protected abstract DGraph2Util.Curves JitterZ(PlanarSlice planarSlice, SliceMesh sliceMesh, DMeshAABBTree3 spatial, bool meshIsClosed);
+        protected abstract CurveCollection JitterZ(PlanarSlice planarSlice, SliceMesh sliceMesh, DMeshAABBTree3 spatial, bool meshIsClosed);
 
-        protected bool NoIntersectionsFound(bool meshIsClosed, DGraph2Util.Curves curves)
+        protected bool NoIntersectionsFound(bool meshIsClosed, CurveCollection curves)
         {
             return meshIsClosed && curves.Loops.Count == 0 || meshIsClosed == false && curves.Loops.Count == 0 && curves.Paths.Count == 0;
         }
