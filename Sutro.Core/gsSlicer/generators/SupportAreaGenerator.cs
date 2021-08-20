@@ -6,33 +6,113 @@ using System.Threading;
 
 namespace gs
 {
-    public class SupportAreaGenerator
+    public class CircularSupportPointGenerator : ISupportPointGenerator
     {
-        private readonly IPrintProfileFFF profile;
-        private readonly double printWidth;
-        private readonly double overhangAngleDist;
-        private readonly double mergeDownDilate;
-        private readonly double supportGapInLayer;
-        private readonly double supportOffset;
-        private readonly double discardHoleSizeMM;
-        private readonly double discardHoleArea;
-        private readonly double minDiameter;
-        private readonly double supportMinDist;
+        private readonly double defaultSupportPointDiameter;
+        private readonly int supportPointSides;
 
-        private readonly bool enableInterLayerSmoothing = true;
-        private readonly bool supportMinZTips = true;
-
-        public SupportAreaGenerator(IPrintProfileFFF profile)
+        public CircularSupportPointGenerator(double defaultSupportPointDiameter, int supportPointSides)
         {
-            this.profile = profile;
+            this.defaultSupportPointDiameter = defaultSupportPointDiameter;
+            this.supportPointSides = supportPointSides;
+        }
 
-            printWidth = profile.Machine.NozzleDiamMM;
+
+        /// <summary>
+        /// Generate a support point polygon (e.g. circle)
+        /// </summary>
+        public virtual GeneralPolygon2d MakeSupportPointPolygon(Vector2d point, double diameter = -1)
+        {
+            if (diameter <= 0)
+                diameter = defaultSupportPointDiameter;
+
+            var circle = Polygon2d.MakeCircle(
+                diameter * 0.5, supportPointSides);
+
+            circle.Translate(point);
+            return new GeneralPolygon2d(circle);
+        }
+    }
+
+    public class LayerSupportCalculator
+    {
+        private readonly double supportOffset;
+        private readonly double overhangAngleDist;
+
+        public LayerSupportCalculator(IPrintProfileFFF profile)
+        {
+            // extra offset we add to support polygons, eg to nudge them
+            // in/out depending on shell layers, etc
+            supportOffset = profile.Part.SupportAreaOffsetX * profile.Machine.NozzleDiamMM;
 
             // "insert" distance that is related to overhang angle
             //  distance = 0 means, full support
             //  distance = nozzle_diam means, 45 degrees overhang
             //  ***can't use angle w/ nozzle diam. Angle is related to layer height.
             overhangAngleDist = profile.Part.LayerHeightMM / Math.Tan(profile.Part.SupportOverhangAngleDeg * MathUtil.Deg2Rad);
+        }
+
+        public List<GeneralPolygon2d> Calculate(IReadOnlyCollection<GeneralPolygon2d> currentLayerSolids,
+            IReadOnlyCollection<GeneralPolygon2d> nextLayerSolids,
+            IReadOnlyCollection<GeneralPolygon2d> currentLayerBridgeArea)
+        {
+            // expand this layer and subtract from next layer. leftovers are
+            // what needs to be supported on next layer.
+            List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(currentLayerSolids, overhangAngleDist);
+            var supportPolys = ClipperUtil.Difference(nextLayerSolids, expandPolys);
+
+            // subtract regions we are going to bridge
+            if (currentLayerBridgeArea.Count > 0)
+            {
+                supportPolys = ClipperUtil.Difference(supportPolys, currentLayerBridgeArea);
+            }
+
+            // if we have an support inset/outset, apply it here.
+            // for insets the poly may disappear, in that case we
+            // keep the original poly.
+            // [TODO] handle partial-disappears
+            if (supportOffset != 0)
+            {
+                List<GeneralPolygon2d> offsetPolys = new List<GeneralPolygon2d>();
+                foreach (var poly in supportPolys)
+                {
+                    List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(poly, supportOffset);
+                    // if offset is empty, use original poly
+                    if (offset.Count == 0)
+                    {
+                        offsetPolys.Add(poly);
+                    }
+                    else
+                    {
+                        offsetPolys.AddRange(offset);
+                    }
+                }
+                supportPolys = offsetPolys;
+            }
+            return supportPolys;
+        }
+    }
+
+    public class SupportAreaGenerator
+    {
+        private readonly ISupportPointGenerator supportPointGenerator;
+        private readonly LayerSupportCalculator layerSupportCalculator;
+        private readonly double printWidth;
+        private readonly double mergeDownDilate;
+        private readonly double supportGapInLayer;
+        private readonly double discardHoleSizeMM;
+        private readonly double discardHoleArea;
+        private readonly double minDiameter;
+        private readonly double supportMinDist;
+        private readonly bool enableInterLayerSmoothing = true;
+        private readonly bool supportMinZTips;
+
+        public SupportAreaGenerator(IPrintProfileFFF profile)
+        {
+            layerSupportCalculator = new LayerSupportCalculator(profile);
+            supportPointGenerator = new CircularSupportPointGenerator(profile.Part.SupportPointDiam, profile.Part.SupportPointSides);
+
+            printWidth = profile.Machine.NozzleDiamMM;
 
             // amount we dilate/contract support regions when merging them,
             // to ensure overlap. Using a larger value here has the effect of
@@ -44,10 +124,6 @@ namespace gs
             // [TODO] do we need to include SupportAreaOffsetX here?
             supportGapInLayer = profile.Part.SupportSolidSpace;
 
-            // extra offset we add to support polygons, eg to nudge them
-            // in/out depending on shell layers, etc
-            supportOffset = profile.Part.SupportAreaOffsetX * profile.Machine.NozzleDiamMM;
-
             // we will throw away holes in support regions smaller than these thresholds
             discardHoleSizeMM = 2 * profile.Machine.NozzleDiamMM;
             discardHoleArea = discardHoleSizeMM * discardHoleSizeMM;
@@ -58,6 +134,8 @@ namespace gs
             // if support poly is further than this from model, we consider
             // it a min-z-tip and it gets special handling
             supportMinDist = profile.Machine.NozzleDiamMM;
+
+            supportMinZTips = profile.Part.SupportMinZTips;
         }
 
         public virtual List<GeneralPolygon2d>[] Compute(PlanarSliceStack slices,
@@ -92,7 +170,7 @@ namespace gs
             // For layer i, compute support region needed to support layer (i+1)
             // This is the *absolute* support area - no inset for filament width or spacing from model
 
-            var support = ComputeAbsoluteSupport(slices, bridgeAreas, pathClipRegions, incrementProgress, cancellationToken);
+            var layerSupportAreas = ComputeAbsoluteSupport(slices, bridgeAreas, pathClipRegions, incrementProgress, cancellationToken);
 
             /*
              * Step 2: sweep support polygons downwards
@@ -101,7 +179,7 @@ namespace gs
             // now merge support layers. Process is to track "current" support area,
             // at layer below we union with that layers support, and then subtract
             // that layers solids.
-            return Sweep(slices, support, pathClipRegions, cancellationToken);
+            return Sweep(slices, layerSupportAreas, pathClipRegions, cancellationToken);
         }
 
         private List<GeneralPolygon2d>[] Sweep(PlanarSliceStack slices, List<GeneralPolygon2d>[] support,
@@ -128,7 +206,7 @@ namespace gs
                     support_above.Add(SmoothSupportPolygon(grow, shrink, solid));
                 }
 
-                var combinedSupport = CombineSupport(result[i], support_above);
+                var combinedSupport = CombineSupport(support[i], support_above);
 
                 // support area we propagate down is combined area minus solid
                 prevSupport = ClipperUtil.Difference(combinedSupport, slice.Solids);
@@ -151,7 +229,7 @@ namespace gs
                 result[i] = new List<GeneralPolygon2d>();
                 foreach (GeneralPolygon2d poly in combinedSupport)
                 {
-                    PolySimplification2.Simplify(poly, 0.25 * profile.Machine.NozzleDiamMM);
+                    PolySimplification2.Simplify(poly, 0.25 * printWidth);
                     result[i].Add(poly);
                 }
             }
@@ -235,7 +313,7 @@ namespace gs
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var supportPolys = ComputeSupportPolys(slices, bridgeAreas, layeri);
+                var supportPolys = layerSupportCalculator.Calculate(slices[layeri].Solids, slices[layeri + 1].Solids, bridgeAreas[layeri]);
 
                 // now we need to deal with tiny polys. If they are min-z-tips,
                 // we want to add larger support regions underneath them.
@@ -243,14 +321,11 @@ namespace gs
                 // NOTE: we **cannot** discard tiny polys here, because a bunch of
                 // tiny per-layer polygons may merge into larger support regions
                 // after dilate/contract, eg on angled thin strips.
-                if (supportMinZTips)
-                {
-                    supportPolys = HandleTinyPolygons(supportPolys, slices[layeri]);
-                }
+                supportPolys = HandleTinyPolygons(supportPolys, slices[layeri]);
 
                 // add any explicit support points in this layer as circles
                 foreach (Vector2d v in slices[layeri].InputSupportPoints)
-                    supportPolys.Add(MakeSupportPointPolygon(v));
+                    supportPolys.Add(supportPointGenerator.MakeSupportPointPolygon(v));
 
                 if (pathClipRegions != null)
                     supportPolys = ClipperUtil.Intersection(supportPolys, pathClipRegions);
@@ -262,6 +337,7 @@ namespace gs
 #else
         });
 #endif
+            result[^1] = new List<GeneralPolygon2d>();
             return result;
         }
 
@@ -283,10 +359,10 @@ namespace gs
                 double dnear_sqr = slice.DistanceSquared(bounds.Center, 2 * supportMinDist);
                 if (dnear_sqr > supportMinDist * supportMinDist)
                 {
-                    if (profile.Part.SupportMinZTips)
-                        filteredPolys.Add(MakeSupportPointPolygon(bounds.Center, profile.Part.SupportPointDiam));
+                    if (supportMinZTips)
+                        filteredPolys.Add(supportPointGenerator.MakeSupportPointPolygon(bounds.Center));
                     else
-                        filteredPolys.Add(MakeSupportPointPolygon(bounds.Center, minDiameter));
+                        filteredPolys.Add(supportPointGenerator.MakeSupportPointPolygon(bounds.Center, minDiameter));
                     // else throw it away
                     continue;
                 }
@@ -306,67 +382,10 @@ namespace gs
                     continue;
 
                 // ok force support
-                filteredPolys.Add(MakeSupportPointPolygon(bounds.Center, minDiameter));
+                filteredPolys.Add(supportPointGenerator.MakeSupportPointPolygon(bounds.Center, minDiameter));
             }
 
             return filteredPolys;
-        }
-
-        private List<GeneralPolygon2d> ComputeSupportPolys(PlanarSliceStack slices, IReadOnlyList<IReadOnlyCollection<GeneralPolygon2d>> bridgeAreas, int layeri)
-        {
-            var slice = slices[layeri];
-            var next_slice = slices[layeri + 1];
-
-            // expand this layer and subtract from next layer. leftovers are
-            // what needs to be supported on next layer.
-            List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(slice.Solids, overhangAngleDist);
-            var supportPolys = ClipperUtil.Difference(next_slice.Solids, expandPolys);
-
-            // subtract regions we are going to bridge
-            var bridgePolys = bridgeAreas[layeri];
-            if (bridgePolys.Count > 0)
-            {
-                supportPolys = ClipperUtil.Difference(supportPolys, bridgePolys);
-            }
-
-            // if we have an support inset/outset, apply it here.
-            // for insets the poly may disappear, in that case we
-            // keep the original poly.
-            // [TODO] handle partial-disappears
-            if (supportOffset != 0)
-            {
-                List<GeneralPolygon2d> offsetPolys = new List<GeneralPolygon2d>();
-                foreach (var poly in supportPolys)
-                {
-                    List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(poly, supportOffset);
-                    // if offset is empty, use original poly
-                    if (offset.Count == 0)
-                    {
-                        offsetPolys.Add(poly);
-                    }
-                    else
-                    {
-                        offsetPolys.AddRange(offset);
-                    }
-                }
-                supportPolys = offsetPolys;
-            }
-            return supportPolys;
-        }
-
-        /// <summary>
-        /// Generate a support point polygon (e.g. circle)
-        /// </summary>
-        protected virtual GeneralPolygon2d MakeSupportPointPolygon(Vector2d v, double diameter = -1)
-        {
-            if (diameter <= 0)
-                diameter = profile.Part.SupportPointDiam;
-
-            Polygon2d circ = Polygon2d.MakeCircle(
-                diameter * 0.5, profile.Part.SupportPointSides);
-
-            circ.Translate(v);
-            return new GeneralPolygon2d(circ);
         }
     }
 }
