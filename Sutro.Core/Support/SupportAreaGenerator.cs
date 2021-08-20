@@ -1,98 +1,12 @@
 ﻿using g3;
+using gs;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace gs
+namespace Sutro.Core.Support
 {
-    public class CircularSupportPointGenerator : ISupportPointGenerator
-    {
-        private readonly double defaultSupportPointDiameter;
-        private readonly int supportPointSides;
-
-        public CircularSupportPointGenerator(double defaultSupportPointDiameter, int supportPointSides)
-        {
-            this.defaultSupportPointDiameter = defaultSupportPointDiameter;
-            this.supportPointSides = supportPointSides;
-        }
-
-
-        /// <summary>
-        /// Generate a support point polygon (e.g. circle)
-        /// </summary>
-        public virtual GeneralPolygon2d MakeSupportPointPolygon(Vector2d point, double diameter = -1)
-        {
-            if (diameter <= 0)
-                diameter = defaultSupportPointDiameter;
-
-            var circle = Polygon2d.MakeCircle(
-                diameter * 0.5, supportPointSides);
-
-            circle.Translate(point);
-            return new GeneralPolygon2d(circle);
-        }
-    }
-
-    public class LayerSupportCalculator
-    {
-        private readonly double supportOffset;
-        private readonly double overhangAngleDist;
-
-        public LayerSupportCalculator(IPrintProfileFFF profile)
-        {
-            // extra offset we add to support polygons, eg to nudge them
-            // in/out depending on shell layers, etc
-            supportOffset = profile.Part.SupportAreaOffsetX * profile.Machine.NozzleDiamMM;
-
-            // "insert" distance that is related to overhang angle
-            //  distance = 0 means, full support
-            //  distance = nozzle_diam means, 45 degrees overhang
-            //  ***can't use angle w/ nozzle diam. Angle is related to layer height.
-            overhangAngleDist = profile.Part.LayerHeightMM / Math.Tan(profile.Part.SupportOverhangAngleDeg * MathUtil.Deg2Rad);
-        }
-
-        public List<GeneralPolygon2d> Calculate(IReadOnlyCollection<GeneralPolygon2d> currentLayerSolids,
-            IReadOnlyCollection<GeneralPolygon2d> nextLayerSolids,
-            IReadOnlyCollection<GeneralPolygon2d> currentLayerBridgeArea)
-        {
-            // expand this layer and subtract from next layer. leftovers are
-            // what needs to be supported on next layer.
-            List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(currentLayerSolids, overhangAngleDist);
-            var supportPolys = ClipperUtil.Difference(nextLayerSolids, expandPolys);
-
-            // subtract regions we are going to bridge
-            if (currentLayerBridgeArea.Count > 0)
-            {
-                supportPolys = ClipperUtil.Difference(supportPolys, currentLayerBridgeArea);
-            }
-
-            // if we have an support inset/outset, apply it here.
-            // for insets the poly may disappear, in that case we
-            // keep the original poly.
-            // [TODO] handle partial-disappears
-            if (supportOffset != 0)
-            {
-                List<GeneralPolygon2d> offsetPolys = new List<GeneralPolygon2d>();
-                foreach (var poly in supportPolys)
-                {
-                    List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(poly, supportOffset);
-                    // if offset is empty, use original poly
-                    if (offset.Count == 0)
-                    {
-                        offsetPolys.Add(poly);
-                    }
-                    else
-                    {
-                        offsetPolys.AddRange(offset);
-                    }
-                }
-                supportPolys = offsetPolys;
-            }
-            return supportPolys;
-        }
-    }
-
     public class SupportAreaGenerator
     {
         private readonly ISupportPointGenerator supportPointGenerator;
@@ -278,7 +192,7 @@ namespace gs
             // have holes we intersect with that poly, inset by a printwidth.
             // [TODO] do we really need this? if hole expands, it will still be
             // clipped against model.
-            List<GeneralPolygon2d> outer_clip = (solid.Holes.Count == 0) ? null : ClipperUtil.MiterOffset(copy, -printWidth);
+            List<GeneralPolygon2d> outer_clip = solid.Holes.Count == 0 ? null : ClipperUtil.MiterOffset(copy, -printWidth);
             foreach (Polygon2d hole in solid.Holes)
             {
                 if (hole.Bounds.MaxDim < discardHoleSizeMM || Math.Abs(hole.SignedArea) < discardHoleArea)
@@ -372,12 +286,12 @@ namespace gs
                 // If not, we add a minimal support polygon.
                 double d = 1.25 * supportMinDist; double dsqr = d * d;
                 Vector2d dx = d * Vector2d.AxisX, dy = d * Vector2d.AxisY;
-                int sleft = (slice.DistanceSquared(bounds.Center - dx, 2 * d) < dsqr) ? 1 : 0;
-                int sright = (slice.DistanceSquared(bounds.Center + dx, 2 * d) < dsqr) ? 1 : 0;
+                int sleft = slice.DistanceSquared(bounds.Center - dx, 2 * d) < dsqr ? 1 : 0;
+                int sright = slice.DistanceSquared(bounds.Center + dx, 2 * d) < dsqr ? 1 : 0;
                 if (sleft + sright == 2)
                     continue;
-                int sfwd = (slice.DistanceSquared(bounds.Center + dy, 2 * d) < dsqr) ? 1 : 0;
-                int sback = (slice.DistanceSquared(bounds.Center - dy, 2 * d) < dsqr) ? 1 : 0;
+                int sfwd = slice.DistanceSquared(bounds.Center + dy, 2 * d) < dsqr ? 1 : 0;
+                int sback = slice.DistanceSquared(bounds.Center - dy, 2 * d) < dsqr ? 1 : 0;
                 if (sfwd + sback == 2)
                     continue;
 
