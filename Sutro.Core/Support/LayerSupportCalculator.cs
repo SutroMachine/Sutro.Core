@@ -11,26 +11,24 @@ namespace Sutro.Core.Support
         private readonly double supportOffset;
         private readonly double overhangAngleDist;
 
-        public LayerSupportCalculator(IPrintProfileFFF profile)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="supportOffset">Extra offset to add to support polygons, eg to nudge them in/out depending on number of shell layers, etc.</param>
+        /// <param name="overhangAngleDist">Extra offset to add to support polygons, eg to nudge them in/out depending on number of shell layers, etc.</param>
+        public LayerSupportCalculator(double supportOffset, double overhangAngleDist)
         {
-            // extra offset we add to support polygons, eg to nudge them
-            // in/out depending on shell layers, etc
-            supportOffset = profile.Part.SupportAreaOffsetX * profile.Machine.NozzleDiamMM;
-
-            // "insert" distance that is related to overhang angle
-            //  distance = 0 means, full support
-            //  distance = nozzle_diam means, 45 degrees overhang
-            //  ***can't use angle w/ nozzle diam. Angle is related to layer height.
-            overhangAngleDist = profile.Part.LayerHeightMM / Math.Tan(profile.Part.SupportOverhangAngleDeg * MathUtil.Deg2Rad);
+            this.supportOffset = supportOffset;
+            this.overhangAngleDist = overhangAngleDist;
         }
 
         public List<GeneralPolygon2d> Calculate(IReadOnlyCollection<GeneralPolygon2d> currentLayerSolids,
             IReadOnlyCollection<GeneralPolygon2d> nextLayerSolids,
             IReadOnlyCollection<GeneralPolygon2d> currentLayerBridgeArea)
         {
-            // expand this layer and subtract from next layer. leftovers are
-            // what needs to be supported on next layer.
-            List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(currentLayerSolids, overhangAngleDist);
+            // Expand the current layer and subtract from layer above; leftovers are
+            // the regions of the layer above that need to be supported.
+            var expandPolys = ClipperUtil.MiterOffset(currentLayerSolids, overhangAngleDist);
             var supportPolys = ClipperUtil.Difference(nextLayerSolids, expandPolys);
 
             // subtract regions we are going to bridge

@@ -1,5 +1,6 @@
 using g3;
 using gs.FillTypes;
+using Sutro.Core;
 using Sutro.Core.Models.GCode;
 using Sutro.Core.Settings;
 using System;
@@ -1461,9 +1462,11 @@ namespace gs
         /// </summary>
         protected virtual void generate_support_areas()
         {
-            var generator = new SupportAreaGenerator(Settings);
+            var serviceProvider = new ServiceProvider(Settings);
+            var generator = serviceProvider.GetSupportAreaGenerator();
 
-            LayerSupportAreas = generator.Compute(Slices, LayerBridgeAreas, PathClipRegions, 
+            LayerSupportAreas = generator.Compute(
+                Slices, LayerBridgeAreas, PathClipRegions, 
                 count_progress_step, cancellationToken);
         }
 

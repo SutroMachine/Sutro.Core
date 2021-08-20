@@ -1,6 +1,5 @@
 ﻿using g3;
 using gs;
-using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,47 +8,50 @@ namespace Sutro.Core.Support
 {
     public class SupportAreaGenerator
     {
-        private readonly ISupportPointGenerator supportPointGenerator;
         private readonly LayerSupportCalculator layerSupportCalculator;
+        private readonly ISupportPointGenerator supportPointGenerator;
+
         private readonly double printWidth;
         private readonly double mergeDownDilate;
-        private readonly double supportGapInLayer;
-        private readonly double discardHoleSizeMM;
+        private readonly double supportGap;
+        private readonly double discardHoleSize;
         private readonly double discardHoleArea;
         private readonly double minDiameter;
         private readonly double supportMinDist;
-        private readonly bool enableInterLayerSmoothing = true;
         private readonly bool supportMinZTips;
 
-        public SupportAreaGenerator(IPrintProfileFFF profile)
+        private readonly bool enableInterLayerSmoothing = true;
+
+        /// <summary>Initializes a new instance of the SupportAreaGenerator</summary>
+        /// <remarks>
+        /// The constructor takes in all required parameters; this is cumbersome but forces the calling code to explicitly define the important parameters rather than relying on defaults.
+        /// </remarks>
+        /// <param name="layerSupportCalculator">Class to calculate which regions of a single layer require support based on the layer below</param>
+        /// <param name="supportPointGenerator">Utility class to generate a polygon shape underneath min-z-tips</param>
+        /// <param name="mergeDownDilate">Amount to dilate/contract support regions when merging them, to ensure overlap. Using a larger value here has the effect of smoothing out the support polygons. However it can also end up merging disjoint regions...</param>
+        /// <param name="printWidth">Characteristic path width; typically the aperture diameter</param>
+        /// <param name="supportGap">Space to leave between support polygons and solids</param>
+        /// <param name="discardHoleSize">Throw away holes in support regions with bound boxes smaller than this dimension</param>
+        /// <param name="discardHoleArea">Throw away holes in support regions with areas smaller than this amount</param>
+        /// <param name="minDiameter">Throw away support polygons smaller than this</param>
+        /// <param name="supportMinDist">If a support polygon is further than this from model, it will be considered a min-z-tip and get special handling</param>
+        /// <param name="supportMinZTips">Whether to add support under min-z-tips</param>
+        public SupportAreaGenerator(LayerSupportCalculator layerSupportCalculator,
+            ISupportPointGenerator supportPointGenerator,
+            double printWidth, double mergeDownDilate, double supportGap,
+            double discardHoleSize, double discardHoleArea, double minDiameter, 
+            double supportMinDist, bool supportMinZTips)
         {
-            layerSupportCalculator = new LayerSupportCalculator(profile);
-            supportPointGenerator = new CircularSupportPointGenerator(profile.Part.SupportPointDiam, profile.Part.SupportPointSides);
-
-            printWidth = profile.Machine.NozzleDiamMM;
-
-            // amount we dilate/contract support regions when merging them,
-            // to ensure overlap. Using a larger value here has the effect of
-            // smoothing out the support polygons. However it can also end up
-            // merging disjoint regions...
-            mergeDownDilate = profile.Machine.NozzleDiamMM * profile.Part.SupportRegionJoinTolX;
-
-            // space we leave between support polygons and solids
-            // [TODO] do we need to include SupportAreaOffsetX here?
-            supportGapInLayer = profile.Part.SupportSolidSpace;
-
-            // we will throw away holes in support regions smaller than these thresholds
-            discardHoleSizeMM = 2 * profile.Machine.NozzleDiamMM;
-            discardHoleArea = discardHoleSizeMM * discardHoleSizeMM;
-
-            // throw away support polygons smaller than this
-            minDiameter = profile.Part.SupportMinDimension;
-
-            // if support poly is further than this from model, we consider
-            // it a min-z-tip and it gets special handling
-            supportMinDist = profile.Machine.NozzleDiamMM;
-
-            supportMinZTips = profile.Part.SupportMinZTips;
+            this.printWidth = printWidth;
+            this.mergeDownDilate = mergeDownDilate;
+            this.supportGap = supportGap;
+            this.layerSupportCalculator = layerSupportCalculator;
+            this.supportPointGenerator = supportPointGenerator;
+            this.discardHoleSize = discardHoleSize;
+            this.discardHoleArea = discardHoleArea;
+            this.minDiameter = minDiameter;
+            this.supportMinDist = supportMinDist;
+            this.supportMinZTips = supportMinZTips;
         }
 
         public virtual List<GeneralPolygon2d>[] Compute(PlanarSliceStack slices,
@@ -134,7 +136,7 @@ namespace Sutro.Core.Support
                 }
 
                 // make sure there is space between solid and support
-                List<GeneralPolygon2d> dilatedSolid = ClipperUtil.MiterOffset(slice.Solids, supportGapInLayer);
+                List<GeneralPolygon2d> dilatedSolid = ClipperUtil.MiterOffset(slice.Solids, supportGap);
                 combinedSupport = ClipperUtil.Difference(combinedSupport, dilatedSolid);
 
                 if (pathClipRegions != null)
@@ -195,7 +197,7 @@ namespace Sutro.Core.Support
             List<GeneralPolygon2d> outer_clip = solid.Holes.Count == 0 ? null : ClipperUtil.MiterOffset(copy, -printWidth);
             foreach (Polygon2d hole in solid.Holes)
             {
-                if (hole.Bounds.MaxDim < discardHoleSizeMM || Math.Abs(hole.SignedArea) < discardHoleArea)
+                if (hole.Bounds.MaxDim < discardHoleSize || Math.Abs(hole.SignedArea) < discardHoleArea)
                     continue;
                 Polygon2d new_hole = new Polygon2d(hole);
                 if (grow || shrink)
