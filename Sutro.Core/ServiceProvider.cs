@@ -1,5 +1,7 @@
-﻿using Sutro.Core.Settings;
+﻿using Sutro.Core.Parallel;
+using Sutro.Core.Settings;
 using Sutro.Core.Support;
+using System;
 
 namespace Sutro.Core
 {
@@ -38,6 +40,7 @@ namespace Sutro.Core
             return new SupportAreaGenerator(
                 layerSupportCalculator: GetLayerSupportCalculator(),
                 supportPointGenerator: GetSupportPointGenerator(),
+                parallelActor: GetParallelActor(),
                 printWidth: profile.Machine.NozzleDiamMM,
                 mergeDownDilate: profile.Machine.NozzleDiamMM * profile.Part.SupportRegionJoinTolX,
                 supportGap: profile.Part.SupportSolidSpace,
@@ -47,6 +50,11 @@ namespace Sutro.Core
                 supportMinDist: profile.Machine.NozzleDiamMM,
                 supportMinZTips: profile.Part.SupportMinZTips);
 
+        }
+
+        public virtual IParallelActor GetParallelActor()
+        {
+            return new ParallelActorAll();
         }
     }
 }

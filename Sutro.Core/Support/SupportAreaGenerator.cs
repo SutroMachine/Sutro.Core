@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs;
+using Sutro.Core.Parallel;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,7 +11,7 @@ namespace Sutro.Core.Support
     {
         private readonly LayerSupportCalculator layerSupportCalculator;
         private readonly ISupportPointGenerator supportPointGenerator;
-
+        private readonly IParallelActor parallelActor;
         private readonly double printWidth;
         private readonly double mergeDownDilate;
         private readonly double supportGap;
@@ -38,8 +39,9 @@ namespace Sutro.Core.Support
         /// <param name="supportMinZTips">Whether to add support under min-z-tips</param>
         public SupportAreaGenerator(LayerSupportCalculator layerSupportCalculator,
             ISupportPointGenerator supportPointGenerator,
+            IParallelActor parallelActor,
             double printWidth, double mergeDownDilate, double supportGap,
-            double discardHoleSize, double discardHoleArea, double minDiameter, 
+            double discardHoleSize, double discardHoleArea, double minDiameter,
             double supportMinDist, bool supportMinZTips)
         {
             this.printWidth = printWidth;
@@ -47,6 +49,7 @@ namespace Sutro.Core.Support
             this.supportGap = supportGap;
             this.layerSupportCalculator = layerSupportCalculator;
             this.supportPointGenerator = supportPointGenerator;
+            this.parallelActor = parallelActor;
             this.discardHoleSize = discardHoleSize;
             this.discardHoleArea = discardHoleArea;
             this.minDiameter = minDiameter;
@@ -220,12 +223,9 @@ namespace Sutro.Core.Support
         private List<GeneralPolygon2d>[] ComputeAbsoluteSupport(PlanarSliceStack slices, IReadOnlyList<IReadOnlyCollection<GeneralPolygon2d>> bridgeAreas, IReadOnlyList<GeneralPolygon2d> pathClipRegions, Action incrementProgress, CancellationToken cancellationToken)
         {
             var result = new List<GeneralPolygon2d>[slices.Count];
-#if DEBUG
-            Interval1i interval = new Interval1i(0, slices.Count - 1);
-            for (int layeri = interval.a; layeri < interval.b; ++layeri)
-#else
-			gParallel.ForEach(Interval1i.Range(slices.Count - 1), (layeri) =>
-#endif
+
+            var parallelOptions = new System.Threading.Tasks.ParallelOptions() { CancellationToken = cancellationToken };
+            parallelActor.ForEach(Interval1i.Range(slices.Count - 1), parallelOptions, (layeri) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -248,11 +248,8 @@ namespace Sutro.Core.Support
 
                 result[layeri] = supportPolys;
                 incrementProgress?.Invoke();
-#if DEBUG
-            }
-#else
-        });
-#endif
+            });
+
             result[^1] = new List<GeneralPolygon2d>();
             return result;
         }
