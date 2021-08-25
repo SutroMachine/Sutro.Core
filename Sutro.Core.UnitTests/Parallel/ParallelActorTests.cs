@@ -1,8 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Parallel;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sutro.Core.UnitTests.Parallel
@@ -15,15 +17,19 @@ namespace Sutro.Core.UnitTests.Parallel
         {
             // Arrange
             var actor = new ParallelActorAll();
-            var result = new List<int>();
-            var notExpected = Enumerable.Range(0, 10).ToList();
+            var threads = new ConcurrentDictionary<int, int>();
 
             // Act
-            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) => result.Add(i));
+            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) =>
+            {
+                int id = Environment.CurrentManagedThreadId;
+                threads.TryAdd(id, 0);
+                threads[id] += 1;
+                Thread.Sleep(200);
+            });
 
             // Assert
-            CollectionAssert.AreNotEqual(notExpected, result);
-
+            Assert.AreNotEqual(1, threads.Count);
         }
 
         [TestMethod]
@@ -31,14 +37,19 @@ namespace Sutro.Core.UnitTests.Parallel
         {
             // Arrange
             var actor = new ParallelActorNone();
-            var result = new List<int>();
-            var expected = Enumerable.Range(0, 10).ToList();
+            var threads = new ConcurrentDictionary<int, int>();
 
             // Act
-            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) => result.Add(i));
+            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) =>
+            {
+                int id = Environment.CurrentManagedThreadId;
+                threads.TryAdd(id, 0);
+                threads[id] += 1;
+                Thread.Sleep(200);
+            });
 
             // Assert
-            CollectionAssert.AreEqual(expected, result);
+            Assert.AreEqual(1, threads.Count);
         }
 
         [TestMethod]
@@ -46,11 +57,22 @@ namespace Sutro.Core.UnitTests.Parallel
         {
             // Arrange
             var actor = new ParallelActorIfDebuggerNotAttached();
-            var result = new List<int>();
-            var expected = Enumerable.Range(0, 10).ToList();
+            var threads = new ConcurrentDictionary<int, int>();
 
             // Act
-            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) => result.Add(i));
+            actor.ForEach(Enumerable.Range(0, 10), new ParallelOptions(), (int i) =>
+            {
+                int id = Environment.CurrentManagedThreadId;
+                threads.TryAdd(id, 0);
+                threads[id] += 1;
+                Thread.Sleep(200);
+            });
+
+            // Assert
+            if (System.Diagnostics.Debugger.IsAttached)
+                Assert.AreEqual(1, threads.Count);
+            else
+                Assert.AreNotEqual(1, threads.Count);
         }
     }
 }
