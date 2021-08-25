@@ -20,7 +20,7 @@ jobs:
         run: dotnet test -c Release Sutro.Core.FunctionalTests/Sutro.Core.FunctionalTests.csproj --no-build 
       - name: Publish on version change
         id: publish_nuget
-        uses: rohith/publish-nuget@v2
+        uses: AraHaan/publish-nuget@patch-2
         with:
           # Relative to repository root
           PROJECT_FILE_PATH: Sutro.Core/Sutro.Core.csproj
