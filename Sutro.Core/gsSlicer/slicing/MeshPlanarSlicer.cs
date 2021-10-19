@@ -78,6 +78,11 @@ namespace gs
         /// </summary>
         public bool DiscardEmptyBaseSlices = false;
 
+        /// <summary>
+        /// Boundary vertices in the 3D isocurve graph that are within this tolerance will be merged.
+        /// </summary>
+        public double WeldTolerance { get; set; } = 1e-6;
+
         public enum SliceLocations
         {
             Base, EpsilonBase, MidLine
@@ -227,14 +232,14 @@ namespace gs
 
                     // compute cut
                     Polygon2d[] polys; PolyLine2d[] paths;
-                    compute_plane_curves(mesh, spatial, z, is_closed, out polys, out paths);
+                    compute_plane_curves(mesh, spatial, z, is_closed, WeldTolerance, out polys, out paths);
 
                     // if we didn't hit anything, try again with jittered plane
                     // [TODO] this could be better...
                     if ((is_closed && polys.Length == 0) || (is_closed == false && polys.Length == 0 && paths.Length == 0))
                     {
                         double jitterz = slices[i].LayerZSpan.Interpolate(0.75);
-                        compute_plane_curves(mesh, spatial, jitterz, is_closed, out polys, out paths);
+                        compute_plane_curves(mesh, spatial, jitterz, is_closed, WeldTolerance, out polys, out paths);
                     }
 
                     if (is_closed)
@@ -405,7 +410,7 @@ namespace gs
         }
 
         private static bool compute_plane_curves(DMesh3 mesh, DMeshAABBTree3 spatial,
-            double z, bool is_solid,
+            double z, bool is_solid, double weldTolerance,
             out Polygon2d[] loops, out PolyLine2d[] curves)
         {
             Func<Vector3d, double> planeF = (v) =>
@@ -428,6 +433,8 @@ namespace gs
                 curves = new PolyLine2d[0];
                 return false;
             }
+
+            graph.JoinNearbyBoundaryVertices(weldTolerance);            
 
             // if this is a closed solid, any open spurs in the graph are errors
             if (is_solid)
