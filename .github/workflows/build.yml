@@ -52,3 +52,5 @@ jobs:
           dotnet test -c Release --collect:"XPlat Code Coverage"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
+      - name: Unit tests
+        run: dotnet test -c Release Sutro.Core.UnitTests/Sutro.Core.UnitTests.csproj --no-build          
