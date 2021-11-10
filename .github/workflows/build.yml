@@ -51,6 +51,5 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"SutroMachine_Sutro.Core" /o:"sutromachine" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:"sonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml"
-          dotnet build -c Debug
-          coverlet Sutro.Core.UnitTests\bin\Debug\Sutro.Core.UnitTests.dll --target "%VSINSTALLDIR%\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" --targetargs "Sutro.Core.UnitTests\bin\Debug\Sutro.Core.UnitTests.dll" --format opencover
+          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
