@@ -44,18 +44,12 @@ jobs:
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
 
-      - name: Build Test Analyze
+      - name: Build, test & analyze solution
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"SutroMachine_Sutro.Core" /o:"sutromachine" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-           dotnet build -c Release
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"SutroMachine_Sutro.Core" /o:"sutromachine" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="*.coverage.cobertura.xml"
+           dotnet test -c Release --collect:"XPlat Code Coverage"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-      - name: Unit tests
-        run: dotnet test -c Release Sutro.Core.UnitTests/Sutro.Core.UnitTests.csproj --no-build
-
-      - name: Functional tests
-        run: dotnet test -c Release Sutro.Core.FunctionalTests/Sutro.Core.FunctionalTests.csproj --no-build 
