@@ -67,8 +67,6 @@ namespace gs
             get { return CurrentSorter != null; }
         }
 
-        SpeedHint IFillPathScheduler2d.SpeedHint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
         public virtual void AppendCurveSets(List<FillCurveSet2d> paths)
         {
             if (CurrentSorter == null)

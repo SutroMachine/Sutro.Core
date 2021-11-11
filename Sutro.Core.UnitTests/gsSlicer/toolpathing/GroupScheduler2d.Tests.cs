@@ -45,5 +45,13 @@ namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
             // Assert
             Assert.ThrowsException<InvalidOperationException>(act);
         }
+
+        [TestMethod]
+        public void InGroup()
+        {
+            Assert.IsFalse(groupScheduler.InGroup);
+            groupScheduler.BeginGroup();
+            Assert.IsTrue(groupScheduler.InGroup);
+        }
     }
 }
