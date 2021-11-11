@@ -20,7 +20,7 @@ namespace Sutro.Core.Assemblers
     /// </summary>
 	public abstract class BaseMillingAssembler : IMillingAssembler
     {
-        public GCodeBuilder Builder;
+        public GCodeBuilder Builder { get; }
 
         /// <summary>
         /// To keep things simple, we use the absolute coordinates of the slice polygons
@@ -28,25 +28,25 @@ namespace Sutro.Core.Assemblers
         /// system, for example relative to front-left corner. PositionShift is added to all x/y
         /// coordinates before they are passed to the GCodeBuilder.
         /// </summary>
-        public Vector2d PositionShift = Vector2d.Zero;
+        public Vector2d PositionShift { get; } = Vector2d.Zero;
 
         /// <summary>
         /// check that all points lie within bounds
         /// </summary>
-        public bool EnableBoundsChecking = true;
+        public bool EnableBoundsChecking { get; } = true;
 
         /// <summary>
         /// if EnableBoundsChecking=true, will assert if we try to move outside these bounds
         /// </summary>
-        public AxisAlignedBox2d PositionBounds = AxisAlignedBox2d.Infinite;
+        public AxisAlignedBox2d PositionBounds { get; } = AxisAlignedBox2d.Infinite;
 
-        public bool OmitDuplicateZ = false;
-        public bool OmitDuplicateF = false;
+        public bool OmitDuplicateZ { get; set; } = false;
+        public bool OmitDuplicateF { get; set; } = false;
 
         // threshold for omitting "duplicate" Z/F parameters
-        public double MoveEpsilon = 0.00001;
+        public double MoveEpsilon { get; } = 0.00001;
 
-        public BaseMillingAssembler(GCodeBuilder useBuilder, MachineProfileFFF machineInfo)
+        protected BaseMillingAssembler(GCodeBuilder useBuilder)
         {
             Builder = useBuilder;
             currentPos = Vector3d.Zero;
@@ -99,7 +99,7 @@ namespace Sutro.Core.Assemblers
 
         public bool InCut
         {
-            get { return InTravel == false; }
+            get { return !InTravel; }
         }
 
         // actually emit travel move gcode
@@ -111,11 +111,11 @@ namespace Sutro.Core.Assemblers
             Builder.BeginGLine(0, comment).
                    AppendF("X", write_x).AppendF("Y", write_y);
 
-            if (OmitDuplicateZ == false || MathUtil.EpsilonEqual(currentPos.z, toPos.z, MoveEpsilon) == false)
+            if (!OmitDuplicateZ || !MathUtil.EpsilonEqual(currentPos.z, toPos.z, MoveEpsilon))
             {
                 Builder.AppendF("Z", toPos.z);
             }
-            if (OmitDuplicateF == false || MathUtil.EpsilonEqual(currentFeed, feedRate, MoveEpsilon) == false)
+            if (!OmitDuplicateF || !MathUtil.EpsilonEqual(currentFeed, feedRate, MoveEpsilon))
             {
                 Builder.AppendF("F", feedRate);
             }
@@ -132,11 +132,11 @@ namespace Sutro.Core.Assemblers
             Builder.BeginGLine(1, comment).
                    AppendF("X", write_x).AppendF("Y", write_y);
 
-            if (OmitDuplicateZ == false || MathUtil.EpsilonEqual(toPos.z, currentPos.z, MoveEpsilon) == false)
+            if (!OmitDuplicateZ || !MathUtil.EpsilonEqual(toPos.z, currentPos.z, MoveEpsilon))
             {
                 Builder.AppendF("Z", toPos.z);
             }
-            if (OmitDuplicateF == false || MathUtil.EpsilonEqual(feedRate, currentFeed, MoveEpsilon) == false)
+            if (!OmitDuplicateF || !MathUtil.EpsilonEqual(feedRate, currentFeed, MoveEpsilon))
             {
                 Builder.AppendF("F", feedRate);
             }

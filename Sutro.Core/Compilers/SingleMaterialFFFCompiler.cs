@@ -15,11 +15,13 @@ namespace Sutro.Core.Compilers
 
     public class SingleMaterialFFFCompiler : IThreeAxisPrinterCompiler
     {
-        private IPrintProfileFFF Settings;
-        private GCodeBuilder Builder;
-        protected IDepositionAssembler Assembler;
+        private IPrintProfileFFF Settings { get; }
 
-        protected AssemblerFactoryF AssemblerF;
+        private GCodeBuilder Builder { get; }
+
+        protected IDepositionAssembler Assembler { get; set; }
+
+        protected AssemblerFactoryF AssemblerF { get; }
 
         /// <summary>
         /// compiler will call this to emit status messages / etc
@@ -88,7 +90,7 @@ namespace Sutro.Core.Compilers
 
         public virtual void HandleTravelAndPlaneChangePath(LinearToolpath path, int pathIndex, IPrintProfileFFF settings)
         {
-            if (Assembler.InTravel == false)
+            if (!Assembler.InTravel)
             {
                 Assembler.DisableFan();
 
@@ -129,48 +131,10 @@ namespace Sutro.Core.Compilers
                 if (IsCommandToolpath(gpath))
                 {
                     ProcessCommandToolpath(gpath);
-                    continue;
                 }
-
-                LinearToolpath p = gpath as LinearToolpath;
-
-                if (p[0].Position.Distance(Assembler.NozzlePosition) > 0.00001)
-                    throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + path_index + ": Start of path is not same as end of previous path!");
-
-                int i = 0;
-                if (p.Type == ToolpathTypes.Travel || p.Type == ToolpathTypes.PlaneChange)
+                else
                 {
-                    HandleTravelAndPlaneChangePath(p, path_index, useSettings);
-                }
-                else if (p.Type == ToolpathTypes.Deposition)
-                {
-                    HandleDepositionPath(p, useSettings);
-                }
-
-                i = 1;      // do not need to emit code for first point of path,
-                            // we are already at this pos
-
-                var currentDimensions = p[1].Dimensions;
-
-                for (; i < p.VertexCount; ++i)
-                {
-                    if (p.Type == ToolpathTypes.Travel)
-                    {
-                        Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Travel");
-                    }
-                    else if (p.Type == ToolpathTypes.PlaneChange)
-                    {
-                        Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Plane Change");
-                    }
-                    else
-                    {
-                        if (p.Type == ToolpathTypes.Deposition && !p[i].Dimensions.EpsilonEqual(currentDimensions, 1e-6))
-                        {
-                            currentDimensions = p[i].Dimensions;
-                            AppendDimensions(p[i].Dimensions);
-                        }
-                        Assembler.AppendExtrudeTo(p[i].Position, p[i].FeedRate, p[i].Extrusion.x, null);
-                    }
+                    ProcessToolpath(gpath, useSettings, path_index);
                 }
             }
 
@@ -179,6 +143,49 @@ namespace Sutro.Core.Compilers
              */
             HandleDepositionEnd();
             Assembler.FlushQueues();
+        }
+
+        protected virtual void ProcessToolpath(IToolpath gpath, IPrintProfileFFF useSettings, int path_index)
+        {
+            LinearToolpath p = gpath as LinearToolpath;
+
+            if (p[0].Position.Distance(Assembler.NozzlePosition) > 0.00001)
+                throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + path_index + ": Start of path is not same as end of previous path!");
+
+            if (p.Type == ToolpathTypes.Travel || p.Type == ToolpathTypes.PlaneChange)
+            {
+                HandleTravelAndPlaneChangePath(p, path_index, useSettings);
+            }
+            else if (p.Type == ToolpathTypes.Deposition)
+            {
+                HandleDepositionPath(p, useSettings);
+            }
+
+            int i = 1;  // do not need to emit code for first point of path,
+                        // we are already at this pos
+
+            var currentDimensions = p[1].Dimensions;
+
+            for (; i < p.VertexCount; ++i)
+            {
+                if (p.Type == ToolpathTypes.Travel)
+                {
+                    Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Travel");
+                }
+                else if (p.Type == ToolpathTypes.PlaneChange)
+                {
+                    Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Plane Change");
+                }
+                else
+                {
+                    if (p.Type == ToolpathTypes.Deposition && !p[i].Dimensions.EpsilonEqual(currentDimensions, 1e-6))
+                    {
+                        currentDimensions = p[i].Dimensions;
+                        AppendDimensions(p[i].Dimensions);
+                    }
+                    Assembler.AppendExtrudeTo(p[i].Position, p[i].FeedRate, p[i].Extrusion.x, null);
+                }
+            }
         }
 
         protected virtual void AddFeatureTypeLabel(IFillType fillType)

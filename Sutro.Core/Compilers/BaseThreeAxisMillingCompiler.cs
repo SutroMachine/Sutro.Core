@@ -12,11 +12,11 @@ namespace Sutro.Core.Compilers
 
     public class BaseThreeAxisMillingCompiler : IThreeAxisMillingCompiler
     {
-        public IPrintProfileFFF Settings;
-        public GCodeBuilder Builder;
-        public BaseMillingAssembler Assembler;
+        public IPrintProfileFFF Settings { get; }
+        public GCodeBuilder Builder { get; }
+        public BaseMillingAssembler Assembler { get; protected set; }
 
-        private MillingAssemblerFactoryF AssemblerF;
+        private MillingAssemblerFactoryF AssemblerF { get; }
 
         /// <summary>
         /// compiler will call this to emit status messages / etc
@@ -65,8 +65,6 @@ namespace Sutro.Core.Compilers
         /// </summary>
 		public virtual void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings)
         {
-            var useSettings = pathSettings == null ? Settings : pathSettings;
-
             int path_index = 0;
             foreach (var gpath in paths)
             {
@@ -75,54 +73,59 @@ namespace Sutro.Core.Compilers
                 if (IsCommandToolpath(gpath))
                 {
                     ProcessCommandToolpath(gpath);
-                    continue;
+                }
+                else
+                {
+                    ProcessToolpath(gpath, pathSettings);
                 }
 
-                LinearToolpath p = gpath as LinearToolpath;
 
-                // [RMS] this doesn't work because we are doing retract inside assembler...
-                //if (p[0].Position.Distance(Assembler.ToolPosition) > 0.00001)
-                //	throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path "
-                //                    + path_index + ": Start of path is not same as end of previous path!");
+            }
+        }
 
-                int i = 0;
-                if (p.Type == ToolpathTypes.Travel || p.Type == ToolpathTypes.PlaneChange)
+        protected virtual void ProcessToolpath(IToolpath gpath, IPrintProfileFFF pathSettings)
+        {
+            LinearToolpath p = gpath as LinearToolpath;
+            var useSettings = pathSettings == null ? Settings : pathSettings;
+
+
+            int i;
+            if (p.Type == ToolpathTypes.Travel || p.Type == ToolpathTypes.PlaneChange)
+            {
+                // do retract cycle
+                if (!Assembler.InRetract)
                 {
-                    // do retract cycle
-                    if (Assembler.InRetract == false)
-                    {
-                        Assembler.BeginRetract(useSettings.Part.RetractDistanceMM, useSettings.Part.RetractSpeed, "Retract");
-                    }
-                    if (Assembler.InTravel == false)
-                    {
-                        Assembler.BeginTravel();
-                    }
+                    Assembler.BeginRetract(useSettings.Part.RetractDistanceMM, useSettings.Part.RetractSpeed, "Retract");
                 }
-                else if (p.Type == ToolpathTypes.Cut)
+                if (!Assembler.InTravel)
                 {
-                    if (Assembler.InTravel)
-                        Assembler.EndTravel();
-
-                    if (Assembler.InRetract)
-                        Assembler.EndRetract(useSettings.Part.RetractSpeed, "End Retract");
+                    Assembler.BeginTravel();
                 }
+            }
+            else if (p.Type == ToolpathTypes.Cut)
+            {
+                if (Assembler.InTravel)
+                    Assembler.EndTravel();
 
-                i = 1;      // do not need to emit code for first point of path,
-                            // we are already at this pos
-                for (; i < p.VertexCount; ++i)
+                if (Assembler.InRetract)
+                    Assembler.EndRetract(useSettings.Part.RetractSpeed, "End Retract");
+            }
+
+            i = 1;      // do not need to emit code for first point of path,
+                        // we are already at this pos
+            for (; i < p.VertexCount; ++i)
+            {
+                if (p.Type == ToolpathTypes.Travel)
                 {
-                    if (p.Type == ToolpathTypes.Travel)
-                    {
-                        Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Travel");
-                    }
-                    else if (p.Type == ToolpathTypes.PlaneChange)
-                    {
-                        Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Plane Change");
-                    }
-                    else
-                    {
-                        Assembler.AppendCutTo(p[i].Position, p[i].FeedRate);
-                    }
+                    Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Travel");
+                }
+                else if (p.Type == ToolpathTypes.PlaneChange)
+                {
+                    Assembler.AppendMoveTo(p[i].Position, p[i].FeedRate, "Plane Change");
+                }
+                else
+                {
+                    Assembler.AppendCutTo(p[i].Position, p[i].FeedRate);
                 }
             }
         }

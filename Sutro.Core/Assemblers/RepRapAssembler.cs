@@ -12,7 +12,7 @@ namespace Sutro.Core.Assemblers
             return new RepRapAssembler(builder, settings);
         }
 
-        public IPrintProfileFFF Settings;
+        public IPrintProfileFFF Settings { get; }
 
         public RepRapAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
         {

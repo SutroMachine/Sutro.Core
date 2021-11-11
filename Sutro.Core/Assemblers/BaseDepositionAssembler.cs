@@ -48,12 +48,12 @@ namespace Sutro.Core.Assemblers
         /// <summary>
         /// check that all points lie within bounds
         /// </summary>
-        public bool EnableBoundsChecking { get; } = true;
+        public bool EnableBoundsChecking { get; set; } = true;
 
         /// <summary>
         /// if EnableBoundsChecking=true, will assert if we try to move outside these bounds
         /// </summary>
-        public AxisAlignedBox2d PositionBounds { get; } = AxisAlignedBox2d.Infinite;
+        public AxisAlignedBox2d PositionBounds { get; set; } = AxisAlignedBox2d.Infinite;
 
         /// <summary>
         /// Generally, deposition-style 3D printers cannot handle large numbers of very small GCode steps.
@@ -63,7 +63,7 @@ namespace Sutro.Core.Assemblers
         public double MinExtrudeStepDistance { get; } = 0.0f;        // is set to FFFMachineInfo.MinPointSpacingMM in constructor below!!
 
         // Makerbot uses G1 for travel as well as extrude, so need to be able to override this
-        public int TravelGCode { get; } = 0;
+        public int TravelGCode { get; set; } = 0;
 
         public bool OmitDuplicateXY { get; set; } = false;
         public bool OmitDuplicateZ { get; set; } = false;
@@ -74,7 +74,7 @@ namespace Sutro.Core.Assemblers
         // threshold for omitting "duplicate" Z/F/E parameters
         public static readonly double MoveEpsilon = 0.00001;
 
-        public bool UseFirmwareRetraction { get; } = false;
+        public bool UseFirmwareRetraction { get; protected set; } = false;
 
         protected BaseDepositionAssembler(GCodeBuilder useBuilder, MachineProfileFFF machine)
         {

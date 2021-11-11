@@ -24,9 +24,9 @@ namespace Sutro.Core.Generators
         public delegate ISettingsBuilder<TPrintSettings> SettingsBuilderF(TPrintSettings settings, ILogger logger);
 
         private readonly ILogger logger;
-        private ISettingsBuilder<TPrintSettings> settingsBuilder;
+        private readonly ISettingsBuilder<TPrintSettings> settingsBuilder;
 
-        public bool AcceptsParts { get; } = true;
+        public bool AcceptsParts { get; }
 
         public bool AcceptsPartSettings { get; } = false;
 
@@ -45,7 +45,7 @@ namespace Sutro.Core.Generators
         public GCodeParserBase Parser { get; set; } = new GenericGCodeParser();
         public GCodeWriterBase Writer { get; set; } = new StandardGCodeWriter();
 
-        protected static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
+        protected readonly static SettingsBuilderF DefaultSettingsBuilderF = (settings, logger) => new SettingsBuilder<TPrintSettings>(settings, logger);
 
         public PrintGeneratorManager(TPrintSettings settings, string id, string description, ILogger logger = null, bool acceptsParts = true,
             SettingsBuilderF settingsBuilderF = null)
@@ -60,8 +60,7 @@ namespace Sutro.Core.Generators
             settingsBuilder = (settingsBuilderF ?? DefaultSettingsBuilderF).Invoke(settings, logger);
         }
 
-        public GenerationResult GCodeFromMesh(DMesh3 mesh,
-            CancellationToken? cancellationToken = null)
+        public GenerationResult GCodeFromMesh(DMesh3 mesh, CancellationToken? cancellationToken)
         {
             return GCodeFromMesh(mesh, null, cancellationToken);
         }

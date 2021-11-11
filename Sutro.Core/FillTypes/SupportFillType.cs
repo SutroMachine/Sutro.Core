@@ -16,7 +16,7 @@
             this.carefulSpeedScale = carefulSpeedScale;
         }
 
-        public override double ModifySpeed(double speed, SpeedHint speedHint = SpeedHint.Default)
+        public override double ModifySpeed(double speed, SpeedHint speedHint)
         {
             if (speedHint == SpeedHint.Careful)
                 return speed * carefulSpeedScale;

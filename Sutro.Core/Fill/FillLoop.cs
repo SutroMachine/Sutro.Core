@@ -72,7 +72,7 @@ namespace Sutro.Core.Fill
                 elementsList.Add(e);
         }
 
-        public override FillLoop RollToVertex(int startIndex)
+        public override FillLoop RollToVertex(int index)
         {
             // TODO: Add range checking for startIndex
             var rolledLoop = new FillLoop<TSegmentInfo>();
@@ -80,7 +80,7 @@ namespace Sutro.Core.Fill
 
             for (int i = 0; i < elementsList.Elements.Count; i++)
             {
-                rolledLoop.elementsList.Add(elementsList.Elements[(i + startIndex) % elementsList.Elements.Count]);
+                rolledLoop.elementsList.Add(elementsList.Elements[(i + index) % elementsList.Elements.Count]);
             }
 
             return rolledLoop;
@@ -160,6 +160,29 @@ namespace Sutro.Core.Fill
             return parameterizedSplitDistance > toleranceParameterized && parameterizedSplitDistance < 1 - toleranceParameterized;
         }
 
+        public FillCurve<TSegmentInfo> ConvertToCurve()
+        {
+            var curve = new FillCurve<TSegmentInfo>(elementsList.Elements);
+            curve.CopyProperties(this);
+            return curve;
+        }
+
+        public override FillLoop Reversed()
+        {
+            var loop = new FillLoop<TSegmentInfo>(elementsList.Reversed());
+            loop.CopyProperties(this);
+            return loop;
+        }
+
+        public override IEnumerable<Vector2d> Vertices(bool repeatFirst = false)
+        {
+            foreach (var edge in elementsList.Elements)
+                yield return edge.NodeStart.xy;
+
+            if (repeatFirst)
+                yield return elementsList.Elements[0].NodeStart.xy;
+        }
+
         public List<FillCurve<TSegmentInfo>> SplitAtDistances(double[] splitDistances, bool joinFirstAndLast = false)
         {
             var elementGroups = FillSplitter<TSegmentInfo>.SplitAtDistances(splitDistances, elementsList.Elements);
@@ -179,29 +202,6 @@ namespace Sutro.Core.Fill
                 curves.Add(curve);
             }
             return curves;
-        }
-
-        public FillCurve<TSegmentInfo> ConvertToCurve()
-        {
-            var curve = new FillCurve<TSegmentInfo>(elementsList.Elements);
-            curve.CopyProperties(this);
-            return curve;
-        }
-
-        public override FillLoop Reversed()
-        {
-            var loop = new FillLoop<TSegmentInfo>(elementsList.Reversed());
-            loop.CopyProperties(this);
-            return loop;
-        }
-
-        public override IEnumerable<Vector2d> Vertices(bool repeatFirst)
-        {
-            foreach (var edge in elementsList.Elements)
-                yield return edge.NodeStart.xy;
-
-            if (repeatFirst)
-                yield return elementsList.Elements[0].NodeStart.xy;
         }
 
         public override List<FillCurve> SplitAtDistances(IEnumerable<double> splitDistances, bool joinEnds)

@@ -12,9 +12,9 @@ namespace Sutro.Core.Assemblers
             return new GenericMillingAssembler(builder, settings);
         }
 
-        public IPrintProfileFFF Settings;
+        public IPrintProfileFFF Settings { get; }
 
-        public GenericMillingAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder, settings.Machine)
+        public GenericMillingAssembler(GCodeBuilder useBuilder, IPrintProfileFFF settings) : base(useBuilder)
         {
             Settings = settings;
 
@@ -26,8 +26,7 @@ namespace Sutro.Core.Assemblers
 
         public override void UpdateProgress(int i)
         {
-            // not supported on reprap?
-            //Builder.BeginMLine(73).AppendI("P",i);
+            // Do nothing by defualt
         }
 
         public override void ShowMessage(string s)
@@ -38,7 +37,7 @@ namespace Sutro.Core.Assemblers
         /// <summary>
         /// Replace this to run your own home sequence
         /// </summary>
-        public Action<GCodeBuilder> HomeSequenceF;
+        public Action<GCodeBuilder> HomeSequenceF { get; set; }
 
         public enum HeaderState
         {
@@ -46,7 +45,7 @@ namespace Sutro.Core.Assemblers
             BeforeHome
         };
 
-        public Action<HeaderState, GCodeBuilder> HeaderCustomizerF = (state, builder) => { };
+        public Action<HeaderState, GCodeBuilder> HeaderCustomizerF { get; set; } = (state, builder) => { };
 
         public override void AppendHeader()
         {
@@ -66,11 +65,6 @@ namespace Sutro.Core.Assemblers
 
             HomeSequenceF(Builder);
 
-            // retract to retract height
-            //Builder.BeginGLine(0, "retract to top").AppendI("X", 0).AppendI("Y", 0).AppendF("Z", Settings.RetractDistanceMM);
-
-            //PositionShift = 0.5 * new Vector2d(Settings.Machine.BedSizeXMM, Settings.Machine.BedSizeYMM);
-            //PositionShift = Vector2d.Zero;
             currentPos = Vector3d.Zero;
 
             ShowMessage("Cut Started");
@@ -99,7 +93,7 @@ namespace Sutro.Core.Assemblers
 
         public virtual void StandardHomeSequence(GCodeBuilder builder)
         {
-            //Builder.BeginGLine(0, "home x/y/z").AppendI("X", 0).AppendI("Y", 0).AppendI("Z", 0);
+            // Do nothing by default
         }
     }
 }

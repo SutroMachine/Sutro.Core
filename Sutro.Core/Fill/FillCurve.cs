@@ -158,7 +158,7 @@ namespace Sutro.Core.Fill
             return curve;
         }
 
-        public override void Extend(FillCurve other, double vertexComparisonTolerance)
+        public override void Extend(FillCurve other, double vertexComparisonTolerance = 1e-6)
         {
             if (!(other is FillCurve<TSegmentInfo> o))
                 throw new ArgumentException($"Cannot merge FillCurves with different segment types: {GetType()} and {other.GetType()}");

@@ -216,7 +216,7 @@ namespace Sutro.Core.Toolpaths
                         asm.BeginRetractRelativeDist(asm.NozzlePosition, 9999, -1.0f);
                     asm.AppendDwell(ms);
                     if (bRetract)
-                        asm.EndRetract(asm.NozzlePosition, 9999);
+                        asm.EndRetract(asm.NozzlePosition, 9999, 1.0f);
                 }
             };
             AppendPath(dwell_path);

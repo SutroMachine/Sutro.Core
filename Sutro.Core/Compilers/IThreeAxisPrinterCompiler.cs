@@ -17,7 +17,7 @@ namespace Sutro.Core.Compilers
 
         void Begin();
 
-        void AppendPaths(ToolpathSet paths, IPrintProfileFFF pathSettings);
+        void AppendPaths(ToolpathSet toolpathSet, IPrintProfileFFF profile);
 
         void AppendComment(string comment);
 
