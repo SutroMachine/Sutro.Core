@@ -25,7 +25,7 @@ namespace Sutro.Core.Assemblers
     /// </summary>
 	public abstract class BaseDepositionAssembler : IDepositionAssembler
     {
-        public GCodeBuilder Builder;
+        public GCodeBuilder Builder { get; }
 
         public enum ExtrudeParamType
         {
@@ -35,7 +35,7 @@ namespace Sutro.Core.Assemblers
         /// <summary>
         /// Different machines use A or E for the extrude parameter
         /// </summary>
-        public ExtrudeParamType ExtrudeParam = ExtrudeParamType.ExtrudeParamE;
+        public ExtrudeParamType ExtrudeParam { get; } = ExtrudeParamType.ExtrudeParamE;
 
         /// <summary>
         /// To keep things simple, we use the absolute coordinates of the slice polygons
@@ -43,27 +43,27 @@ namespace Sutro.Core.Assemblers
         /// system, for example relative to front-left corner. PositionShift is added to all x/y
         /// coordinates before they are passed to the GCodeBuilder.
         /// </summary>
-        public Vector2d PositionShift = Vector2d.Zero;
+        public Vector2d PositionShift { get; }
 
         /// <summary>
         /// check that all points lie within bounds
         /// </summary>
-        public bool EnableBoundsChecking = true;
+        public bool EnableBoundsChecking { get; } = true;
 
         /// <summary>
         /// if EnableBoundsChecking=true, will assert if we try to move outside these bounds
         /// </summary>
-        public AxisAlignedBox2d PositionBounds = AxisAlignedBox2d.Infinite;
+        public AxisAlignedBox2d PositionBounds { get; } = AxisAlignedBox2d.Infinite;
 
         /// <summary>
         /// Generally, deposition-style 3D printers cannot handle large numbers of very small GCode steps.
         /// The result will be very chunky.
         /// So, we will cluster sequences of tiny steps into something that can actually be printed.
         /// </summary>
-        public double MinExtrudeStepDistance = 0.0f;        // is set to FFFMachineInfo.MinPointSpacingMM in constructor below!!
+        public double MinExtrudeStepDistance { get; } = 0.0f;        // is set to FFFMachineInfo.MinPointSpacingMM in constructor below!!
 
         // Makerbot uses G1 for travel as well as extrude, so need to be able to override this
-        public int TravelGCode = 0;
+        public int TravelGCode { get; } = 0;
 
         public bool OmitDuplicateXY { get; set; } = false;
         public bool OmitDuplicateZ { get; set; } = false;
@@ -74,9 +74,9 @@ namespace Sutro.Core.Assemblers
         // threshold for omitting "duplicate" Z/F/E parameters
         public static readonly double MoveEpsilon = 0.00001;
 
-        public bool UseFirmwareRetraction = false;
+        public bool UseFirmwareRetraction { get; } = false;
 
-        public BaseDepositionAssembler(GCodeBuilder useBuilder, MachineProfileFFF machine)
+        protected BaseDepositionAssembler(GCodeBuilder useBuilder, MachineProfileFFF machine)
         {
             Builder = useBuilder;
             currentPos = Vector3d.Zero;
@@ -107,7 +107,7 @@ namespace Sutro.Core.Assemblers
 
         public abstract void DisableFan();
 
-        public abstract void UpdateProgress(int i);
+        public abstract void UpdateProgress(int v);
 
         public abstract void ShowMessage(string s);
 
@@ -189,7 +189,7 @@ namespace Sutro.Core.Assemblers
 
         public bool InExtrude
         {
-            get { return InTravel == false; }
+            get { return !InTravel; }
         }
 
         public string ExtrudeParamString => ExtrudeParam == ExtrudeParamType.ExtrudeParamA ? "A" : "E";
@@ -218,19 +218,31 @@ namespace Sutro.Core.Assemblers
         // stores info we need to emit an extrude gcode point
         protected struct QueuedExtrude
         {
-            public Vector3d toPos;
-            public double feedRate;
-            public double extruderA;
-            public string comment;
+            public Vector3d toPos { get; }
+
+            public double feedRate { get; }
+
+            public double extruderA { get; }
+
+            public string comment { get; }
+
+            public QueuedExtrude(Vector3d toPos, double feedRate, double extruderA, string comment)
+            {
+                this.toPos = toPos;
+                this.feedRate = feedRate;
+                this.extruderA = extruderA;
+                this.comment = comment;
+            }
+
 
             static public QueuedExtrude lerp(ref QueuedExtrude a, ref QueuedExtrude b, double t)
             {
-                QueuedExtrude newp = new QueuedExtrude();
-                newp.toPos = Vector3d.Lerp(a.toPos, b.toPos, t);
-                newp.feedRate = Math.Max(a.feedRate, b.feedRate);
-                newp.extruderA = MathUtil.Lerp(a.extruderA, b.extruderA, t);
-                newp.comment = a.comment == null ? a.comment : b.comment;
-                return newp;
+                return new QueuedExtrude(
+                    Vector3d.Lerp(a.toPos, b.toPos, t),
+                    Math.Max(a.feedRate, b.feedRate),
+                    MathUtil.Lerp(a.extruderA, b.extruderA, t),
+                    a.comment == null ? a.comment : b.comment
+                );
             }
         }
 
@@ -241,7 +253,7 @@ namespace Sutro.Core.Assemblers
         // we do not actually queue travel moves, but we might need to flush extrude queue
         protected virtual void queue_travel(Vector3d toPos, double feedRate, string comment)
         {
-            Util.gDevAssert(InExtrude == false);
+            Util.gDevAssert(!InExtrude);
             if (EnableBoundsChecking && PositionBounds.Contains(toPos.xy) == false)
                 throw new Exception("BaseDepositionAssembler.queue_move: tried to move outside of bounds!");
 
@@ -256,9 +268,6 @@ namespace Sutro.Core.Assemblers
         // actually emit travel move gcode
         protected virtual void emit_travel(Vector3d toPos, double feedRate, string comment)
         {
-            double write_x = toPos.x + PositionShift.x;
-            double write_y = toPos.y + PositionShift.y;
-
             Builder.BeginGLine(TravelGCode, comment);
 
             BuildXParameter(toPos.x);
@@ -273,19 +282,12 @@ namespace Sutro.Core.Assemblers
         // push an extrude move onto queue
         protected virtual void queue_extrude(Vector3d toPos, double feedRate, double e, string comment, bool bIsRetract)
         {
-            //Util.gDevAssert(InExtrude || bIsRetract);
             if (EnableBoundsChecking && PositionBounds.Contains(toPos.xy) == false)
                 throw new Exception("BaseDepositionAssembler.queue_extrude: tried to move outside of bounds!");
 
             lastPos = toPos;
 
-            QueuedExtrude p = new QueuedExtrude()
-            {
-                toPos = toPos,
-                feedRate = feedRate,
-                extruderA = e,
-                comment = comment
-            };
+            QueuedExtrude p = new QueuedExtrude(toPos, feedRate, e, comment);
 
             // we cannot queue a retract, so flush queue and emit the retract/unretract
             if (bIsRetract)
@@ -381,7 +383,7 @@ namespace Sutro.Core.Assemblers
             extrude_queue_len += dt;
 
             extrude_queue[next_queue_index] = p;
-            next_queue_index = Math.Min(next_queue_index + 1, extrude_queue.Length - 1); ;
+            next_queue_index = Math.Min(next_queue_index + 1, extrude_queue.Length - 1);
         }
 
         // emit point at end of queue and clear it
@@ -423,7 +425,7 @@ namespace Sutro.Core.Assemblers
 
         protected void BuildExtrudeParameter(double extrude)
         {
-            if (!OmitDuplicateE || MathUtil.EpsilonEqual(extrude, extruderA, MoveEpsilon) == false)
+            if (!OmitDuplicateE || !MathUtil.EpsilonEqual(extrude, extruderA, MoveEpsilon))
             {
                 Builder.AppendF(ExtrudeParamString, RelativeE ? extrude - extruderA : extrude);
             }
@@ -438,14 +440,14 @@ namespace Sutro.Core.Assemblers
             queue_travel(new Vector3d(x, y, z), f, comment);
         }
 
-        public virtual void AppendMoveTo(Vector3d pos, double f, string comment = null)
+        public virtual void AppendMoveTo(Vector3d position, double feedRate, string comment)
         {
-            AppendMoveTo(pos.x, pos.y, pos.z, f, comment);
+            AppendMoveTo(position.x, position.y, position.z, feedRate, comment);
         }
 
-        public virtual void AppendExtrudeTo(Vector3d pos, double feedRate, double extrudeDist, string comment = null)
+        public virtual void AppendExtrudeTo(Vector3d position, double feedRate, double extrusion, string comment = null)
         {
-            AppendMoveToE(pos, feedRate, extrudeDist, comment);
+            AppendMoveToE(position, feedRate, extrusion, comment);
         }
 
         protected virtual void AppendMoveToE(double x, double y, double z, double f, double e, string comment = null)
@@ -463,11 +465,11 @@ namespace Sutro.Core.Assemblers
             BeginRetract(pos, feedRate, ExtruderA + extrudeDelta, comment);
         }
 
-        public virtual void BeginRetract(Vector3d pos, double feedRate, double extrudeDist, string comment = null)
+        public virtual void BeginRetract(Vector3d position, double retractSpeed, double extrusion, string comment = null)
         {
             if (in_retract)
                 throw new Exception("BaseDepositionAssembler.BeginRetract: already in retract!");
-            if (extrudeDist > extruderA)
+            if (extrusion > extruderA)
                 throw new Exception("BaseDepositionAssembler.BeginRetract: retract extrudeA is forward motion!");
 
             // need to flush any pending extrudes here, so that extruderA is at actual last extrude value
@@ -479,19 +481,19 @@ namespace Sutro.Core.Assemblers
             }
             else
             {
-                queue_extrude_to(pos, feedRate, extrudeDist, comment == null ? "Retract" : comment, true);
+                queue_extrude_to(position, retractSpeed, extrusion, comment == null ? "Retract" : comment, true);
             }
             in_retract = true;
         }
 
-        public virtual void EndRetract(Vector3d pos, double feedRate, double extrudeDist = -9999, string comment = null)
+        public virtual void EndRetract(Vector3d position, double retractSpeed, double extrusion, string comment = null)
         {
             if (!in_retract)
                 throw new Exception("BaseDepositionAssembler.EndRetract: already in retract!");
-            if (extrudeDist != -9999 && MathUtil.EpsilonEqual(extrudeDist, retractA, 0.0001) == false)
+            if (extrusion != -9999 && !MathUtil.EpsilonEqual(extrusion, retractA, 0.0001))
                 throw new Exception("BaseDepositionAssembler.EndRetract: restart position is not same as start of retract!");
-            if (extrudeDist == -9999)
-                extrudeDist = retractA;
+            if (extrusion == -9999)
+                extrusion = retractA;
 
             if (UseFirmwareRetraction)
             {
@@ -499,7 +501,7 @@ namespace Sutro.Core.Assemblers
             }
             else
             {
-                queue_extrude_to(pos, feedRate, extrudeDist, comment == null ? "End Retract" : comment, true);
+                queue_extrude_to(position, retractSpeed, extrusion, comment == null ? "End Retract" : comment, true);
             }
             in_retract = false;
         }
@@ -513,7 +515,7 @@ namespace Sutro.Core.Assemblers
 
         public virtual void EndTravel()
         {
-            if (in_travel == false)
+            if (!in_travel)
                 throw new Exception("BaseDepositionAssembler.EndTravel: not in travel!");
             in_travel = false;
         }

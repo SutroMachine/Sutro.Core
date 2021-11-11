@@ -793,11 +793,11 @@ namespace Sutro.Core.Generators
             // now actually fill solid regions
             foreach (GeneralPolygon2d fillPoly in fillPolys)
             {
-                fill_solid_region(layer_data, fillPoly, scheduler);
+                fill_solid(layer_data, fillPoly, scheduler);
             }
         }
 
-        protected virtual void fill_solid_region(PrintLayerData layer_data, GeneralPolygon2d fillPoly, IFillPathScheduler2d scheduler)
+        protected virtual void fill_solid(PrintLayerData layer_data, GeneralPolygon2d fillPoly, IFillPathScheduler2d scheduler)
         {
             ICurvesFillPolygon solid_gen = new ParallelLinesFillPolygon(fillPoly, Settings.FillTypeFactory.Solid())
             {

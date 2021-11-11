@@ -11,9 +11,9 @@ namespace Sutro.Core.Assemblers
         bool InTravel { get; }
         Vector3d NozzlePosition { get; }
 
-        void AppendComment(string v);
+        void AppendComment(string comment);
 
-        void AppendExtrudeTo(Vector3d position, double feedRate, double x, string comment = null);
+        void AppendExtrudeTo(Vector3d position, double feedRate, double extrusion, string comment = null);
 
         void AppendFooter();
 
