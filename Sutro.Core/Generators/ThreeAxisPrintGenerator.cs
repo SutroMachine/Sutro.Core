@@ -572,7 +572,7 @@ namespace Sutro.Core.Generators
         /// <summary>
         /// fill all infill regions
         /// </summary>
-        protected virtual void fill_infill_regions(List<GeneralPolygon2d> infill_regions,
+        protected virtual void fill_infill_regions(IReadOnlyList<GeneralPolygon2d> infill_regions,
             IFillPathScheduler2d scheduler, PrintLayerData layer_data)
         {
             if (Settings.Part.SparseLinearInfillStepX < 0.1 || Settings.Part.SparseLinearInfillStepX > 100)
@@ -700,7 +700,7 @@ namespace Sutro.Core.Generators
         /// <summary>
         /// fill set of solid regions
         /// </summary>
-        protected virtual void fill_solid_regions(List<GeneralPolygon2d> solid_regions,
+        protected virtual void fill_solid_regions(IReadOnlyList<GeneralPolygon2d> solid_regions,
             IFillPathScheduler2d scheduler, PrintLayerData layer_data, bool bIsInfillAdjacent)
         {
             double filter_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
@@ -734,7 +734,7 @@ namespace Sutro.Core.Generators
                         //var offset_regions = ClipperUtil.MiterOffset(bridge_regions, Settings.Machine.NozzleDiamMM, filter_area);
                         var offset_regions = ClipperUtil.SeparateMiterOffsets(bridge_regions, Settings.Machine.NozzleDiamMM, filter_area);
                         solid_regions = ClipperUtil.Difference(solid_regions, offset_regions, filter_area);
-                        solid_regions = CurveUtils2.FilterDegenerate(solid_regions, filter_area);     // [RMS] do we need to do this?
+                        solid_regions = CurveUtils2.FilterDegenerate(solid_regions.ToList(), filter_area);     // [RMS] do we need to do this?
 
                         foreach (var bridge_poly in bridge_regions)
                             fill_bridge_region(bridge_poly, scheduler, layer_data);

@@ -1,17 +1,19 @@
 ﻿using g3;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Sutro.Core.Generators
 {
     public class FillRegions
     {
-        public readonly List<GeneralPolygon2d> Solid;
-        public readonly List<GeneralPolygon2d> Sparse;
+        public IReadOnlyList<GeneralPolygon2d> Solid { get; }
 
-        public FillRegions(List<GeneralPolygon2d> solid, List<GeneralPolygon2d> sparse)
+        public IReadOnlyList<GeneralPolygon2d> Sparse { get; }
+
+        public FillRegions(IEnumerable<GeneralPolygon2d> solid, IEnumerable<GeneralPolygon2d> sparse)
         {
-            Solid = solid;
-            Sparse = sparse;
+            Solid = new ReadOnlyCollection<GeneralPolygon2d>(new List<GeneralPolygon2d>(solid));
+            Sparse = new ReadOnlyCollection<GeneralPolygon2d>(new List<GeneralPolygon2d>(sparse));
         }
     }
 }

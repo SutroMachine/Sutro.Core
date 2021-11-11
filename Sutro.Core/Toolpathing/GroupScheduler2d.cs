@@ -39,8 +39,7 @@ namespace Sutro.Core.Toolpathing
 
         ~GroupScheduler2d()
         {
-            if (CurrentSorter != null)
-                throw new Exception("GroupScheduler: still inside a sort group during destructor!");
+            EndGroup();
         }
 
         public virtual void BeginGroup()
