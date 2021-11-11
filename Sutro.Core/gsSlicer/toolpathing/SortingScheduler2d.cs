@@ -81,12 +81,10 @@ namespace gs
                     {
                         var rolled = loop.loop.RollToVertex(idx.c);
                         paths.Append(rolled);
-                        CurrentPosition = rolled.Entry;
                     }
                     else
                     {
                         paths.Append(loop.loop);
-                        CurrentPosition = loop.loop.Entry;
                     }
                 }
                 else
@@ -101,6 +99,7 @@ namespace gs
 
                 scheduler.SpeedHint = pathHint;
                 scheduler.AppendCurveSets(new List<FillCurveSet2d>() { paths });
+                CurrentPosition = scheduler.CurrentPosition;
             }
 
             scheduler.SpeedHint = saveHint;
