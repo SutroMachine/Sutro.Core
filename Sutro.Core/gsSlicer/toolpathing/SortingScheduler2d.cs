@@ -62,9 +62,9 @@ namespace gs
             }
         }
 
-        public virtual void SortAndAppendTo(Vector2d startPoint, IFillPathScheduler2d scheduler)
+        public virtual void SortAndAppendTo(Vector2d startPoint, IFillPathScheduler2d targetScheduler)
         {
-            var saveHint = scheduler.SpeedHint;
+            var saveHint = targetScheduler.SpeedHint;
             CurrentPosition = startPoint;
 
             List<Index3i> sorted = find_short_path_v1(startPoint);
@@ -72,7 +72,7 @@ namespace gs
             {
                 FillCurveSet2d paths = new FillCurveSet2d();
 
-                SpeedHint pathHint = SpeedHint.Default;
+                SpeedHint pathHint;
                 if (idx.a == 0)
                 { // loop
                     PathLoop loop = Loops[idx.b];
@@ -97,12 +97,12 @@ namespace gs
                     pathHint = span.speedHint;
                 }
 
-                scheduler.SpeedHint = pathHint;
-                scheduler.AppendCurveSets(new List<FillCurveSet2d>() { paths });
-                CurrentPosition = scheduler.CurrentPosition;
+                targetScheduler.SpeedHint = pathHint;
+                targetScheduler.AppendCurveSets(new List<FillCurveSet2d>() { paths });
+                CurrentPosition = targetScheduler.CurrentPosition;
             }
 
-            scheduler.SpeedHint = saveHint;
+            targetScheduler.SpeedHint = saveHint;
         }
 
         // [TODO] make this work. need more matrices?
