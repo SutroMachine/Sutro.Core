@@ -20,7 +20,7 @@ namespace gs
     /// [TODO] less O(N^2) business?
     ///
     /// </summary>
-    public class SortingScheduler2d : IFillPathScheduler2d
+    public class SortingScheduler2d : ISortingScheduler2d
     {
         public SpeedHint SpeedHint { get; set; }
 

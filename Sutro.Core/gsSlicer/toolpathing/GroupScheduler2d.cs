@@ -19,9 +19,11 @@ namespace gs
             set { TargetScheduler.SpeedHint = value; }
         }
 
-        public IFillPathScheduler2d TargetScheduler;
+        public IFillPathScheduler2d TargetScheduler { get; }
 
-        protected SortingScheduler2d CurrentSorter;
+        public Func<ISortingScheduler2d> SorterFactory { get; set; } = () => new SortingScheduler2d();
+
+        protected ISortingScheduler2d CurrentSorter;
 
         protected Vector2d lastPoint;
 
@@ -39,15 +41,15 @@ namespace gs
         ~GroupScheduler2d()
         {
             if (CurrentSorter != null)
-                throw new Exception("GroupScheduler: still inside a sort group during destructor!");
+                EndGroup();
         }
 
         public virtual void BeginGroup()
         {
             if (CurrentSorter != null)
-                throw new Exception("GroupScheduler.BeginGroup: already in a group!");
+                throw new InvalidOperationException("Cannot begin a new group before ending the current group!");
 
-            CurrentSorter = new SortingScheduler2d();
+            CurrentSorter = SorterFactory();
         }
 
         public virtual void EndGroup()
@@ -71,14 +73,10 @@ namespace gs
         {
             if (CurrentSorter == null)
             {
-                TargetScheduler.AppendCurveSets(paths);
-                throw new Exception("TODO: need to update lastPoint...");
+                throw new InvalidOperationException("Cannot append curves before starting a new group!");
             }
-            else
-            {
-                CurrentSorter.SpeedHint = this.SpeedHint;
-                CurrentSorter.AppendCurveSets(paths);
-            }
+            CurrentSorter.SpeedHint = this.SpeedHint;
+            CurrentSorter.AppendCurveSets(paths);
         }
     }
 
@@ -93,10 +91,12 @@ namespace gs
 
         public override void BeginGroup()
         {
+            // Do nothing
         }
 
         public override void EndGroup()
         {
+            // Do nothing
         }
 
         public override bool InGroup
