@@ -27,6 +27,7 @@ namespace gsCore.FunctionalTests
             var part = new PartProfileFFF()
             {
                 GenerateSupport = false,
+                ShellRandomizeStart = true,
             };
             part.CarefulExtrudeSpeed = 20 * 60;
 
@@ -75,7 +76,7 @@ namespace gsCore.FunctionalTests
             var print = TestRunnerFactoryFFF.CreateTestRunner("Sphere.Flashforge", new PrintProfileFFF
             {
                 Machine = MachineProfilesFactoryFFF.Flashforge.CreateCreatorPro(),
-                Part = { GenerateSupport = true },
+                Part = { GenerateSupport = true, ZipperAlignedToPoint = true },
             });
 
             // Act

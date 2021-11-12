@@ -60,23 +60,37 @@ namespace gs
             public abstract SolutionBase OrientToPoint(Vector2d point);
         }
 
-        protected class SolverLoopRandomEntryVertex : SolverBase
+        protected abstract class SolverLoopBase : SolverBase
+        {
+            protected readonly FillLoop loop;
+
+            protected virtual FillLoop OrientLoop(FillLoop loop)
+            {
+                if (loop.IsHoleShell != loop.IsClockwise())
+                    return loop.Reversed();
+                return loop;
+            }
+
+            protected SolverLoopBase(FillLoop loop)
+            {
+                this.loop = loop;
+            }
+        }
+
+        protected class SolverLoopRandomEntryVertex : SolverLoopBase
         {
             private readonly int startIndex;
             private readonly Vector2d seam;
-            private readonly FillLoop loop;
 
-            public SolverLoopRandomEntryVertex(FillLoop loop)
+            public SolverLoopRandomEntryVertex(FillLoop loop) : base(loop)
             {
-                this.loop = loop;
                 startIndex = new Random().Next(loop.ElementCount);
                 seam = loop.GetVertex(startIndex).xy;
             }
 
             private FillLoop RollLoopToVertex()
             {
-                // TODO: Add reverse for holes
-                return loop.RollToVertex(startIndex);
+                return OrientLoop(loop.RollToVertex(startIndex));
             }
 
             public override SolutionBase OrientToPoint(Vector2d point)
@@ -85,23 +99,20 @@ namespace gs
             }
         }
 
-        protected class SolverLoopZipperEntryVertex : SolverBase
+        protected class SolverLoopZipperEntryVertex : SolverLoopBase
         {
             private readonly int startIndex;
             private readonly Vector2d seam;
-            private readonly FillLoop loop;
 
-            public SolverLoopZipperEntryVertex(FillLoop loop, Vector2d zipperLocation)
+            public SolverLoopZipperEntryVertex(FillLoop loop, Vector2d zipperLocation) : base(loop)
             {
-                this.loop = loop;
                 startIndex = CurveUtils2.FindNearestVertex(zipperLocation, loop.Vertices(true));
                 seam = loop.GetVertex(startIndex).xy;
             }
 
             private FillLoop RollLoopToVertex()
             {
-                // TODO: Add reverse for holes
-                return loop.RollToVertex(startIndex);
+                return OrientLoop(loop.RollToVertex(startIndex));
             }
 
             public override SolutionBase OrientToPoint(Vector2d point)
@@ -110,19 +121,13 @@ namespace gs
             }
         }
 
-        protected class SolverLoopClosestVertex : SolverBase
+        protected class SolverLoopClosestVertex : SolverLoopBase
         {
-            private readonly FillLoop loop;
-
-            public SolverLoopClosestVertex(FillLoop loop)
-            {
-                this.loop = loop;
-            }
+            public SolverLoopClosestVertex(FillLoop loop) : base(loop) { }
 
             private FillLoop RollLoopToVertex(int startIndex)
             {
-                // TODO: Add reverse for holes
-                return loop.RollToVertex(startIndex);
+                return OrientLoop(loop.RollToVertex(startIndex));
             }
 
             public override SolutionBase OrientToPoint(Vector2d point)
@@ -188,11 +193,11 @@ namespace gs
         /// </summary>
         public Vector2d CurrentPosition { get; private set; }
 
-        protected List<FillCurveSet2d> fillSets;
+        protected List<FillCurveSet2d> fillSets = new List<FillCurveSet2d>();
 
         public virtual void AppendCurveSets(List<FillCurveSet2d> fillSets)
         {
-            this.fillSets = fillSets;
+            this.fillSets.AddRange(fillSets);
         }
 
         public virtual void SortAndAppendTo(Vector2d startPoint, IFillPathScheduler2d targetScheduler)
@@ -228,21 +233,19 @@ namespace gs
             while (remaining.Count > 0)
             {
                 // Find nearest 
-                SolutionBase closestSolution = null;
-                SolverBase closestSolver = null;
+                (SolverBase Solver, SolutionBase Solution) closest = (null, null);
                 foreach (var solver in remaining)
                 {
                     var solution = solver.OrientToPoint(startPoint);
-                    if (closestSolution == null || solution.Distance < closestSolution.Distance)
+                    if (closest.Solution == null || solution.Distance < closest.Solution.Distance)
                     {
-                        closestSolution = solution;
-                        closestSolver = solver;
+                        closest = (solver, solution);
                     }
                 }
 
                 // Add to 
-                remaining.Remove(closestSolver);
-                var fill = closestSolution.GetSolution();
+                remaining.Remove(closest.Solver);
+                var fill = closest.Solution.GetSolution();
                 orientedFills.Add(fill);
                 startPoint = fill.Exit;
             }
@@ -273,13 +276,6 @@ namespace gs
                 return new SolverCurveFixedOrientation(curve);
 
             return new SolverCurveClosestVertex(curve);
-        }
-
-        protected virtual FillLoop SelectLoopDirection(FillLoop loop)
-        {
-            if (loop.IsHoleShell != loop.IsClockwise())
-                return loop.Reversed();
-            return loop;
         }
     }
 }
