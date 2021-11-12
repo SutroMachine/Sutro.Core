@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
@@ -19,9 +20,11 @@ namespace gs
             set { TargetScheduler.SpeedHint = value; }
         }
 
-        public IFillPathScheduler2d TargetScheduler;
+        public IFillPathScheduler2d TargetScheduler { get; }
 
-        protected SortingScheduler2d CurrentSorter;
+        public Func<ISortingScheduler2d> SorterFactory { get; set; }
+
+        protected ISortingScheduler2d CurrentSorter;
 
         protected Vector2d lastPoint;
 
@@ -30,24 +33,27 @@ namespace gs
             get { return lastPoint; }
         }
 
-        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint)
+        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint, FillEntryPicker entryPicker)
         {
             TargetScheduler = target;
             lastPoint = startPoint;
+
+            // TODO: Move this outside to avoid profile dependency?
+            SorterFactory = () => new SortingScheduler2d(entryPicker, lastPoint);
         }
 
         ~GroupScheduler2d()
         {
             if (CurrentSorter != null)
-                throw new Exception("GroupScheduler: still inside a sort group during destructor!");
+                EndGroup();
         }
 
         public virtual void BeginGroup()
         {
             if (CurrentSorter != null)
-                throw new Exception("GroupScheduler.BeginGroup: already in a group!");
+                throw new InvalidOperationException("Cannot begin a new group before ending the current group!");
 
-            CurrentSorter = new SortingScheduler2d();
+            CurrentSorter = SorterFactory();
         }
 
         public virtual void EndGroup()
@@ -65,48 +71,14 @@ namespace gs
             get { return CurrentSorter != null; }
         }
 
-        SpeedHint IFillPathScheduler2d.SpeedHint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public virtual void AppendCurveSets(List<FillCurveSet2d> paths)
+        public virtual void AppendCurveSets(List<FillCurveSet2d> fillSets)
         {
             if (CurrentSorter == null)
             {
-                TargetScheduler.AppendCurveSets(paths);
-                throw new Exception("TODO: need to update lastPoint...");
+                throw new InvalidOperationException("Cannot append curves before starting a new group!");
             }
-            else
-            {
-                CurrentSorter.SpeedHint = this.SpeedHint;
-                CurrentSorter.AppendCurveSets(paths);
-            }
-        }
-    }
-
-    /// <summary>
-    /// This is for testing / debugging
-    /// </summary>
-    public class PassThroughGroupScheduler : GroupScheduler2d
-    {
-        public PassThroughGroupScheduler(IFillPathScheduler2d target, Vector2d startPoint) : base(target, startPoint)
-        {
-        }
-
-        public override void BeginGroup()
-        {
-        }
-
-        public override void EndGroup()
-        {
-        }
-
-        public override bool InGroup
-        {
-            get { return false; }
-        }
-
-        public override void AppendCurveSets(List<FillCurveSet2d> paths)
-        {
-            TargetScheduler.AppendCurveSets(paths);
+            CurrentSorter.SpeedHint = this.SpeedHint;
+            CurrentSorter.AppendCurveSets(fillSets);
         }
     }
 }

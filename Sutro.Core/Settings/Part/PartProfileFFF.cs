@@ -1,6 +1,8 @@
 ﻿using g3;
+using gs;
 using Newtonsoft.Json;
 using Sutro.Core.Models.Profiles;
+using System;
 using System.Collections.Generic;
 
 namespace Sutro.Core.Settings.Part
@@ -40,6 +42,12 @@ namespace Sutro.Core.Settings.Part
 
         public double ZipperLocationX { get; set; } = 0.0;
         public double ZipperLocationY { get; set; } = 0.0;
+
+        public Vector2d ZipperLocation()
+        {
+            return new Vector2d(ZipperLocationX, ZipperLocationY);
+        }
+
 
         // Not compatible with ZipperAlignedToPoint
         public bool ShellRandomizeStart { get; set; } = false;

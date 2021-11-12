@@ -1,6 +1,5 @@
 ﻿using g3;
 using gs.FillTypes;
-using System;
 using System.Collections.Generic;
 
 namespace gs
@@ -20,8 +19,16 @@ namespace gs
     /// [TODO] less O(N^2) business?
     ///
     /// </summary>
-    public class SortingScheduler2d : IFillPathScheduler2d
+    public class SortingScheduler2d : ISortingScheduler2d
     {
+        private readonly FillEntryPicker entryPicker;
+
+        public SortingScheduler2d(FillEntryPicker entryPicker, Vector2d startPoint)
+        {
+            this.entryPicker = entryPicker;
+            CurrentPosition = startPoint;
+        }
+
         public SpeedHint SpeedHint { get; set; }
 
         /// <summary>
@@ -29,237 +36,64 @@ namespace gs
         /// </summary>
         public Vector2d CurrentPosition { get; private set; }
 
-        protected class PathItem
+        protected List<FillCurveSet2d> fillSets = new List<FillCurveSet2d>();
+
+        public virtual void AppendCurveSets(List<FillCurveSet2d> fillSets)
         {
-            public SpeedHint speedHint;
+            this.fillSets.AddRange(fillSets);
         }
 
-        protected class PathLoop : PathItem
+        public virtual void SortAndAppendTo(Vector2d startPoint, IFillPathScheduler2d targetScheduler)
         {
-            public FillLoop loop;
-            public bool reverse = false;
-        }
+            if (fillSets == null || fillSets.Count == 0)
+                return;
 
-        protected List<PathLoop> Loops = new List<PathLoop>();
-
-        protected class PathSpan : PathItem
-        {
-            public FillCurve curve;
-            public bool reverse = false;
-        }
-
-        protected List<PathSpan> Spans = new List<PathSpan>();
-
-        public virtual void AppendCurveSets(List<FillCurveSet2d> paths)
-        {
-            foreach (FillCurveSet2d polySet in paths)
+            var sorted = FindShortestPath(startPoint);
+            foreach (var fill in sorted)
             {
-                foreach (var loop in polySet.Loops)
-                    Loops.Add(new PathLoop() { loop = loop, speedHint = SpeedHint });
-
-                foreach (var curve in polySet.Curves)
-                    Spans.Add(new PathSpan() { curve = curve, speedHint = SpeedHint });
+                var curveSet = new FillCurveSet2d();
+                curveSet.Append(fill);
+                targetScheduler.AppendCurveSets(new List<FillCurveSet2d>() { curveSet });
             }
+        
+            CurrentPosition = targetScheduler.CurrentPosition;
+            fillSets = new List<FillCurveSet2d>();
         }
 
-        public virtual void SortAndAppendTo(Vector2d startPoint, IFillPathScheduler2d scheduler)
+        protected virtual List<FillBase> FindShortestPath(Vector2d startPoint)
         {
-            var saveHint = scheduler.SpeedHint;
-            CurrentPosition = startPoint;
-
-            List<Index3i> sorted = find_short_path_v1(startPoint);
-            foreach (Index3i idx in sorted)
+            // Set up set of fills to be sorted
+            var remaining = new HashSet<FillEntryPicker.SolverBase>();
+            foreach (var fillSet in fillSets)
             {
-                FillCurveSet2d paths = new FillCurveSet2d();
-
-                SpeedHint pathHint = SpeedHint.Default;
-                if (idx.a == 0)
-                { // loop
-                    PathLoop loop = Loops[idx.b];
-                    pathHint = loop.speedHint;
-                    if (idx.c != 0)
-                    {
-                        var rolled = loop.loop.RollToVertex(idx.c);
-                        paths.Append(rolled);
-                        CurrentPosition = rolled.Entry;
-                    }
-                    else
-                    {
-                        paths.Append(loop.loop);
-                        CurrentPosition = loop.loop.Entry;
-                    }
-                }
-                else
-                {  // span
-                    PathSpan span = Spans[idx.b];
-                    if (idx.c == 1)
-                        span.curve = span.curve.Reversed();
-                    paths.Append(span.curve);
-                    CurrentPosition = span.curve.Exit;
-                    pathHint = span.speedHint;
-                }
-
-                scheduler.SpeedHint = pathHint;
-                scheduler.AppendCurveSets(new List<FillCurveSet2d>() { paths });
+                foreach (var loop in fillSet.Loops)
+                    remaining.Add(entryPicker.CreateSolver(loop));
+                foreach (var curve in fillSet.Curves)
+                    remaining.Add(entryPicker.CreateSolver(curve));
             }
 
-            scheduler.SpeedHint = saveHint;
-        }
-
-        // [TODO] make this work. need more matrices?
-        //  not even sure this makes sense if we are doing greedy algo, we
-        //  will never compute a pairwise distance more than once, will we??
-        //DenseMatrix spanSS;
-        //DenseMatrix spanSE;
-
-        protected virtual List<Index3i> find_short_path_v1(Vector2d vStart)
-        {
-            int N = Spans.Count;
-            int M = Loops.Count;
-
-            HashSet<Index2i> remaining = new HashSet<Index2i>();
-            List<Index3i> order = new List<Index3i>();
-
-            for (int i = 0; i < N; ++i)
-            {
-                remaining.Add(new Index2i(1, i));
-            }
-            for (int i = 0; i < M; ++i)
-            {
-                remaining.Add(new Index2i(0, i));
-            }
-            if (remaining.Count == 0)
-                return order;
-
-            Index3i start_idx = find_nearest(vStart, remaining);
-            order.Add(start_idx);
-            remaining.Remove(new Index2i(start_idx.a, start_idx.b));
-
-            Index3i prev = start_idx;
+            var orientedFills = new List<FillBase>();
             while (remaining.Count > 0)
             {
-                Index3i next = find_nearest(prev, remaining);
-                if (next == Index3i.Max)
-                    break;
-                order.Add(next);
-                remaining.Remove(new Index2i(next.a, next.b));
-                prev = next;
-            }
-
-            // handle fails
-            foreach (Index2i idx in remaining)
-            {
-                order.Add(new Index3i(idx.a, idx.b, 0));
-            }
-
-            return order;
-        }
-
-        protected virtual Index3i find_nearest(Index3i from, HashSet<Index2i> remaining)
-        {
-            return find_nearest(get_point(from), remaining);
-        }
-
-        protected virtual Index3i find_nearest(Vector2d pt, HashSet<Index2i> remaining)
-        {
-            double nearest = double.MaxValue;
-            Index3i nearest_idx = Index3i.Max;
-            foreach (Index2i idx in remaining)
-            {
-                if (idx.a == 0) // loop
-                { 
-                    PathLoop loop = Loops[idx.b];
-                    double distance = GetLoopEntryPoint(pt, loop, out var location);
-
-                    if (distance < nearest)
-                    {
-                        nearest = distance;
-                        nearest_idx = new Index3i(idx.a, idx.b, location.Index);
-                    }
-                }
-                else // span
+                // Find nearest 
+                (FillEntryPicker.SolverBase Solver, FillEntryPicker.SolutionBase Solution) closest = (null, null);
+                foreach (var solver in remaining)
                 {
-                    PathSpan span = Spans[idx.b];
-                    double distance = GetSpanEntryPoint(pt, span, out bool flip);
-
-                    if (distance < nearest)
+                    var solution = solver.OrientToPoint(startPoint);
+                    if (closest.Solution == null || solution.Distance < closest.Solution.Distance)
                     {
-                        nearest = distance;
-                        nearest_idx = new Index3i(idx.a, idx.b, flip ? 1 : 0);
+                        closest = (solver, solution);
                     }
                 }
+
+                // Add to 
+                remaining.Remove(closest.Solver);
+                var fill = closest.Solution.GetSolution();
+                orientedFills.Add(fill);
+                startPoint = fill.Exit;
             }
 
-            return nearest_idx;
+            return orientedFills;
         }
-
-        protected virtual double GetSpanEntryPoint(Vector2d pt, PathSpan span, out bool flip)
-        {
-            double distanceToCurveStart = span.curve.Entry.Distance(pt);
-
-            if (span.curve.FillType.IsEntryLocationSpecified())
-            {
-                flip = false;
-                return distanceToCurveStart;
-            }
-
-            double distanceToCurveEnd = span.curve.Exit.Distance(pt);
-
-            if (distanceToCurveStart < distanceToCurveEnd)
-            {
-                flip = false;
-                return distanceToCurveStart;
-            }
-            else
-            {
-                flip = true;
-                return distanceToCurveEnd;
-
-            }
-        }
-
-        protected virtual double GetLoopEntryPoint(Vector2d startPoint, PathLoop loop,
-            out ElementLocation location)
-        {
-            if (loop.loop.FillType.IsEntryLocationSpecified())
-            {
-                location = new ElementLocation(0, 0);
-                return loop.loop.Entry.Distance(startPoint);
-            }
-            
-            return loop.loop.FindClosestElementToPoint(startPoint, out location);
-        }
-
-        protected virtual Vector2d get_point(Index3i idx)
-        {
-            if (idx.a == 0)
-            { // loop
-                PathLoop loop = Loops[idx.b];
-                return loop.loop.GetSegment2d(idx.c).Center;
-            }
-            else
-            {  // span
-                PathSpan span = Spans[idx.b];
-
-                // [GDM] Reversed this logic 2019.10.23; by my thinking:
-                // - if the curve ISN'T reversed, the exit point should be the end
-                // - if the curve IS reversed, the exit point should be the start
-                return (idx.c == 0) ? span.curve.Entry : span.curve.Exit;
-            }
-        }
-
-        //void precompute_distances()
-        //{
-        //    int N = Spans.Count;
-        //    spanSS = new DenseMatrix(N, N);
-        //    spanSE = new DenseMatrix(N, N);
-        //    for ( int i = 0; i < N; ++i ) {
-        //        Vector2d vS = Spans[i].curve.Start;
-        //        for ( int j = i+1; j < N; ++j ) {
-        //            spanSS[i, j] = vS.Distance(Spans[j].curve.Start);
-        //            spanSE[i, j] = vS.Distance(Spans[j].curve.End);
-        //        }
-        //    }
-        //}
     }
 }

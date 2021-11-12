@@ -8,29 +8,24 @@ using System.Linq;
 
 namespace gs
 {
-    public interface IFillPathScheduler2d
-    {
-        void AppendCurveSets(List<FillCurveSet2d> paths);
 
-        SpeedHint SpeedHint { get; set; }
-
-        Vector2d CurrentPosition { get; }
-
-    }
-
-    // dumbest possible scheduler...
+    /// <summary> Simplest possible scheduler; does not change fill orientation or entry locations</summary>
+    /// <remarks>
+    /// Will simply schedule the fills in the order they are passed in, without applying 
+    /// any modifications like rolling loops or orienting curves. Contains the base logic for converting
+    /// fills to toolpaths, and can be used as the target for more advanced schedulers.
+    /// </remarks>
     public class SequentialScheduler2d : IFillPathScheduler2d
     {
-        public ToolpathSetBuilder Builder;
-        public IPrintProfileFFF Settings;
+        public ToolpathSetBuilder Builder { get; }
+        public IPrintProfileFFF Settings { get; }
 
-        public bool ExtrudeOnShortTravels = false;
-        public double ShortTravelDistance = 0;
-
+        public bool ExtrudeOnShortTravels { get; set; } = false;
+        public double ShortTravelDistance { get; set; } = 0;
         public double LayerZ { get; }
 
-        // optional function we will call when curve sets are appended
-        public Action<List<FillCurveSet2d>, SequentialScheduler2d> OnAppendCurveSetsF = null;
+        // Optional function we will call when curve sets are appended
+        public Action<List<FillCurveSet2d>, SequentialScheduler2d> OnAppendCurveSetsF { get; set; } = null;
 
         public SequentialScheduler2d(ToolpathSetBuilder builder, IPrintProfileFFF settings, double layerZ)
         {
@@ -52,72 +47,29 @@ namespace gs
                     AppendFillCurve(curve);
 
                 foreach (var loop in curveSet.Loops)
-                    AppendFillLoop (loop);
+                    AppendFillLoop(loop);
             }
         }
 
-        // [TODO] no reason we couldn't start on edge midpoint??
-        public virtual void AppendFillLoop(FillLoop loop) 
+        public virtual void AppendFillLoop(FillLoop loop)
         {
             AssertValidLoop(loop);
-
-            var oriented = SelectLoopDirection(loop);
-            var rolled = SelectLoopEntry(oriented, Builder.Position.xy);
-
-            AppendTravel(Builder.Position.xy, rolled.Entry);
-
-            double useSpeed = SelectSpeed(rolled);
-            BuildLoop(rolled, useSpeed);
-        }
-
-        protected virtual FillLoop SelectLoopEntry(FillLoop loop, Vector2d currentPosition)
-        {
-            var location = FindLoopEntryPoint(loop, currentPosition);
-            return loop.RollBetweenVertices(location);
+            AppendTravel(Builder.Position.xy, loop.Entry);
+            BuildLoop(loop, SelectSpeed(loop));
         }
 
         protected virtual void BuildLoop(FillLoop loop, double useSpeed)
         {
             if (!(loop is FillLoop<FillSegment> o))
-                throw new NotImplementedException($"FillPathScheduler2d does not support type {loop.GetType()}.");
+                throw new NotImplementedException($"SequentialScheduler2d does not support type {loop.GetType()}.");
+
             BuildLoopConcrete(o, useSpeed);
         }
 
-        protected virtual void BuildLoopConcrete<TSegment>(FillLoop<TSegment> rolled, double useSpeed) where TSegment : IFillSegment, new()
+        protected virtual void BuildLoopConcrete<TSegment>(FillLoop<TSegment> rolled, double useSpeed)
+            where TSegment : IFillSegment, new()
         {
             Builder.AppendExtrude(rolled.Vertices(true).ToList(), useSpeed, rolled.FillType, null);
-        }
-
-        protected virtual FillLoop SelectLoopDirection(FillLoop loop)
-        {
-            if (loop.IsHoleShell != loop.IsClockwise())
-                return loop.Reversed();
-            return loop;
-        }
-
-        protected virtual ElementLocation FindLoopEntryPoint(FillLoop poly, Vector2d currentPos2)
-        {
-            int startIndex;
-            if (Settings.Part.ZipperAlignedToPoint && poly.FillType.IsEntryLocationSpecified())
-            {
-                // split edges to position zipper closer to the desired point?
-                // TODO: Enter midsegment
-                Vector2d zipperLocation = new Vector2d(Settings.Part.ZipperLocationX, Settings.Part.ZipperLocationY);
-                startIndex = CurveUtils2.FindNearestVertex(zipperLocation, poly.Vertices(true));
-            }
-            else if (Settings.Part.ShellRandomizeStart && poly.FillType.IsEntryLocationSpecified())
-            {
-                // split edges for a actual random location along the perimeter instead of a random vertex?
-                Random rnd = new Random();
-                startIndex = rnd.Next(poly.ElementCount);
-            }
-            else
-            {
-                // use the vertex closest to the current nozzle position
-                startIndex = CurveUtils2.FindNearestVertex(currentPos2, poly.Vertices(true));
-            }
-
-            return new ElementLocation(startIndex, 0);
         }
 
         protected virtual void AppendTravel(Vector2d startPt, Vector2d endPt)
@@ -125,10 +77,8 @@ namespace gs
             double travelDistance = startPt.Distance(endPt);
 
             // a travel may require a retract, which we might want to skip
-            if (ExtrudeOnShortTravels &&
-                travelDistance < ShortTravelDistance)
+            if (ExtrudeOnShortTravels && travelDistance < ShortTravelDistance)
             {
-                // TODO: Add strategy for extrude move?
                 Builder.AppendExtrude(endPt, Settings.Part.RapidTravelSpeed, new DefaultFillType());
             }
             else if (Settings.Part.TravelLiftEnabled &&
@@ -144,29 +94,14 @@ namespace gs
             }
         }
 
-        // [TODO] would it ever make sense to break polyline to avoid huge travel??
         public virtual void AppendFillCurve(FillCurve curve)
         {
             Vector3d currentPos = Builder.Position;
             Vector2d currentPos2 = currentPos.xy;
 
             AssertValidCurve(curve);
-
-            var oriented = OrientCurve(curve, currentPos2);
-
-            AppendTravel(currentPos2, oriented.Entry);
-
-            BuildCurve(oriented, SelectSpeed(oriented));
-        }
-
-        protected static FillCurve OrientCurve(FillCurve curve, Vector2d currentPos2)
-        {
-            if (curve.Entry.DistanceSquared(currentPos2) > curve.Exit.DistanceSquared(currentPos2))
-            {
-                return curve.Reversed();
-            }
-
-            return curve;
+            AppendTravel(currentPos2, curve.Entry);
+            BuildCurve(curve, SelectSpeed(curve));
         }
 
         protected virtual void BuildCurve(FillCurve curve, double useSpeed)
@@ -176,7 +111,8 @@ namespace gs
             BuildCurveConcrete(o, useSpeed);
         }
 
-        protected void BuildCurveConcrete<TSegment>(FillCurve<TSegment> curve, double useSpeed) where TSegment : IFillSegment, new()
+        protected void BuildCurveConcrete<TSegment>(FillCurve<TSegment> curve, double useSpeed)
+            where TSegment : IFillSegment, new()
         {
             var vertices = curve.Vertices().ToList();
             var flags = CreateToolpathVertexFlags(curve);
@@ -201,7 +137,9 @@ namespace gs
                 var flag = TPVertexFlags.None;
 
                 if (i == 0)
+                {
                     flag = TPVertexFlags.IsPathStart;
+                }
                 else
                 {
                     var segInfo = curve.Elements[i - 1].Edge;
@@ -214,7 +152,6 @@ namespace gs
 
             return flags;
         }
-
 
         // 1) If we have "careful" speed hint set, use CarefulExtrudeSpeed
         //       (currently this is only set on first layer)
