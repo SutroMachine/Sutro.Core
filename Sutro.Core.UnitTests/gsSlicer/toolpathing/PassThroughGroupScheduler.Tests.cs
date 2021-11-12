@@ -16,7 +16,7 @@ namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
             var toolpaths = new ToolpathSet();
             var builder = new ToolpathSetBuilder(toolpaths);
             var targetScheduler = new SequentialScheduler2d(builder, new PrintProfileFFF(), 0);
-            var groupScheduler = new PassThroughGroupScheduler(targetScheduler, new Vector2d());
+            var groupScheduler = new PassThroughGroupScheduler(targetScheduler);
  
             var fill = new FillCurve<FillSegment>();
             fill.BeginCurve(Vector2d.Zero);

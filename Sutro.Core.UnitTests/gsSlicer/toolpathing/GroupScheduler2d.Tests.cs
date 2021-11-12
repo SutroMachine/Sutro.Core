@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
 {
@@ -19,11 +18,13 @@ namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
         [TestInitialize]
         public void Initialize()
         {
+            var profile = new PrintProfileFFF();
+
             // Arrange
             toolpaths = new ToolpathSet();
             builder = new ToolpathSetBuilder(toolpaths);
-            targetScheduler = new SequentialScheduler2d(builder, new PrintProfileFFF(), 0);
-            groupScheduler = new GroupScheduler2d(targetScheduler, new Vector2d());
+            targetScheduler = new SequentialScheduler2d(builder, profile, 0);
+            groupScheduler = new GroupScheduler2d(targetScheduler, new Vector2d(), profile);
         }
 
         [TestMethod]

@@ -1,5 +1,6 @@
 ﻿using g3;
 using gs.FillTypes;
+using Sutro.Core.Settings;
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,7 @@ namespace gs
 
         public IFillPathScheduler2d TargetScheduler { get; }
 
-        public Func<ISortingScheduler2d> SorterFactory { get; set; } = () => new SortingScheduler2d();
+        public Func<ISortingScheduler2d> SorterFactory { get; set; }
 
         protected ISortingScheduler2d CurrentSorter;
 
@@ -32,10 +33,13 @@ namespace gs
             get { return lastPoint; }
         }
 
-        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint)
+        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint, IPrintProfileFFF profile)
         {
             TargetScheduler = target;
             lastPoint = startPoint;
+
+            // TODO: Move this outside to avoid profile dependency?
+            SorterFactory = () => new SortingScheduler2d(profile);
         }
 
         ~GroupScheduler2d()
@@ -67,14 +71,14 @@ namespace gs
             get { return CurrentSorter != null; }
         }
 
-        public virtual void AppendCurveSets(List<FillCurveSet2d> paths)
+        public virtual void AppendCurveSets(List<FillCurveSet2d> fillSets)
         {
             if (CurrentSorter == null)
             {
                 throw new InvalidOperationException("Cannot append curves before starting a new group!");
             }
             CurrentSorter.SpeedHint = this.SpeedHint;
-            CurrentSorter.AppendCurveSets(paths);
+            CurrentSorter.AppendCurveSets(fillSets);
         }
     }
 }

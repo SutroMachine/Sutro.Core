@@ -6,30 +6,33 @@ namespace gs
     /// <summary>
     /// This is for testing / debugging
     /// </summary>
-    public class PassThroughGroupScheduler : GroupScheduler2d
+    public class PassThroughGroupScheduler : IGroupScheduler
     {
-        public PassThroughGroupScheduler(IFillPathScheduler2d target, Vector2d startPoint) : base(target, startPoint)
+        private readonly IFillPathScheduler2d target;
+
+        public PassThroughGroupScheduler(IFillPathScheduler2d target)
         {
+            this.target = target;
         }
 
-        public override void BeginGroup()
-        {
-            // Do nothing
-        }
-
-        public override void EndGroup()
+        public void BeginGroup()
         {
             // Do nothing
         }
 
-        public override bool InGroup
+        public void EndGroup()
+        {
+            // Do nothing
+        }
+
+        public bool InGroup
         {
             get { return false; }
         }
 
-        public override void AppendCurveSets(List<FillCurveSet2d> paths)
+        public void AppendCurveSets(List<FillCurveSet2d> paths)
         {
-            TargetScheduler.AppendCurveSets(paths);
+            target.AppendCurveSets(paths);
         }
     }
 }
