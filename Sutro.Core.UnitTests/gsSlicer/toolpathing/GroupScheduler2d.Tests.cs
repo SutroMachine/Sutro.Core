@@ -24,7 +24,7 @@ namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
             toolpaths = new ToolpathSet();
             builder = new ToolpathSetBuilder(toolpaths);
             targetScheduler = new SequentialScheduler2d(builder, profile, 0);
-            groupScheduler = new GroupScheduler2d(targetScheduler, new Vector2d(), profile);
+            groupScheduler = new GroupScheduler2d(targetScheduler, new Vector2d(), new FillEntryPicker(profile));
         }
 
         [TestMethod]

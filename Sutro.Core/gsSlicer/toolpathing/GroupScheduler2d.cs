@@ -33,13 +33,13 @@ namespace gs
             get { return lastPoint; }
         }
 
-        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint, IPrintProfileFFF profile)
+        public GroupScheduler2d(IFillPathScheduler2d target, Vector2d startPoint, FillEntryPicker entryPicker)
         {
             TargetScheduler = target;
             lastPoint = startPoint;
 
             // TODO: Move this outside to avoid profile dependency?
-            SorterFactory = () => new SortingScheduler2d(profile);
+            SorterFactory = () => new SortingScheduler2d(entryPicker, lastPoint);
         }
 
         ~GroupScheduler2d()

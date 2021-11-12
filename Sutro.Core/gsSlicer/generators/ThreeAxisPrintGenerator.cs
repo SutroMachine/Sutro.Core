@@ -197,7 +197,7 @@ namespace gs
 
             SchedulerFactoryF = get_layer_scheduler;
 
-            GroupSchedulerFactoryF = (layer_data, target, start) => new GroupScheduler2d(target, start, Settings);
+            GroupSchedulerFactoryF = (layer_data, target, start) => new GroupScheduler2d(target, start, new FillEntryPicker(Settings));
 
             ShellSelectorFactoryF = (layer_data) =>
                 new NextNearestLayerShellsSelector(layer_data.ShellFills);
