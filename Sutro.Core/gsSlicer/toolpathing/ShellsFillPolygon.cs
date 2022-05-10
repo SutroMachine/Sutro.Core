@@ -185,6 +185,9 @@ namespace gs
 
                 current_prev = current;
                 current = all_next;
+
+                if (current.Count == 0)
+                    break;
             }
 
             // remaining inner polygons
