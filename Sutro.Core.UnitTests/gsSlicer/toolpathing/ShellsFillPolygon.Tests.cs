@@ -17,6 +17,7 @@ namespace Sutro.Core.UnitTests.gsSlicer.toolpathing
             {
                 EnableThinCheck = true,
                 InsetFromInputPolygonX = 0,
+                InsetInnerPolygons = false,
                 Layers = 10,
                 PreserveOuterShells = false,
                 SelfOverlapTolerance = 0.5,
