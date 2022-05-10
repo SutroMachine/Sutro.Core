@@ -2,6 +2,7 @@
 using gs.FillTypes;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -31,42 +32,46 @@ namespace gs
         public GeneralPolygon2d Polygon { get; set; }
 
         // parameters
-        public int Layers = 2;
+        public int Layers { get; set; } = 2;
 
-        public double ToolWidth = 0.4;
-        public double PathSpacing = 0.4;
+        public double ToolWidth { get; set; } = 0.4;
+        public double PathSpacing { get; set; } = 0.4;
 
-        public double DiscardTinyPerimeterLengthMM = 1.0;
-        public double DiscardTinyPolygonAreaMM2 = 1.0;
+        public double DiscardTinyPerimeterLengthMM { get; set; } = 1.0;
+        public double DiscardTinyPolygonAreaMM2 { get; set; } = 1.0;
+
+        public bool EnableThinCheck { get; set; } = false;
 
         // Replace this to use a different inset distance calculations
-        public Func<int, double> InsetDistanceFactoryF;
+        public Func<int, double> InsetDistanceFactoryF { get; set; }
 
         // When offsets collide, we try to find polyline paths that will "fit"
         // This is multiplier on ToolWidth, we discard path segments within
         // ToolWidth*Multiplier distance from previous shell
-        public double ToolWidthClipMultiplier = 0.8;
+        public double ToolWidthClipMultiplier { get; set; } = 0.8;
 
         // if true, we inset half of tool-width from Polygon,
         // otherwise first layer is polygon
-        public double InsetFromInputPolygonX = 0.5;
+        public double InsetFromInputPolygonX { get; set; } = 0.5;
 
         // if InsetFromInputPolygonX > 0, and this is true, we will do whatever
         // we can to make sure that the inset does not have large shape/topology
         // deviations, going as far as ignore the inset if necessary
-        public bool PreserveInputInsetTopology = false;
+        public bool PreserveInputInsetTopology { get; set; } = false;
 
         // if true, inset InnerPolygons by a tool-width from last Shell,
         // otherwise InnerPolygons lies on that Shell
-        public bool InsetInnerPolygons = true;
+        public bool InsetInnerPolygons { get; set; } = true;
 
         // if true, we try to filter out self-overlaps (is expensive)
-        public bool FilterSelfOverlaps = false;
+        public bool FilterSelfOverlaps { get; set; } = false;
 
-        public bool PreserveOuterShells = true;         // if true, we do not try to filter self-overlaps for shell 0
-        public double SelfOverlapTolerance = 0.3;
+        public ReadOnlyCollection<GeneralPolygon2d> InitialInsetPolygons { get; protected set; }
 
-        public bool OuterShellLast = false;             // if true, outer shell is scheduled last
+        public bool PreserveOuterShells { get; set; } = true;         // if true, we do not try to filter self-overlaps for shell 0
+        public double SelfOverlapTolerance { get; set; } = 0.3;
+
+        public bool OuterShellLast { get; set; } = false;             // if true, outer shell is scheduled last
 
         protected readonly IFillType fillType;
         protected readonly IFillType firstShellFillType;
@@ -123,22 +128,18 @@ namespace gs
 
         public virtual bool Compute()
         {
-            bool enable_thin_check = false;
             double thin_check_offset = ToolWidth * 0.45;
-            double thin_check_thresh_sqr = ToolWidth * 0.3;
-            thin_check_thresh_sqr *= thin_check_thresh_sqr;
+            double thin_check_thresh_sqr = Math.Pow(ToolWidth * 0.3, 2);
 
-            // first shell is either polygon, or inset from that polygon
-            List<GeneralPolygon2d> current = null;
-            if (InsetFromInputPolygonX != 0)
-            {
-                current = ComputeInitialInsetPolygon(PreserveInputInsetTopology);
-            }
-            else
-            {
-                current = new List<GeneralPolygon2d>() { Polygon };
-            }
-            List<GeneralPolygon2d> current_prev = null;
+            // First shell is either polygon, or inset from that polygon
+            var current = (InsetFromInputPolygonX != 0)
+                ? ComputeInitialInsetPolygon(PreserveInputInsetTopology)
+                : new List<GeneralPolygon2d>() { Polygon };
+
+            // Save the initial inset
+            InitialInsetPolygons = current.AsReadOnly();
+
+            var current_prev = new List<GeneralPolygon2d>();
 
             if (current.Count == 0)
             {
@@ -158,8 +159,7 @@ namespace gs
                 List<GeneralPolygon2d> all_next = new List<GeneralPolygon2d>();
                 foreach (GeneralPolygon2d gpoly in current)
                 {
-                    List<GeneralPolygon2d> offsets =
-                        ClipperUtil.ComputeOffsetPolygon(gpoly, -insetDistance, true);
+                    var offsets = InsetGPoly(gpoly, insetDistance);
 
                     List<GeneralPolygon2d> filtered = new List<GeneralPolygon2d>();
                     foreach (var v in offsets)
@@ -169,7 +169,7 @@ namespace gs
                         if (bTooSmall)
                             continue;
 
-                        if (enable_thin_check && is_too_thin(v, thin_check_offset, thin_check_thresh_sqr))
+                        if (EnableThinCheck && is_too_thin(v, thin_check_offset, thin_check_thresh_sqr))
                             nextShellTooThin.Add(v);
                         else
                             filtered.Add(v);
@@ -181,20 +181,11 @@ namespace gs
                         all_next.AddRange(filtered);
                 }
 
+                ObserveInset(current, all_next, insetDistance);
+
                 current_prev = current;
                 current = all_next;
             }
-
-            // failedShells have no space for internal contours. But
-            // we might be able to fit a single line...
-            //foreach (GeneralPolygon2d gpoly in failedShells) {
-            //	if (gpoly.Perimeter < DiscardTinyPerimeterLengthMM ||
-            //		 gpoly.Area < DiscardTinyPolygonAreaMM2)
-            //		continue;
-
-            //	List<FillPolyline2d> thin_shells = thin_offset(gpoly);
-            //	Shells[Shells.Count - 1].Append(thin_shells);
-            //}
 
             // remaining inner polygons
             if (InsetInnerPolygons)
@@ -204,10 +195,26 @@ namespace gs
             }
             else
             {
-                InnerPolygons = current_prev;
+                InnerPolygons = new List<GeneralPolygon2d>();
+                foreach (var gpoly in current_prev)
+                {
+                    InnerPolygons.AddRange(InsetGPoly(gpoly, 0));
+                }
                 InnerPolygons.AddRange(nextShellTooThin);
             }
             return true;
+        }
+
+        protected virtual void ObserveInset(List<GeneralPolygon2d> current, List<GeneralPolygon2d> inset, double spacing)
+        {
+        }
+
+        protected virtual List<GeneralPolygon2d> InsetGPoly(GeneralPolygon2d gpoly, double insetDistance)
+        {
+            if (insetDistance == 0)
+                return new List<GeneralPolygon2d>() { gpoly };
+
+            return ClipperUtil.ComputeOffsetPolygon(gpoly, -insetDistance, true);
         }
 
         /// <summary>
@@ -222,7 +229,7 @@ namespace gs
             List<GeneralPolygon2d> insetPolys =
                 ClipperUtil.MiterOffset(Polygon, -fInset);
 
-            if (bForcePreserveTopology == false)
+            if (!bForcePreserveTopology)
                 return insetPolys;
 
             if (check_large_topology_change(Polygon, insetPolys, fInset))
@@ -303,14 +310,14 @@ namespace gs
 
             IFillType currentFillType = nShell == 0 ? firstShellFillType ?? fillType : fillType;
 
-            if (FilterSelfOverlaps == false)
+            if (!FilterSelfOverlaps)
             {
                 foreach (var shell in shell_polys)
                 {
                     paths.Append(new FillLoop<FillSegment>(shell.Outer.Vertices) { FillType = currentFillType, PerimeterOrder = nShell });
                     foreach (var hole in shell.Holes)
                     {
-                        paths.Append(new FillLoop<FillSegment>(hole.Vertices) { FillType = currentFillType, PerimeterOrder = nShell, IsHoleShell = true }); ;
+                        paths.Append(new FillLoop<FillSegment>(hole.Vertices) { FillType = currentFillType, PerimeterOrder = nShell, IsHoleShell = true });
                     }
                 }
                 return paths;
@@ -319,8 +326,10 @@ namespace gs
             int outer_shell_edgegroup = 100;
             foreach (GeneralPolygon2d shell in shell_polys)
             {
-                PathOverlapRepair repair = new PathOverlapRepair();
-                repair.OverlapRadius = SelfOverlapTolerance;
+                var repair = new PathOverlapRepair
+                {
+                    OverlapRadius = SelfOverlapTolerance
+                };
                 repair.Add(shell, outer_shell_edgegroup);
 
                 // Ideally want to presreve outermost shell of external perimeters.
@@ -434,15 +443,14 @@ namespace gs
             for (int i = 0; i < N; ++i)
             {
                 Vector2d po = insetpoly[i];
-                if (clipPoly.Contains(po) == false)
+                if (!clipPoly.Contains(po))
                 {
                     clipped[i] = true;
                     nClipped++;
                     continue;
                 }
 
-                int iHole, iSeg; double segT;
-                double distSqr = clipPoly.DistanceSquared(po, out iHole, out iSeg, out segT);
+                double distSqr = clipPoly.DistanceSquared(po, out _, out _, out _);
                 if (distSqr < clipSqr)
                 {
                     clipped[i] = true;
@@ -471,13 +479,13 @@ namespace gs
             int iStart = 0;
 
             // handle no-wrap case
-            if (clipped[iStart] == false && clipped[poly.Length - 1] == true)
+            if (!clipped[iStart] && clipped[poly.Length - 1])
             {
                 iStart = 0;
             }
             else
             {
-                while (clipped[iStart] == true)     // find first non-clipped pt
+                while (clipped[iStart])     // find first non-clipped pt
                     iStart++;
             }
 
@@ -485,14 +493,14 @@ namespace gs
             int iCur = iStart;
             bool done = false;
 
-            while (done == false)
+            while (!done)
             {
                 var vertices = new List<Vector2d>();
                 do
                 {
                     vertices.Add(poly[iCur]);
                     iCur = (iCur + 1) % poly.Length;
-                } while (clipped[iCur] == false && iCur != iStart);
+                } while (!clipped[iCur] && iCur != iStart);
 
                 if (vertices.Count > 1)
                     result.Add(new FillCurve<FillSegment>(vertices));
