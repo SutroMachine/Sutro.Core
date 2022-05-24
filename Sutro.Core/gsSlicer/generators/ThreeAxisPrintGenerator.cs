@@ -1399,61 +1399,13 @@ namespace gs
         /// </summary>
         protected virtual void precompute_support_areas()
         {
-            generate_bridge_areas();
+            var bridgeRegionCalculator = new ServiceProvider(Settings).GetBridgeRegionCalculator();
+            LayerBridgeAreas = bridgeRegionCalculator.CalculateBridgeRegions(Slices, cancellationToken);
 
             if (Settings.Part.GenerateSupport)
                 generate_support_areas();
             else
                 add_existing_support_areas();
-        }
-
-        /// <summary>
-        /// Find the unsupported regions in each layer that can be bridged
-        /// </summary>
-        protected virtual void generate_bridge_areas()
-        {
-            int nLayers = Slices.Count;
-
-            LayerBridgeAreas = new List<GeneralPolygon2d>[nLayers];
-            if (nLayers <= 1)
-                return;
-
-            // [RMS] does this make sense? maybe should be using 0 here?
-            double bridge_tol = Settings.Machine.NozzleDiamMM * 0.5;
-            double expand_delta = bridge_tol * 0.1;     // see usage below
-            bridge_tol += expand_delta;
-            double min_area = Settings.Machine.NozzleDiamMM;
-            min_area *= min_area;
-
-            gParallel.ForEach(Interval1i.Range(nLayers - 1), (layeri) =>
-            {
-                if (Cancelled()) return;
-                PlanarSlice slice = Slices[layeri];
-                PlanarSlice next_slice = Slices[layeri + 1];
-
-                // To find bridgeable regions, we compute all floating regions in next layer.
-                // Then we look for polys that are bridgeable, ie thing enough and fully anchored.
-                List<GeneralPolygon2d> bridgePolys = null;
-                if (Settings.Part.EnableBridging)
-                {
-                    // [RMS] bridge area is (next_solids - solids). However, for meshes with slight variations
-                    // in identical stacked polygons (eg like created from mesh extrusions), there will be thousands
-                    // of tiny polygons. We can filter them, but just computing them can take an enormous amount of time.
-                    // So, we slightly offset the slice here. This means the bridge poly will be slightly under-sized,
-                    // the assumption is we will be adding extra overlap anyway
-                    List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(slice.Solids, expand_delta, min_area);
-                    bridgePolys = ClipperUtil.Difference(next_slice.Solids, expandPolys, min_area);
-                    bridgePolys = CurveUtils2.FilterDegenerate(bridgePolys, min_area);
-                    bridgePolys = CurveUtils2.Filter(bridgePolys, (p) =>
-                    {
-                        return layeri > 0 && is_bridgeable(p, layeri, bridge_tol);
-                    });
-                }
-
-                LayerBridgeAreas[layeri] = (bridgePolys != null)
-                    ? bridgePolys : new List<GeneralPolygon2d>();
-            });
-            LayerBridgeAreas[nLayers - 1] = new List<GeneralPolygon2d>();
         }
 
         /// <summary>
@@ -1510,75 +1462,6 @@ namespace gs
 
                 count_progress_step();
             });
-        }
-
-        /*
-         * Bridging and Support utility functions
-         */
-
-        /// <summary>
-        /// Check if polygon can be bridged. Currently we allow this if all hold:
-        /// 1) contracting by max bridge width produces empty polygon
-        /// 2) all "turning" vertices of polygon are connected to previous layer
-        /// [TODO] not sure this actually guarantees that unsupported distances
-        /// *between* turns are within bridge threshold...
-        /// </summary>
-        protected virtual bool is_bridgeable(GeneralPolygon2d support_poly, int iLayer, double fTolDelta)
-        {
-            double max_bridge_dist = Settings.Part.MaxBridgeWidthMM;
-
-            // if we inset by half bridge dist, and this doesn't completely wipe out
-            // polygon, then it is too wide to bridge, somewhere
-            // [TODO] this is a reasonable way to decompose into bridgeable chunks...
-            double inset_delta = max_bridge_dist * 0.55;
-            List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(support_poly, -inset_delta);
-            if (offset != null && offset.Count > 0)
-                return false;
-
-            if (is_fully_connected(support_poly.Outer, iLayer, fTolDelta) == false)
-                return false;
-            foreach (var h in support_poly.Holes)
-            {
-                if (is_fully_connected(h, iLayer, fTolDelta) == false)
-                    return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// check if all turn vertices of poly are connected ( see is_connected(vector2d) )
-        /// </summary>
-        protected virtual bool is_fully_connected(Polygon2d poly, int iLayer, double fTolDelta)
-        {
-            int NV = poly.VertexCount;
-            for (int k = 0; k < NV; ++k)
-            {
-                Vector2d v = poly[k];
-                if (k > 0 && poly.OpeningAngleDeg(k) > 179)
-                    continue;
-                if (is_connected(poly[k], iLayer, fTolDelta) == false)
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Check if position is "connected" to a solid in the slice
-        /// at layer i, where connected means distance is within tolerance
-        /// [TODO] I don't think this will return true if pos is inside one of the solids...
-        /// </summary>
-        protected virtual bool is_connected(Vector2d pos, int iLayer, double fTolDelta)
-        {
-            double maxdist = fTolDelta;
-            double maxdist_sqr = maxdist * maxdist;
-
-            PlanarSlice slice = Slices[iLayer];
-            double dist_sqr = slice.DistanceSquared(pos, maxdist_sqr, true, true);
-            if (dist_sqr < maxdist_sqr)
-                return true;
-
-            return false;
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ namespace Sutro.Core.Parallel
             IParallelActor actor;
 
             if (System.Diagnostics.Debugger.IsAttached)
-                actor = new ParallelActorNone();
+                actor = new ParallelActorSerial();
             else
                 actor = new ParallelActorAll();
 

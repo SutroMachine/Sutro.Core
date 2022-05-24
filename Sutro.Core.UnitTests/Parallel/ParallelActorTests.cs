@@ -36,7 +36,7 @@ namespace Sutro.Core.UnitTests.Parallel
         public void ParallelActorNone()
         {
             // Arrange
-            var actor = new ParallelActorNone();
+            var actor = new ParallelActorSerial();
             var threads = new ConcurrentDictionary<int, int>();
 
             // Act
