@@ -1,4 +1,5 @@
-﻿using Sutro.Core.Parallel;
+﻿using Sutro.Core.Bridging;
+using Sutro.Core.Parallel;
 using Sutro.Core.Settings;
 using Sutro.Core.Support;
 using System;
@@ -55,6 +56,25 @@ namespace Sutro.Core
         public virtual IParallelActor GetParallelActor()
         {
             return new ParallelActorAll();
+        }
+
+        public virtual IBridgeRegionCalculator GetBridgeRegionCalculator()
+        {
+            if (!profile.Part.EnableBridging)
+                return new NullBridgeRegionCalculator();
+
+            // [RMS] does this make sense? maybe should be using 0 here?
+            double bridgeTol = profile.Machine.NozzleDiamMM * 0.5;
+            double extraExpansion = bridgeTol * 0.1;
+            bridgeTol += extraExpansion;
+            double minArea = profile.Machine.NozzleDiamMM;
+            minArea *= minArea;
+
+            return new BridgeRegionCalculator(GetParallelActor(),
+                maxBridgeDistance: profile.Part.MaxBridgeWidthMM,
+                bridgeTolerance: bridgeTol,
+                minArea: minArea,
+                extraExpansion: extraExpansion);
         }
     }
 }
