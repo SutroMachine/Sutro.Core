@@ -438,7 +438,7 @@ namespace gs
         public double DistanceSquared(Vector2d pt, double max_dist = double.MaxValue, bool solids = true, bool paths = true)
         {
             if (spatial_caches_available == false)
-                throw new Exception("PlanarSlice.DistanceSquared: call BiuldSpatialCaches first!");
+                throw new Exception("PlanarSlice.DistanceSquared: call BuildSpatialCaches first!");
 
             double dist_sqr = double.MaxValue;
             if (max_dist != double.MaxValue)

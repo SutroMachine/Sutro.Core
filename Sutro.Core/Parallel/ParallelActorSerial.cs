@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Sutro.Core.Parallel
 {
-    public class ParallelActorNone : IParallelActor
+    public class ParallelActorSerial : IParallelActor
     {
         public void ForEach<TSource>(IEnumerable<TSource> source, ParallelOptions options, Action<TSource> body)
         {
