@@ -4,37 +4,67 @@ using gs.utility;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
 using Sutro.Core.Models.GCode;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Sutro.Core.FunctionalTest
 {
+
     public class ResultAnalyzer<TFeatureInfo> : IResultAnalyzer where TFeatureInfo : IFeatureInfo, new()
     {
         private readonly IFeatureInfoFactory<TFeatureInfo> featureInfoFactory;
-        private readonly ILogger logger;
 
-        public ResultAnalyzer(IFeatureInfoFactory<TFeatureInfo> featureInfoFactory, ILogger logger)
+        protected sealed class Result
         {
-            this.featureInfoFactory = featureInfoFactory;
-            this.logger = logger;
+            public ReadOnlyCollection<LayerInfo<TFeatureInfo>> Layers { get; }
+            public LayerInfo<TFeatureInfo> Total { get; }
+
+            public Result(IList<LayerInfo<TFeatureInfo>> list)
+            {
+                Layers = new ReadOnlyCollection<LayerInfo<TFeatureInfo>>(list);
+                
+                Total = new LayerInfo<TFeatureInfo>();
+                foreach (var layer in Layers)
+                {
+                    foreach (var feature in layer.GetFillTypes())
+                    {
+                        layer.GetFeatureInfo(feature, out var featureInfo);
+                        Total.AddFeatureInfo(featureInfo);
+                    }
+                }
+            }
         }
 
-        public void CompareResults(string pathExpected, string pathActual)
+        public ResultAnalyzer(IFeatureInfoFactory<TFeatureInfo> featureInfoFactory)
+        {
+            this.featureInfoFactory = featureInfoFactory;
+        }
+
+        public ComparisonReport CompareResults(string pathExpected, string pathActual)
         {
             var expected = PerLayerInfoFromGCodeFile(pathExpected);
             var actual = PerLayerInfoFromGCodeFile(pathActual);
 
-            if (actual.Count != expected.Count)
+            var report = new ComparisonReport();
+
+            if (actual.Layers.Count != expected.Layers.Count)
             {
-                throw new LayerCountException($"Expected {expected.Count} layers but the result has {actual.Count}.");
+                report.AddSummaryMismatch($"Expected {expected.Layers.Count} layers but the result has {actual.Layers.Count}.");
             }
 
-            for (int layerIndex = 0; layerIndex < actual.Count; layerIndex++)
+            foreach (var mismatch in actual.Total.Compare(expected.Total))
             {
-                logger.WriteLine($"Checking layer {layerIndex}");
-                actual[layerIndex].AssertEqualsExpected(expected[layerIndex]);
+                report.AddTotalMismatch(mismatch);
             }
+
+
+            return report;
+            //for (int layerIndex = 0; layerIndex < actual.Count; layerIndex++)
+            //{
+            //    logger.WriteLine($"Checking layer {layerIndex}");
+            //    actual[layerIndex].FindMismatches(expected[layerIndex]);
+            //}
         }
 
         protected virtual GCodeFile LoadGCodeFileFromDisk(string gcodeFilePath)
@@ -44,9 +74,9 @@ namespace Sutro.Core.FunctionalTest
             return parser.Parse(fileReader);
         }
 
-        protected virtual List<LayerInfo<TFeatureInfo>> PerLayerInfoFromGCodeFile(string gcodeFilePath)
+        protected virtual Result PerLayerInfoFromGCodeFile(string gcodeFilePath)
         {
-            return PerLayerInfoFromGCodeFile(LoadGCodeFileFromDisk(gcodeFilePath));
+            return new Result(PerLayerInfoFromGCodeFile(LoadGCodeFileFromDisk(gcodeFilePath)));
         }
 
         public virtual bool LineIsNewLayer(GCodeLine line)
@@ -73,7 +103,7 @@ namespace Sutro.Core.FunctionalTest
                         currentLayer.AddFeatureInfo(featureInfoFactory.SwitchFeature(fillType));
                         layers.Add(currentLayer);
                     }
-                    currentLayer = new LayerInfo<TFeatureInfo>(logger);
+                    currentLayer = new LayerInfo<TFeatureInfo>();
                     continue;
                 }
 

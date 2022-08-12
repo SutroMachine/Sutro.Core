@@ -10,7 +10,7 @@ namespace Sutro.Core.FunctionalTest
         public static PrintTestRunner CreateTestRunner(string caseName, PrintProfileFFF settings)
         {
             var resultGenerator = CreateResultGenerator(settings);
-            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF(), new ConsoleLogger());
+            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF());
             return new PrintTestRunner(caseName, resultGenerator, resultAnalyzer);
         }
 

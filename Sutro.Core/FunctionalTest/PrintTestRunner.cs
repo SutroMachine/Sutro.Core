@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
+using System;
+using System.IO;
 
 namespace Sutro.Core.FunctionalTest
 {
@@ -17,9 +19,9 @@ namespace Sutro.Core.FunctionalTest
             directory = TestDataPaths.GetTestDataDirectory(name);
         }
 
-        public void CompareResults()
+        public ComparisonReport CompareResults()
         {
-            resultAnalyzer.CompareResults(
+            return resultAnalyzer.CompareResults(
                 TestDataPaths.GetExpectedFilePath(directory),
                 TestDataPaths.GetResultFilePath(directory));
         }

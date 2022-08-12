@@ -2,6 +2,6 @@
 {
     public interface IResultAnalyzer
     {
-        void CompareResults(string pathExpected, string pathActual);
+        ComparisonReport CompareResults(string pathExpected, string pathActual);
     }
 }

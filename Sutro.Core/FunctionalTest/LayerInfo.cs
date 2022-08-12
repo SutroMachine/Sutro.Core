@@ -6,36 +6,43 @@ namespace Sutro.Core.FunctionalTest
 {
     public class LayerInfo<TFeatureInfo> where TFeatureInfo : IFeatureInfo
     {
-        private readonly ILogger logger;
-
-        public LayerInfo(ILogger logger)
+        public LayerInfo()
         {
-            this.logger = logger;
         }
 
         private readonly Dictionary<string, TFeatureInfo> perFeatureInfo =
             new Dictionary<string, TFeatureInfo>();
 
-        public void AssertEqualsExpected(LayerInfo<TFeatureInfo> expected)
+        public IEnumerable<string> Compare(LayerInfo<TFeatureInfo> expected)
         {
             foreach (var key in perFeatureInfo.Keys)
                 if (!expected.perFeatureInfo.ContainsKey(key))
-                    throw new MissingFeatureException($"Result has unexpected feature {key}");
+                    yield return $"Result has unexpected feature {key}";
 
             foreach (var key in expected.perFeatureInfo.Keys)
                 if (!perFeatureInfo.ContainsKey(key))
-                    throw new MissingFeatureException($"Result was missing expected feature {key}");
+                    yield return ($"Result was missing expected feature {key}");
 
             foreach (var fillType in perFeatureInfo.Keys)
             {
-                logger.WriteLine($"\t{fillType}");
-                perFeatureInfo[fillType].AssertEqualsExpected(expected.perFeatureInfo[fillType]);
+                foreach (var mismatch in perFeatureInfo[fillType].Compare(expected.perFeatureInfo[fillType]))
+                {
+                    yield return mismatch;
+                }
             }
         }
 
         public bool GetFeatureInfo(string fillType, out TFeatureInfo featureInfo)
         {
             return perFeatureInfo.TryGetValue(fillType, out featureInfo);
+        }
+
+        public IEnumerable<string> GetFillTypes()
+        {
+            foreach (var key in perFeatureInfo.Keys)
+            {
+                yield return key;
+            }
         }
 
         public void AddFeatureInfo(TFeatureInfo featureInfo)
