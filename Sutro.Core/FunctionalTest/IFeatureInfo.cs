@@ -8,6 +8,6 @@ namespace Sutro.Core.FunctionalTest
 
         void Add(IFeatureInfo other);
 
-        IEnumerable<string> Compare(IFeatureInfo other);
+        IEnumerable<Comparison> Compare(IFeatureInfo other);
     }
 }

@@ -3,6 +3,7 @@ using gs.FillTypes;
 using gs.utility;
 using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
 using Sutro.Core.Models.GCode;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -49,22 +50,25 @@ namespace Sutro.Core.FunctionalTest
             var report = new ComparisonReport();
 
             if (actual.Layers.Count != expected.Layers.Count)
+            {                
+                report.AddSummary(new Comparison(false, $"Layers: expected {expected.Layers.Count} layers, actual {actual.Layers.Count}."));
+            }
+            else
             {
-                report.AddSummaryMismatch($"Expected {expected.Layers.Count} layers but the result has {actual.Layers.Count}.");
+                report.AddSummary(new Comparison(true, $"Layers: {expected.Layers.Count}"));
             }
 
-            foreach (var mismatch in actual.Total.Compare(expected.Total))
+            foreach (var (featureType, comparison) in actual.Total.Compare(expected.Total))
             {
-                report.AddTotalMismatch(mismatch);
+                report.AddTotal(featureType, comparison);
             }
 
-
+            int nLayers = Math.Min(actual.Layers.Count, expected.Layers.Count);
+            for (int layerIndex = 0; layerIndex < nLayers; layerIndex++)
+            {
+                report.AddLayer(layerIndex, actual.Layers[layerIndex].Compare(expected.Layers[layerIndex]));
+            }
             return report;
-            //for (int layerIndex = 0; layerIndex < actual.Count; layerIndex++)
-            //{
-            //    logger.WriteLine($"Checking layer {layerIndex}");
-            //    actual[layerIndex].FindMismatches(expected[layerIndex]);
-            //}
         }
 
         protected virtual GCodeFile LoadGCodeFileFromDisk(string gcodeFilePath)

@@ -30,6 +30,8 @@ namespace Sutro.Core.FunctionalTest
         {
             var mesh = StandardMeshReader.ReadMesh(meshFilePath);
 
+            MeshTransforms.Translate(mesh, new Vector3d(0, 0, mesh.CachedBounds.Extents.z - mesh.CachedBounds.Center.z));
+
             var gcode = generator.GCodeFromMesh(
                 mesh: mesh, 
                 details: out _,

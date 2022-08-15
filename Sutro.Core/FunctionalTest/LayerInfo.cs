@@ -1,10 +1,10 @@
-﻿using gs;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Sutro.Core.FunctionalTest
 {
-    public class LayerInfo<TFeatureInfo> where TFeatureInfo : IFeatureInfo
+    public class LayerInfo<TFeatureInfo> where TFeatureInfo : IFeatureInfo, new()
     {
         public LayerInfo()
         {
@@ -13,23 +13,29 @@ namespace Sutro.Core.FunctionalTest
         private readonly Dictionary<string, TFeatureInfo> perFeatureInfo =
             new Dictionary<string, TFeatureInfo>();
 
-        public IEnumerable<string> Compare(LayerInfo<TFeatureInfo> expected)
+        public Dictionary<string, ReadOnlyCollection<Comparison>> Compare(LayerInfo<TFeatureInfo> expected)
         {
+            var combinedKeys = new HashSet<string>();
             foreach (var key in perFeatureInfo.Keys)
+            {
+                combinedKeys.Add(key);
                 if (!expected.perFeatureInfo.ContainsKey(key))
-                    yield return $"Result has unexpected feature {key}";
+                    expected.perFeatureInfo[key] = new TFeatureInfo();
+            }
 
             foreach (var key in expected.perFeatureInfo.Keys)
-                if (!perFeatureInfo.ContainsKey(key))
-                    yield return ($"Result was missing expected feature {key}");
-
-            foreach (var fillType in perFeatureInfo.Keys)
             {
-                foreach (var mismatch in perFeatureInfo[fillType].Compare(expected.perFeatureInfo[fillType]))
-                {
-                    yield return mismatch;
-                }
+                combinedKeys.Add(key);
+                if (!perFeatureInfo.ContainsKey(key))
+                    perFeatureInfo[key] = new TFeatureInfo();
             }
+
+            var comparisons = new Dictionary<string, ReadOnlyCollection<Comparison>>();
+            foreach (var fillType in combinedKeys)
+            {
+                comparisons[fillType] = perFeatureInfo[fillType].Compare(expected.perFeatureInfo[fillType]).ToList().AsReadOnly();
+            }
+            return comparisons;
         }
 
         public bool GetFeatureInfo(string fillType, out TFeatureInfo featureInfo)

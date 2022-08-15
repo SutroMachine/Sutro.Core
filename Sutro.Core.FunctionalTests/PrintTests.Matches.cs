@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
+using System;
 
 namespace gsCore.FunctionalTests
 {
@@ -40,9 +42,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -53,7 +57,8 @@ namespace gsCore.FunctionalTests
             var part = new PartProfileFFF()
             {
                 GenerateSupport = false,
-                LayerHeightMM = 0.3
+                LayerHeightMM = 0.3,
+                RapidTravelSpeed = 4800,
             };
             part.CarefulExtrudeSpeed = 20 * 60;
 
@@ -64,9 +69,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -81,9 +88,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -105,9 +114,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -129,9 +140,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -151,9 +164,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
     }
 }
