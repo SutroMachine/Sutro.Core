@@ -62,7 +62,10 @@ namespace Sutro.Core.FunctionalTest
             }
             else
             {
-                perFeatureInfo.Add(featureInfo.FillType, featureInfo);
+                var f = new TFeatureInfo();
+                f.FillType = featureInfo.FillType;
+                f.Add(featureInfo);
+                perFeatureInfo.Add(featureInfo.FillType, f);
             }
         }
     }
