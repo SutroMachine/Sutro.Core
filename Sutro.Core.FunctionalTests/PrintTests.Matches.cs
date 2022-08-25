@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
 using Sutro.Core.Settings;
 using Sutro.Core.Settings.Machine;
 using Sutro.Core.Settings.Part;
+using System;
 
 namespace gsCore.FunctionalTests
 {
@@ -40,9 +42,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -50,11 +54,11 @@ namespace gsCore.FunctionalTests
         {
             // Arrange
             var machine = MachineProfilesFactoryFFF.Prusa.Create_i3Mk3();
-            var part = new PartProfileFFF()
-            {
-                GenerateSupport = false,
-                LayerHeightMM = 0.3
-            };
+            var part = new PartProfileFFF();
+            part.GenerateSupport = false;
+            part.LayerHeightMM = 0.3;
+            part.RapidTravelSpeed = 4800;
+            part.RapidExtrudeSpeed = 3600;
             part.CarefulExtrudeSpeed = 20 * 60;
 
             var print = TestRunnerFactoryFFF.CreateTestRunner("Cube.Prusa", new PrintProfileFFF()
@@ -64,9 +68,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -76,14 +82,21 @@ namespace gsCore.FunctionalTests
             var print = TestRunnerFactoryFFF.CreateTestRunner("Sphere.Flashforge", new PrintProfileFFF
             {
                 Machine = MachineProfilesFactoryFFF.Flashforge.CreateCreatorPro(),
-                Part = { GenerateSupport = true, ZipperAlignedToPoint = true },
+                Part = { 
+                    GenerateSupport = true, 
+                    ZipperAlignedToPoint = true,
+                    RapidExtrudeSpeed = 3600,
+                    MinLayerTime = 0
+                },
             });
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -95,9 +108,9 @@ namespace gsCore.FunctionalTests
             {
                 GenerateSupport = false,
             };
-            PartProfileFactoryFFF.ApplyMaxMachineSpeeds(part, machine);
-            part.CarefulExtrudeSpeed = 20 * 60;
-
+            part.CarefulExtrudeSpeed = 1380;
+            part.RapidExtrudeSpeed = 3600;
+            part.RapidTravelSpeed = 4800;
             var print = TestRunnerFactoryFFF.CreateTestRunner("Bunny.Printrbot", new PrintProfileFFF()
             {
                 Machine = machine, Part = part,
@@ -105,9 +118,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -129,9 +144,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
 
         [TestMethod]
@@ -151,9 +168,11 @@ namespace gsCore.FunctionalTests
 
             // Act
             print.GenerateFile();
+            var comparison = print.CompareResults();
+            Console.WriteLine(comparison.GetReport());
 
             // Assert
-            print.CompareResults();
+            comparison.AreEquivalent.Should().BeTrue();
         }
     }
 }

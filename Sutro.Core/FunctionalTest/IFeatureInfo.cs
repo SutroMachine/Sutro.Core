@@ -1,4 +1,6 @@
-﻿namespace Sutro.Core.FunctionalTest
+﻿using System.Collections.Generic;
+
+namespace Sutro.Core.FunctionalTest
 {
     public interface IFeatureInfo
     {
@@ -6,6 +8,6 @@
 
         void Add(IFeatureInfo other);
 
-        void AssertEqualsExpected(IFeatureInfo other);
+        IEnumerable<Comparison> Compare(IFeatureInfo other);
     }
 }

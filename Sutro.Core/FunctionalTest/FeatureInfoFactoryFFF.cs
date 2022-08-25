@@ -64,7 +64,7 @@ namespace Sutro.Core.FunctionalTest
                 currentFeatureInfo.BoundingBox.Contain(VertexPrevious.Position.xy);
                 currentFeatureInfo.BoundingBox.Contain(VertexCurrent.Position.xy);
                 currentFeatureInfo.UnweightedCenterOfMass += average * extrusion;
-                currentFeatureInfo.Duration += distance / VertexCurrent.FeedRate;
+                currentFeatureInfo.Duration += 60 * distance / VertexCurrent.FeedRate;
 
                 VertexCurrent.Extrusion = new Vector3d(extrusionAmount, 0, 0);
             }

@@ -1,9 +1,10 @@
-﻿using gs;
+﻿using FluentAssertions;
+using g3;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sutro.Core.FunctionalTest;
-using Sutro.Core.FunctionalTest.FeatureMismatchExceptions;
 using Sutro.Core.Settings;
 using System;
+using System.Collections.Generic;
 
 namespace gsCore.FunctionalTests
 {
@@ -27,25 +28,25 @@ namespace gsCore.FunctionalTests
         [TestMethod]
         public void WrongLayerHeight()
         {
-            ExpectFailure<LayerCountException>(new PrintProfileFFF() { Part = { LayerHeightMM = 0.3 } });
+            ExpectFailure(new PrintProfileFFF() { Part = { LayerHeightMM = 0.3 } });
         }
 
         [TestMethod]
         public void WrongShells()
         {
-            ExpectFailure<CumulativeExtrusionException>(new PrintProfileFFF() { Part = { Shells = 3 } });
+            ExpectFailure(new PrintProfileFFF() { Part = { Shells = 3 } });
         }
 
         [TestMethod]
         public void WrongFloorLayers()
         {
-            ExpectFailure<MissingFeatureException>(new PrintProfileFFF() { Part = { FloorLayers = 0 } });
+            ExpectFailure(new PrintProfileFFF() { Part = { FloorLayers = 0 } });
         }
 
         [TestMethod]
         public void WrongRoofLayers()
         {
-            ExpectFailure<MissingFeatureException>(new PrintProfileFFF() { Part = { FloorLayers = 3 } });
+            ExpectFailure(new PrintProfileFFF() { Part = { RoofLayers = 3 } });
         }
 
         [TestMethod]
@@ -54,24 +55,24 @@ namespace gsCore.FunctionalTests
             var settings = new PrintProfileFFF();
             settings.Machine.OriginX = Sutro.Core.Models.Profiles.MachineBedOriginLocationX.Center;
             settings.Machine.OriginY = Sutro.Core.Models.Profiles.MachineBedOriginLocationY.Center;
-            ExpectFailure<BoundingBoxException>(settings);
+            ExpectFailure(settings);
         }
 
-        public void ExpectFailure<ExceptionType>(PrintProfileFFF settings) where ExceptionType : Exception
+        public void ExpectFailure(PrintProfileFFF settings)
         {
             // Arrange
             var resultGenerator = TestRunnerFactoryFFF.CreateResultGenerator(settings);
-            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF(), new ConsoleLogger());
+            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF());
             var print = new PrintTestRunner(CaseName, resultGenerator, resultAnalyzer);
 
             // Act
             print.GenerateFile();
 
             // Assert
-            Assert.ThrowsException<ExceptionType>(() =>
-            {
-                print.CompareResults();
-            });
+            var comparison = print.CompareResults();
+            var report = comparison.GetReport();
+            Console.WriteLine(report);
+            comparison.AreEquivalent.Should().BeFalse();
         }
     }
 }
